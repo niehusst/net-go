@@ -12,6 +12,9 @@ if I don't find a good P2P solution.
 
 ## Dev setup
 
+As per the Gin library setup instructions, Golang v1.13+
+is required to run this app.
+
 Run `go get .` when located within this directory (`backend/`)
 to download all the Go module deps.
 
