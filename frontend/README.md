@@ -25,3 +25,11 @@ localhost using the following command:
 ```
 elm reactor
 ```
+Note that if you select an HTML file, it likely won't render
+due to being unable to find the corresponding JS file it needs
+to render via Elm. You can select the corresponding Elm source
+file, but it will render w/o CSS (since it's generating HTML
+for you on the fly).
+
+For the full experience (fully rendered HTML with CSS), please
+run the backend from project root with `go run .`.
