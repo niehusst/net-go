@@ -8,6 +8,8 @@ import (
 func GetRouter() *gin.Engine {
 	router := gin.Default()
 
+  router.RedirectTrailingSlash = true
+
 	// load HTML files from glob pattern so gin can reference them
 	router.LoadHTMLGlob("frontend/templates/*")
 
