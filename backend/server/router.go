@@ -1,19 +1,24 @@
-package main
+package server
 
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func main() {
+func GetRouter() *gin.Engine {
 	router := gin.Default()
 
 	// load HTML files from glob pattern so gin can reference them
-	router.LoadHTMLGlob("testdata/*")
+	router.LoadHTMLGlob("frontend/templates/*")
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
 
-	router.Run("localhost:8080") // TODO: debug
+  router.NoRoute(func(c *gin.Context) {
+    c.String(404, "404 placeholder")
+  })
+
+  return router
+	//router.Run("localhost:8080") // TODO: debug
 }
