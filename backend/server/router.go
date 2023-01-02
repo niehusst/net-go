@@ -12,6 +12,8 @@ func GetRouter() *gin.Engine {
 
 	// load HTML files from glob pattern so gin can reference them
 	router.LoadHTMLGlob("frontend/templates/*")
+  // load the asset files
+  router.Static("/static", "frontend/static")
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
