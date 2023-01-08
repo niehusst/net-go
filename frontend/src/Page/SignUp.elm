@@ -1,22 +1,23 @@
-module SignUp exposing (User)
-
--- TODO: come back to this exporet
+module Page.SignUp exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-type alias User =
+type alias Model =
     { username : String
     , password : String
     }
 
 
-initialModel : User
-initialModel =
-    { username = ""
-    , password = ""
-    }
+type Msg
+    = Signup
+    | SaveUsername String
+    | SavePassword String
+
+
+
+-- VIEW --
 
 
 view : User -> Html msg
@@ -50,33 +51,43 @@ view model =
         ]
 
 
-type Action
-    = Signup
-    | SaveUsername String
-    | SavePassword String
+
+-- UPDATE --
 
 
-update : Action -> User -> User
-update action model =
-    case action of
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
         SaveUsername username ->
-            { model | username = username }
+            ( { model | username = username }
+            , Cmd.none
+            )
 
         SavePassword password ->
-            { model | password = password }
+            ( { model | password = password }
+            , Cmd.none
+            )
 
         Signup ->
-            { username | username = "" }
+            -- TODO: network req
+            ( model
+            , Cmd.none
+            )
 
 
 
--- TODO: network req
+-- INIT --
 
 
-main : Program () User Action
-main =
-    Browser.sandbox
-        { init = initialMOdel
-        , view = view
-        , update = update
-        }
+init : ( Model, Cmd Msg )
+init =
+    ( initialModel
+    , Cmd.none
+    )
+
+
+initialModel : Model
+initialModel =
+    { username = ""
+    , password = ""
+    }
