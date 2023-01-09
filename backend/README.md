@@ -5,8 +5,8 @@ Pretty funny, right??
 
 The backend is mostly a simple Gin CRUD API with a database and 
 some basic HTML file serving/rendering (the actual HTML layout
-files will all eventually be stored under the `frontend/`
-directory, where they will be defined in Elm).
+files are stored under the `frontend/` directory, and are
+defined in Elm, along with page routing).
 It may also end up being a WebSocket proxy between players
 if I don't find a good P2P solution.
 
@@ -20,5 +20,5 @@ to download all the Go module deps.
 
 You can run the server on localhost by running in the terminal(also from project root):
 ```
-go run .
+go run main.go
 ```

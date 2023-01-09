@@ -1,10 +1,13 @@
-PHONY: start, elm, format
+PHONY: run, elm, format, test
 
-start:
+run:
 	go run main.go
 
 elm:
-	cd frontend; elm make frontend/src/Home.elm --output ./static/js/elm.js; cd ..
+	elm make frontend/src/Main.elm --output frontend/static/js/elm.js
 
 format:
 	go fmt . ; elm-format frontend/src/ --yes
+
+test:
+	go test ; elm-test
