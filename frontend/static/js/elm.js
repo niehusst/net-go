@@ -5183,6 +5183,12 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$NotFoundPage = {$: 'NotFoundPage'};
+var $author$project$Main$GameCreatePage = function (a) {
+	return {$: 'GameCreatePage', a: a};
+};
+var $author$project$Main$GamePlayPage = function (a) {
+	return {$: 'GamePlayPage', a: a};
+};
 var $author$project$Main$HomePage = function (a) {
 	return {$: 'HomePage', a: a};
 };
@@ -5190,6 +5196,11 @@ var $author$project$Main$HomePageMsg = function (a) {
 	return {$: 'HomePageMsg', a: a};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $author$project$Page$GameCreate$Black = {$: 'Black'};
+var $author$project$Page$GameCreate$Standard = {$: 'Standard'};
+var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Page$GameCreate$Standard, colorChoice: $author$project$Page$GameCreate$Black, komi: 6.5};
+var $author$project$Page$GameCreate$init = $author$project$Page$GameCreate$initialModel;
+var $author$project$Page$GamePlay$init = {};
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Page$Home$init = _Utils_Tuple2(
 	{},
@@ -5200,15 +5211,26 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 	var existingCmds = _v0.b;
 	var _v1 = function () {
 		var _v2 = model.route;
-		if (_v2.$ === 'NotFound') {
-			return _Utils_Tuple2($author$project$Main$NotFoundPage, $elm$core$Platform$Cmd$none);
-		} else {
-			var _v3 = $author$project$Page$Home$init;
-			var pageModel = _v3.a;
-			var pageCmds = _v3.b;
-			return _Utils_Tuple2(
-				$author$project$Main$HomePage(pageModel),
-				A2($elm$core$Platform$Cmd$map, $author$project$Main$HomePageMsg, pageCmds));
+		switch (_v2.$) {
+			case 'NotFound':
+				return _Utils_Tuple2($author$project$Main$NotFoundPage, $elm$core$Platform$Cmd$none);
+			case 'Home':
+				var _v3 = $author$project$Page$Home$init;
+				var pageModel = _v3.a;
+				var pageCmds = _v3.b;
+				return _Utils_Tuple2(
+					$author$project$Main$HomePage(pageModel),
+					A2($elm$core$Platform$Cmd$map, $author$project$Main$HomePageMsg, pageCmds));
+			case 'GameCreate':
+				var pageModel = $author$project$Page$GameCreate$init;
+				return _Utils_Tuple2(
+					$author$project$Main$GameCreatePage(pageModel),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var pageModel = $author$project$Page$GamePlay$init;
+				return _Utils_Tuple2(
+					$author$project$Main$GamePlayPage(pageModel),
+					$elm$core$Platform$Cmd$none);
 		}
 	}();
 	var currentPage = _v1.a;
@@ -5222,6 +5244,8 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 				[existingCmds, mappedCmds])));
 };
 var $author$project$Route$NotFound = {$: 'NotFound'};
+var $author$project$Route$GameCreate = {$: 'GameCreate'};
+var $author$project$Route$GamePlay = {$: 'GamePlay'};
 var $author$project$Route$Home = {$: 'Home'};
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
@@ -5290,6 +5314,44 @@ var $elm$url$Url$Parser$oneOf = function (parsers) {
 				parsers);
 		});
 };
+var $elm$url$Url$Parser$s = function (str) {
+	return $elm$url$Url$Parser$Parser(
+		function (_v0) {
+			var visited = _v0.visited;
+			var unvisited = _v0.unvisited;
+			var params = _v0.params;
+			var frag = _v0.frag;
+			var value = _v0.value;
+			if (!unvisited.b) {
+				return _List_Nil;
+			} else {
+				var next = unvisited.a;
+				var rest = unvisited.b;
+				return _Utils_eq(next, str) ? _List_fromArray(
+					[
+						A5(
+						$elm$url$Url$Parser$State,
+						A2($elm$core$List$cons, next, visited),
+						rest,
+						params,
+						frag,
+						value)
+					]) : _List_Nil;
+			}
+		});
+};
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
 var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
 	function (state) {
 		return _List_fromArray(
@@ -5298,7 +5360,18 @@ var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
 var $author$project$Route$matchRoute = $elm$url$Url$Parser$oneOf(
 	_List_fromArray(
 		[
-			A2($elm$url$Url$Parser$map, $author$project$Route$Home, $elm$url$Url$Parser$top)
+			A2($elm$url$Url$Parser$map, $author$project$Route$Home, $elm$url$Url$Parser$top),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Route$GameCreate,
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('game'),
+				$elm$url$Url$Parser$s('create'))),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Route$GamePlay,
+			$elm$url$Url$Parser$s('game'))
 		]));
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
@@ -6051,6 +6124,10 @@ var $author$project$Main$update = F2(
 	});
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6059,13 +6136,103 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			$elm$json$Json$Encode$string(string));
 	});
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $author$project$Route$routeToString = function (route) {
+	switch (route.$) {
+		case 'NotFound':
+			return '/route-not-found';
+		case 'Home':
+			return '/';
+		case 'GameCreate':
+			return '/game/create';
+		default:
+			return '/game';
+	}
+};
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Page$GameCreate$boardSizeToInt = function (size) {
+	switch (size.$) {
+		case 'Standard':
+			return 19;
+		case 'Medium':
+			return 12;
+		default:
+			return 9;
+	}
+};
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $author$project$Page$GameCreate$colorToString = function (color) {
+	if (color.$ === 'White') {
+		return 'White';
+	} else {
+		return 'Black';
+	}
+};
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $author$project$Page$GameCreate$viewGameSettings = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(
+				'Color: ' + $author$project$Page$GameCreate$colorToString(model.colorChoice)),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil),
+				$elm$html$Html$text(
+				'Board size: ' + $elm$core$String$fromInt(
+					$author$project$Page$GameCreate$boardSizeToInt(model.boardSize))),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil),
+				$elm$html$Html$text(
+				'Komi: ' + $elm$core$String$fromFloat(model.komi)),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil)
+			]));
+};
+var $author$project$Page$GameCreate$view = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Game Settings')
+					])),
+				$author$project$Page$GameCreate$viewGameSettings(model),
+				A2(
+				$elm$html$Html$a,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$href(
+						$author$project$Route$routeToString($author$project$Route$GamePlay))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Create game')
+							]))
+					]))
+			]));
+};
+var $author$project$Page$GamePlay$view = function (model) {
+	return $elm$html$Html$text('TODO');
+};
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$strong = _VirtualDom_node('strong');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Page$Home$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6096,25 +6263,43 @@ var $author$project$Page$Home$view = function (model) {
 								$elm$html$Html$text('FUN.')
 							])),
 						$elm$html$Html$text(' \n                More functionality coming soon.\n                ')
+					])),
+				A2(
+				$elm$html$Html$a,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$href(
+						$author$project$Route$routeToString($author$project$Route$GameCreate))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Create a game')
+							]))
+					])),
+				A2(
+				$elm$html$Html$a,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$href('#')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Join a game')
+							]))
 					]))
 			]));
 };
-var $elm$html$Html$a = _VirtualDom_node('a');
-var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $author$project$Route$routeToString = function (route) {
-	if (route.$ === 'NotFound') {
-		return '/route-not-found';
-	} else {
-		return '/';
-	}
-};
 var $author$project$Page$NotFound$view = A2(
 	$elm$html$Html$div,
 	_List_Nil,
@@ -6154,14 +6339,21 @@ var $author$project$Page$NotFound$view = A2(
 		]));
 var $author$project$Main$viewCurrentPage = function (model) {
 	var _v0 = model.page;
-	if (_v0.$ === 'NotFoundPage') {
-		return $author$project$Page$NotFound$view;
-	} else {
-		var pageModel = _v0.a;
-		return A2(
-			$elm$html$Html$map,
-			$author$project$Main$HomePageMsg,
-			$author$project$Page$Home$view(pageModel));
+	switch (_v0.$) {
+		case 'NotFoundPage':
+			return $author$project$Page$NotFound$view;
+		case 'HomePage':
+			var pageModel = _v0.a;
+			return A2(
+				$elm$html$Html$map,
+				$author$project$Main$HomePageMsg,
+				$author$project$Page$Home$view(pageModel));
+		case 'GameCreatePage':
+			var pageModel = _v0.a;
+			return $author$project$Page$GameCreate$view(pageModel);
+		default:
+			var pageModel = _v0.a;
+			return $author$project$Page$GamePlay$view(pageModel);
 	}
 };
 var $author$project$Main$view = function (model) {

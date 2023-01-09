@@ -15,16 +15,10 @@ partially reliant on NPM). More can be learned about setup
 Once the elm ecosystem is installed, you can run `elm install`
 to install the Elm deps for this app.
 
-Individual pages can be built using:
+The app can be built using:
 ```
 elm make src/Main.elm --output static/js/elm.js
 ```
 
-You can run the Elm frontend as a stand-alone file viewer on
-localhost using the following command:
-```
-elm-live src/Main.elm --pushstate -- --output=static/js/elm.js
-```
-
-For the full experience (with access to backend), please
-run the backend from project root with `go run .` instead.
+To run the app, it must be served from the backend, so run
+`go run main.go` from the project root.
