@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Board exposing (BoardSize, ColorChoice)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -144,8 +145,9 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GamePlay ->
                     let
+                        -- TODO: give real values
                         pageModel =
-                            GamePlay.init
+                            GamePlay.init Board.Small Board.Black
                     in
                     ( GamePlayPage pageModel
                     , Cmd.none

@@ -1,42 +1,9 @@
 module Page.GameCreate exposing (Model, init, view)
 
+import Board exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (href)
 import Route exposing (Route, routeToString)
-
-
-type ColorChoice
-    = White
-    | Black
-
-
-colorToString : ColorChoice -> String
-colorToString color =
-    case color of
-        White ->
-            "White"
-
-        Black ->
-            "Black"
-
-
-type BoardSize
-    = Standard
-    | Medium
-    | Small
-
-
-boardSizeToInt : BoardSize -> Int
-boardSizeToInt size =
-    case size of
-        Standard ->
-            19
-
-        Medium ->
-            12
-
-        Small ->
-            9
 
 
 type alias Model =

@@ -1,0 +1,23 @@
+/* grid-template-columns must be added at runtime */
+.board {
+  display: grid;
+  width: fit-content;
+}
+
+.board-square {
+  width: 26px;
+  height: 26px;
+  background: #dfc566;
+}
+
+.inner-board-square {
+}
+
+.inner-board-square:after {
+  border: 1px solid #000;
+  width: 26px;
+  height: 26px;
+  top: 13px;
+  left: 13px;
+  box-sizing: border-box;
+}
