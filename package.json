@@ -1,0 +1,14 @@
+{
+  "name": "net-go",
+  "description": "script runner and elm dep setup",
+  "scripts": {
+    "start" : "go run main.go",
+    "test": "go test ; npx elm-test frontend/tests/**/*.elm",
+    "format": "go fmt . ; npx elm-format frontend/src/ --yes",
+    "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js"
+  },
+  "devDependencies": {
+    "elm-format": "^0.8.5",
+    "elm-test": "^0.19.1-revision11"
+  }
+}
