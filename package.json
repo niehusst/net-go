@@ -3,8 +3,13 @@
   "description": "script runner and elm dep setup",
   "scripts": {
     "start" : "go run main.go",
-    "test": "go test ; npx elm-test frontend/tests/**/*.elm",
-    "format": "go fmt . ; npx elm-format frontend/src/ --yes",
+    "test": "npm run test-go ; npm run test-elm",
+    "test-elm": "npx elm-test frontend/tests/**/*.elm",
+    "test-go": "go test",
+    "format": "npm run format-elm ; npm run format-go",
+    "format-elm": "npx elm-format frontend/src/ --yes",
+    "format-go": "go fmt .",
+    "make": "npm run make-elm",
     "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js"
   },
   "devDependencies": {
