@@ -1,4 +1,4 @@
-module Page.GamePlay exposing (Model, init, view)
+module Page.GamePlay exposing (Model, buildCssClasses, init, view)
 
 import Array
 import Board exposing (..)
@@ -37,45 +37,52 @@ viewBuildBoard model =
     in
     -- border offset, svg, second layer of views w/ z index
     div [ class "board", style "grid-template-columns" gridStyle ]
-        (Array.toList
-            (Array.indexedMap
-                (viewBuildCell model.boardSize)
-                model.board
-            )
+        (viewGameBoard <| buildCssClasses model)
+
+
+viewGameBoard : List String -> List (Html msg)
+viewGameBoard cssClasses =
+    List.map (\cssClass -> div [ class cssClass ] []) cssClasses
+
+
+buildCssClasses : Model -> List String
+buildCssClasses model =
+    Array.toList
+        (Array.indexedMap
+            (generateCssClass (boardSizeToInt model.boardSize))
+            model.board
         )
 
 
-viewBuildCell : BoardSize -> Int -> Piece -> Html msg
-viewBuildCell size index piece =
+{-| determines if cell position `index` is not going
+to be on the outer right or bottom edges of the game
+board (when rendered in 2D grid instead of flat array).
+-}
+isInnerCell : Int -> Int -> Bool
+isInnerCell boardSize index =
     -- TODO: totally not working
     let
-        intSize =
-            boardSizeToInt size
-
         isLastRow =
-            index >= intSize * (intSize - 1)
+            index >= boardSize * (boardSize - 1)
 
         isLastCol =
-            remainderBy (index + 1) intSize == 0
-
-        isInner =
-            not (isLastRow || isLastCol)
+            remainderBy (index + 1) boardSize == 0
     in
-    viewCell piece isInner
+    not (isLastRow || isLastCol)
 
 
-viewCell : Piece -> Bool -> Html msg
-viewCell piece isInner =
+generateCssClass : Int -> Int -> Piece -> String
+generateCssClass boardSize index piece =
     let
         cssClass =
-            if isInner then
+            if isInnerCell boardSize index then
                 "board-square inner-board-square"
 
             else
                 "board-square"
     in
-    -- TODO: piece image + hover
-    div [ class cssClass ] []
+    -- TODO: piece image + hover ghost
+    cssClass
 
 
 

@@ -6291,7 +6291,19 @@ var $author$project$Page$GameCreate$view = function (model) {
 			]));
 };
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Page$GamePlay$isInnerCell = F2(
+	function (boardSize, index) {
+		var isLastRow = _Utils_cmp(index, boardSize * (boardSize - 1)) > -1;
+		var isLastCol = !(boardSize % (index + 1));
+		return !(isLastRow || isLastCol);
+	});
+var $author$project$Page$GamePlay$generateCssClass = F3(
+	function (boardSize, index, piece) {
+		var cssClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
+		return cssClass;
+	});
 var $elm$core$Elm$JsArray$foldl = _JsArray_foldl;
 var $elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
 var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
@@ -6335,6 +6347,15 @@ var $elm$core$Array$indexedMap = F2(
 			true,
 			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
 	});
+var $author$project$Page$GamePlay$buildCssClasses = function (model) {
+	return $elm$core$Array$toList(
+		A2(
+			$elm$core$Array$indexedMap,
+			$author$project$Page$GamePlay$generateCssClass(
+				$author$project$Board$boardSizeToInt(model.boardSize)),
+			model.board));
+};
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -6358,27 +6379,20 @@ var $elm$core$List$repeat = F2(
 	});
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Page$GamePlay$viewCell = F2(
-	function (piece, isInner) {
-		var cssClass = isInner ? 'board-square inner-board-square' : 'board-square';
-		return A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class(cssClass)
-				]),
-			_List_Nil);
-	});
-var $author$project$Page$GamePlay$viewBuildCell = F3(
-	function (size, index, piece) {
-		var intSize = $author$project$Board$boardSizeToInt(size);
-		var isLastCol = !(intSize % (index + 1));
-		var isLastRow = _Utils_cmp(index, intSize * (intSize - 1)) > -1;
-		var isInner = !(isLastRow || isLastCol);
-		return A2($author$project$Page$GamePlay$viewCell, piece, isInner);
-	});
+var $author$project$Page$GamePlay$viewGameBoard = function (cssClasses) {
+	return A2(
+		$elm$core$List$map,
+		function (cssClass) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class(cssClass)
+					]),
+				_List_Nil);
+		},
+		cssClasses);
+};
 var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 	var intSize = $author$project$Board$boardSizeToInt(model.boardSize);
 	var gridStyle = A2(
@@ -6392,11 +6406,8 @@ var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 				$elm$html$Html$Attributes$class('board'),
 				A2($elm$html$Html$Attributes$style, 'grid-template-columns', gridStyle)
 			]),
-		$elm$core$Array$toList(
-			A2(
-				$elm$core$Array$indexedMap,
-				$author$project$Page$GamePlay$viewBuildCell(model.boardSize),
-				model.board)));
+		$author$project$Page$GamePlay$viewGameBoard(
+			$author$project$Page$GamePlay$buildCssClasses(model)));
 };
 var $author$project$Page$GamePlay$view = function (model) {
 	return A2(
