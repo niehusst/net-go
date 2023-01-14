@@ -16,7 +16,7 @@ suite : Test
 suite =
     describe "Page.GamePlay Module"
         [ describe "GamePlay.buildCssClasses"
-            [ test "board css classes are generated without grid square classes in the outer right and bottom edges of the board" <|
+            [ test "empty board css classes are generated correctly to render the board" <|
                 \_ ->
                     let
                         boardSize =

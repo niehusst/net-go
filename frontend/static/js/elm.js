@@ -6296,7 +6296,7 @@ var $elm$core$Basics$not = _Basics_not;
 var $author$project$Page$GamePlay$isInnerCell = F2(
 	function (boardSize, index) {
 		var isLastRow = _Utils_cmp(index, boardSize * (boardSize - 1)) > -1;
-		var isLastCol = !(boardSize % (index + 1));
+		var isLastCol = !((index + 1) % boardSize);
 		return !(isLastRow || isLastCol);
 	});
 var $author$project$Page$GamePlay$generateCssClass = F3(

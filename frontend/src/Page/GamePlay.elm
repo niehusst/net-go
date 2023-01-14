@@ -60,13 +60,12 @@ board (when rendered in 2D grid instead of flat array).
 -}
 isInnerCell : Int -> Int -> Bool
 isInnerCell boardSize index =
-    -- TODO: totally not working
     let
         isLastRow =
             index >= boardSize * (boardSize - 1)
 
         isLastCol =
-            remainderBy (index + 1) boardSize == 0
+            remainderBy boardSize (index + 1) == 0
     in
     not (isLastRow || isLastCol)
 
