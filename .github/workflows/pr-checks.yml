@@ -48,4 +48,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: npm ci
+      - run: npm install -g elm
       - run: npm run test-elm
