@@ -1,0 +1,43 @@
+name: PR Checks
+
+on:
+  pull_request
+
+jobs:
+  lint-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: |-
+          npm run format-go
+          ! [ -z "$(git status -s)" ] && exit 1
+
+  lint-elm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: |-
+          npm run format-elm
+          ! [ -z "$(git status -s)" ] && exit 1
+
+  test-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint-go
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run test-go
+
+  test-elm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint-elm
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run test-elm
