@@ -12,7 +12,11 @@ jobs:
       - run: npm ci
       - run: |-
           npm run format-go
-          ! [ -z "$(git status -s)" ] && exit 1
+          if ! [ -z "$(git status -s)" ]
+          then
+            echo -e "Expected no changes but got\n$(git status)"
+            exit 1
+          fi
 
   lint-elm:
     runs-on: ubuntu-latest
@@ -22,7 +26,11 @@ jobs:
       - run: npm ci
       - run: |-
           npm run format-elm
-          ! [ -z "$(git status -s)" ] && exit 1
+          if ! [ -z "$(git status -s)" ]
+          then
+            echo -e "Expected no changes but got\n$(git status)"
+            exit 1
+          fi
 
   test-go:
     runs-on: ubuntu-latest
