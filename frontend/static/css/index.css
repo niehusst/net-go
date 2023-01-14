@@ -1,0 +1,27 @@
+/* grid-template-columns must be added at runtime */
+.board {
+  display: grid;
+  width: fit-content;
+}
+
+.board-square {
+  width: 26px;
+  height: 26px;
+  background: #dfc566;
+}
+
+/* these classes are for drawing the board grid */
+.inner-board-square {
+  width: 26px;
+  height: 26px;
+}
+
+.inner-board-square::after {
+  content: "";
+  position: absolute;
+  border: 1px solid #000;
+  width: 26px;
+  height: 26px;
+  transform: translate3d(13px, 13px, 0);
+  box-sizing: border-box;
+}

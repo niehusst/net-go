@@ -8,12 +8,16 @@ import Url.Parser exposing (..)
 type Route
     = NotFound
     | Home
+    | GameCreate
+    | GamePlay
 
 
 matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map Home top
+        , map GameCreate (s "game" </> s "create")
+        , map GamePlay (s "game") -- TODO: set game code
         ]
 
 
@@ -41,3 +45,10 @@ routeToString route =
 
         Home ->
             "/"
+
+        GameCreate ->
+            "/game/create"
+
+        GamePlay ->
+            -- TODO: dont forget to change this too
+            "/game"

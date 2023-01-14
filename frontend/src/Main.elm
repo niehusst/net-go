@@ -1,8 +1,11 @@
 module Main exposing (main)
 
+import Board exposing (BoardSize, ColorChoice)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
+import Page.GameCreate as GameCreate
+import Page.GamePlay as GamePlay
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Route exposing (Route)
@@ -19,6 +22,8 @@ type alias Model =
 type Page
     = NotFoundPage
     | HomePage Home.Model
+    | GameCreatePage GameCreate.Model
+    | GamePlayPage GamePlay.Model
 
 
 type Msg
@@ -47,6 +52,12 @@ viewCurrentPage model =
         HomePage pageModel ->
             Home.view pageModel
                 |> Html.map HomePageMsg
+
+        GameCreatePage pageModel ->
+            GameCreate.view pageModel
+
+        GamePlayPage pageModel ->
+            GamePlay.view pageModel
 
 
 
@@ -121,6 +132,25 @@ initCurrentPage ( model, existingCmds ) =
                     in
                     ( HomePage pageModel
                     , Cmd.map HomePageMsg pageCmds
+                    )
+
+                Route.GameCreate ->
+                    let
+                        pageModel =
+                            GameCreate.init
+                    in
+                    ( GameCreatePage pageModel
+                    , Cmd.none
+                    )
+
+                Route.GamePlay ->
+                    let
+                        -- TODO: give real values
+                        pageModel =
+                            GamePlay.init Board.Small Board.Black
+                    in
+                    ( GamePlayPage pageModel
+                    , Cmd.none
                     )
     in
     ( { model | page = currentPage }

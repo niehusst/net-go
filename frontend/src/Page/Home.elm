@@ -2,6 +2,7 @@ module Page.Home exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Route exposing (Route, routeToString)
 
 
 type Msg
@@ -28,6 +29,10 @@ view model =
                 More functionality coming soon.
                 """
             ]
+        , a [ href (routeToString Route.GameCreate) ]
+            [ button [] [ text "Create a game" ] ]
+        , a [ href "#" ]
+            [ button [] [ text "Join a game" ] ]
         ]
 
 
