@@ -5268,6 +5268,7 @@ var $author$project$Page$GamePlay$initialModel = F2(
 			activeTurn: _Utils_eq(colorChoice, $author$project$Board$Black),
 			board: $author$project$Board$emptyBoard(boardSize),
 			boardSize: boardSize,
+			invalidMoveAlert: $elm$core$Maybe$Nothing,
 			lastMove: $elm$core$Maybe$Nothing,
 			playerColor: colorChoice
 		};
@@ -6229,19 +6230,33 @@ var $author$project$Page$GamePlay$placePiece = F3(
 		}();
 		return A3($author$project$Board$setPieceAt, index, piece, board);
 	});
+var $author$project$Logic$validMove = F2(
+	function (position, board) {
+		return _Utils_Tuple2(
+			false,
+			$elm$core$Maybe$Just('todo'));
+	});
 var $author$project$Page$GamePlay$update = F2(
 	function (msg, model) {
 		var index = msg.a;
-		return _Utils_Tuple2(
+		var _v1 = A2($author$project$Logic$validMove, index, model.board);
+		var moveIsValid = _v1.a;
+		var errorMessage = _v1.b;
+		return moveIsValid ? _Utils_Tuple2(
 			_Utils_update(
 				model,
 				{
 					activeTurn: !model.activeTurn,
 					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
+					invalidMoveAlert: $elm$core$Maybe$Nothing,
 					lastMove: $elm$core$Maybe$Just(index),
 					playerColor: $author$project$Board$colorInverse(model.playerColor)
 				}),
-			$author$project$Page$GamePlay$endTurn(model));
+			$author$project$Page$GamePlay$endTurn(model)) : _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{invalidMoveAlert: errorMessage}),
+			$elm$core$Platform$Cmd$none);
 	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
@@ -6411,6 +6426,14 @@ var $author$project$Page$GameCreate$view = function (model) {
 			]));
 };
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $author$project$Page$GamePlay$viewAlert = function (error) {
+	if (error.$ === 'Nothing') {
+		return $elm$html$Html$text('');
+	} else {
+		var errorMessage = error.a;
+		return $elm$html$Html$text('Invalid move: ' + errorMessage);
+	}
+};
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
@@ -6511,7 +6534,7 @@ var $elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $author$project$Logic$renderPiece = function (piece) {
+var $author$project$Page$GamePlay$renderPiece = function (piece) {
 	var fillColor = function () {
 		switch (piece.$) {
 			case 'BlackStone':
@@ -6522,7 +6545,7 @@ var $author$project$Logic$renderPiece = function (piece) {
 				return '';
 		}
 	}();
-	var html = _Utils_eq(piece, $author$project$Board$None) ? $elm$html$Html$text('') : A2(
+	return _Utils_eq(piece, $author$project$Board$None) ? $elm$html$Html$text('') : A2(
 		$elm$svg$Svg$svg,
 		_List_fromArray(
 			[
@@ -6544,11 +6567,10 @@ var $author$project$Logic$renderPiece = function (piece) {
 					]),
 				_List_Nil)
 			]));
-	return html;
 };
 var $author$project$Page$GamePlay$viewBuildCell = F4(
 	function (boardSize, color, index, piece) {
-		var pieceHtml = $author$project$Logic$renderPiece(piece);
+		var pieceHtml = $author$project$Page$GamePlay$renderPiece(piece);
 		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Board$colorToString(color);
 		var cellClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
 		return A2(
@@ -6610,7 +6632,8 @@ var $author$project$Page$GamePlay$view = function (model) {
 						$elm$html$Html$text('Goban state')
 					])),
 				$author$project$Page$GamePlay$viewBuildBoard(model),
-				$author$project$Page$GamePlay$viewWaitForOpponent(model.activeTurn)
+				$author$project$Page$GamePlay$viewWaitForOpponent(model.activeTurn),
+				$author$project$Page$GamePlay$viewAlert(model.invalidMoveAlert)
 			]));
 };
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
