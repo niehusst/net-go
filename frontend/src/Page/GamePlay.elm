@@ -50,7 +50,7 @@ viewGameBoard : Model -> List (Html Msg)
 viewGameBoard model =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell (boardSizeToInt model.boardSize))
+            (viewBuildCell model.boardSize model.playerColor)
             model.board
         )
 
@@ -59,34 +59,42 @@ viewGameBoard model =
 to be on the outer right or bottom edges of the game
 board (when rendered in 2D grid instead of flat array).
 -}
-isInnerCell : Int -> Int -> Bool
+isInnerCell : BoardSize -> Int -> Bool
 isInnerCell boardSize index =
     let
+        intSize =
+            boardSizeToInt boardSize
+
         isLastRow =
-            index >= boardSize * (boardSize - 1)
+            index >= intSize * (intSize - 1)
 
         isLastCol =
-            remainderBy boardSize (index + 1) == 0
+            remainderBy intSize (index + 1) == 0
     in
     not (isLastRow || isLastCol)
 
 
-viewBuildCell : Int -> Int -> Piece -> Html Msg
-viewBuildCell boardSize index piece =
+viewBuildCell : BoardSize -> ColorChoice -> Int -> Piece -> Html Msg
+viewBuildCell boardSize color index piece =
     let
         pieceHtml =
             renderPiece piece
 
-        cssClass =
+        hoverClass =
+            "hidden-hover-element board-square-" ++ colorToString color
+
+        cellClass =
             if isInnerCell boardSize index then
                 "board-square inner-board-square"
 
             else
                 "board-square"
     in
-    -- TODO: piece image + hover ghost
-    div [ class cssClass, onClick (PlacePiece index) ]
-        [ pieceHtml ]
+    -- TODO: piece hover ghost
+    div [ class cellClass, onClick (PlacePiece index) ]
+        [ pieceHtml
+        , div [ class hoverClass ] []
+        ]
 
 
 
@@ -100,9 +108,16 @@ update msg model =
             ( { model
                 | board = placePiece model.playerColor index model.board
                 , lastMove = Just index
+                , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
               }
-            , Cmd.none
+            , endTurn model
             )
+
+
+endTurn : Model -> Cmd Msg
+endTurn model =
+    -- TODO: placeholder turn swap w/o networking
+    Cmd.none
 
 
 placePiece : ColorChoice -> Int -> Board -> Board
