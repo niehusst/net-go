@@ -6,6 +6,8 @@ import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Logic exposing (..)
+import Svg exposing (circle, svg)
+import Svg.Attributes as SAtts
 
 
 type Msg
@@ -18,6 +20,7 @@ type alias Model =
     , lastMove : Maybe Int
     , playerColor : ColorChoice
     , activeTurn : Bool
+    , invalidMoveAlert : Maybe String
     }
 
 
@@ -31,7 +34,18 @@ view model =
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
         , viewWaitForOpponent model.activeTurn
+        , viewAlert model.invalidMoveAlert
         ]
+
+
+viewAlert : Maybe String -> Html Msg
+viewAlert error =
+    case error of
+        Nothing ->
+            text ""
+
+        Just errorMessage ->
+            text ("Invalid move: " ++ errorMessage)
 
 
 viewWaitForOpponent : Bool -> Html Msg
@@ -52,7 +66,6 @@ viewBuildBoard model =
         gridStyle =
             String.join " " (List.repeat intSize "auto")
     in
-    -- border offset, svg, second layer of views w/ z index
     div [ class "board", style "grid-template-columns" gridStyle ]
         (viewGameBoard model)
 
@@ -101,11 +114,44 @@ viewBuildCell boardSize color index piece =
             else
                 "board-square"
     in
-    -- TODO: piece hover ghost
     div [ class cellClass, onClick (PlacePiece index) ]
         [ pieceHtml
         , div [ class hoverClass ] []
         ]
+
+
+renderPiece : Piece -> Html msg
+renderPiece piece =
+    let
+        fillColor =
+            case piece of
+                BlackStone ->
+                    "black"
+
+                WhiteStone ->
+                    "white"
+
+                None ->
+                    ""
+    in
+    if piece == None then
+        text ""
+
+    else
+        svg
+            [ SAtts.width "26"
+            , SAtts.height "26"
+            , SAtts.viewBox "0 0 26 26"
+            , SAtts.style "position: absolute;"
+            ]
+            [ circle
+                [ SAtts.cx "13"
+                , SAtts.cy "13"
+                , SAtts.r "11"
+                , SAtts.fill fillColor
+                ]
+                []
+            ]
 
 
 
@@ -116,14 +162,25 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PlacePiece index ->
-            ( { model
-                | board = placePiece model.playerColor index model.board
-                , lastMove = Just index
-                , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
-                , activeTurn = not model.activeTurn
-              }
-            , endTurn model
-            )
+            let
+                ( moveIsValid, errorMessage ) =
+                    validMove index model.board
+            in
+            if moveIsValid then
+                ( { model
+                    | board = placePiece model.playerColor index model.board
+                    , lastMove = Just index
+                    , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
+                    , activeTurn = not model.activeTurn
+                    , invalidMoveAlert = Nothing
+                  }
+                , endTurn model
+                )
+
+            else
+                ( { model | invalidMoveAlert = errorMessage }
+                , Cmd.none
+                )
 
 
 endTurn : Model -> Cmd Msg
@@ -162,4 +219,5 @@ initialModel boardSize colorChoice =
     , lastMove = Nothing
     , playerColor = colorChoice
     , activeTurn = colorChoice == Black
+    , invalidMoveAlert = Nothing
     }
