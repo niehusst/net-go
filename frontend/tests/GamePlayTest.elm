@@ -45,7 +45,7 @@ suite =
                                 |> List.concatMap noop
 
                         actual9x9InnerSquaresTruthTable =
-                            List.map (isInnerCell intBoardSize) (List.range 0 ((intBoardSize ^ 2) - 1))
+                            List.map (isInnerCell boardSize) (List.range 0 ((intBoardSize ^ 2) - 1))
                     in
                     Expect.equal expected9x9InnerSquaresTruthTable actual9x9InnerSquaresTruthTable
             ]

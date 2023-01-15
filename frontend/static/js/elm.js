@@ -6147,6 +6147,17 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
+var $author$project$Board$White = {$: 'White'};
+var $author$project$Board$colorInverse = function (color) {
+	if (color.$ === 'White') {
+		return $author$project$Board$Black;
+	} else {
+		return $author$project$Board$White;
+	}
+};
+var $author$project$Page$GamePlay$endTurn = function (model) {
+	return $elm$core$Platform$Cmd$none;
+};
 var $author$project$Board$BlackStone = {$: 'BlackStone'};
 var $author$project$Board$WhiteStone = {$: 'WhiteStone'};
 var $elm$core$Bitwise$and = _Bitwise_and;
@@ -6224,9 +6235,10 @@ var $author$project$Page$GamePlay$update = F2(
 				model,
 				{
 					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
-					lastMove: $elm$core$Maybe$Just(index)
+					lastMove: $elm$core$Maybe$Just(index),
+					playerColor: $author$project$Board$colorInverse(model.playerColor)
 				}),
-			$elm$core$Platform$Cmd$none);
+			$author$project$Page$GamePlay$endTurn(model));
 	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
@@ -6464,8 +6476,9 @@ var $author$project$Page$GamePlay$PlacePiece = function (a) {
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Page$GamePlay$isInnerCell = F2(
 	function (boardSize, index) {
-		var isLastRow = _Utils_cmp(index, boardSize * (boardSize - 1)) > -1;
-		var isLastCol = !((index + 1) % boardSize);
+		var intSize = $author$project$Board$boardSizeToInt(boardSize);
+		var isLastCol = !((index + 1) % intSize);
+		var isLastRow = _Utils_cmp(index, intSize * (intSize - 1)) > -1;
 		return !(isLastRow || isLastCol);
 	});
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -6531,27 +6544,36 @@ var $author$project$Logic$renderPiece = function (piece) {
 			]));
 	return html;
 };
-var $author$project$Page$GamePlay$viewBuildCell = F3(
-	function (boardSize, index, piece) {
+var $author$project$Page$GamePlay$viewBuildCell = F4(
+	function (boardSize, color, index, piece) {
 		var pieceHtml = $author$project$Logic$renderPiece(piece);
-		var cssClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
+		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Board$colorToString(color);
+		var cellClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class(cssClass),
+					$elm$html$Html$Attributes$class(cellClass),
 					$elm$html$Html$Events$onClick(
 					$author$project$Page$GamePlay$PlacePiece(index))
 				]),
 			_List_fromArray(
-				[pieceHtml]));
+				[
+					pieceHtml,
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class(hoverClass)
+						]),
+					_List_Nil)
+				]));
 	});
 var $author$project$Page$GamePlay$viewGameBoard = function (model) {
 	return $elm$core$Array$toList(
 		A2(
 			$elm$core$Array$indexedMap,
-			$author$project$Page$GamePlay$viewBuildCell(
-				$author$project$Board$boardSizeToInt(model.boardSize)),
+			A2($author$project$Page$GamePlay$viewBuildCell, model.boardSize, model.playerColor),
 			model.board));
 };
 var $author$project$Page$GamePlay$viewBuildBoard = function (model) {

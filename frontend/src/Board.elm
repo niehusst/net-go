@@ -33,6 +33,16 @@ type ColorChoice
     | Black
 
 
+colorInverse : ColorChoice -> ColorChoice
+colorInverse color =
+    case color of
+        White ->
+            Black
+
+        Black ->
+            White
+
+
 colorToString : ColorChoice -> String
 colorToString color =
     case color of

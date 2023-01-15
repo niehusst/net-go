@@ -10,12 +10,30 @@
   background: #dfc566;
 }
 
-/* these classes are for drawing the board grid */
-.inner-board-square {
-  width: 26px;
+.hidden-hover-element {
   height: 26px;
+  width: 26px;
+  opacity: 0;
+  position: absolute;
 }
 
+.board-square-white:hover {
+  background-color: white;
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.board-square-black:hover {
+  background-color: black;
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* these classes are for drawing the board grid */
 .inner-board-square::before {
   content: "";
   position: absolute;
