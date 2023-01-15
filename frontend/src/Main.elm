@@ -30,6 +30,7 @@ type Msg
     = LinkClicked UrlRequest
     | UrlChanged Url
     | HomePageMsg Home.Msg
+    | GamePlayPageMsg GamePlay.Msg
 
 
 
@@ -58,6 +59,7 @@ viewCurrentPage model =
 
         GamePlayPage pageModel ->
             GamePlay.view pageModel
+                |> Html.map GamePlayPageMsg
 
 
 
@@ -94,6 +96,15 @@ update msg model =
             in
             ( { model | page = HomePage updatedPageModel }
             , Cmd.map HomePageMsg updatedCmd
+            )
+
+        ( GamePlayPageMsg submsg, GamePlayPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    GamePlay.update submsg pageModel
+            in
+            ( { model | page = GamePlayPage updatedPageModel }
+            , Cmd.map GamePlayPageMsg updatedCmd
             )
 
         ( _, _ ) ->

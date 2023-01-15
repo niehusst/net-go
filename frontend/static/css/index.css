@@ -24,4 +24,5 @@
   height: 26px;
   transform: translate3d(13px, 13px, 0);
   box-sizing: border-box;
+  pointer-events: none;
 }
