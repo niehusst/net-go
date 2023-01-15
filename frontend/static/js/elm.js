@@ -6510,9 +6510,9 @@ var $author$project$Logic$renderPiece = function (piece) {
 		$elm$svg$Svg$svg,
 		_List_fromArray(
 			[
-				$elm$svg$Svg$Attributes$width('10'),
-				$elm$svg$Svg$Attributes$height('10'),
-				$elm$svg$Svg$Attributes$viewBox('0 0 13 13')
+				$elm$svg$Svg$Attributes$width('26'),
+				$elm$svg$Svg$Attributes$height('26'),
+				$elm$svg$Svg$Attributes$viewBox('0 0 26 26')
 			]),
 		_List_fromArray(
 			[
@@ -6520,9 +6520,9 @@ var $author$project$Logic$renderPiece = function (piece) {
 				$elm$svg$Svg$circle,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$cx('5'),
-						$elm$svg$Svg$Attributes$cy('5'),
-						$elm$svg$Svg$Attributes$r('5'),
+						$elm$svg$Svg$Attributes$cx('13'),
+						$elm$svg$Svg$Attributes$cy('13'),
+						$elm$svg$Svg$Attributes$r('11'),
 						$elm$svg$Svg$Attributes$fill(fillColor)
 					]),
 				_List_Nil)

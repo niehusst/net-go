@@ -26,7 +26,7 @@ renderPiece piece =
 
             else
                 svg
-                    [ width "10", height "10", viewBox "0 0 13 13" ]
-                    [ circle [ cx "5", cy "5", r "5", fill fillColor ] [] ]
+                    [ width "26", height "26", viewBox "0 0 26 26" ]
+                    [ circle [ cx "13", cy "13", r "11", fill fillColor ] [] ]
     in
     html
