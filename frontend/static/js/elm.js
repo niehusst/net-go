@@ -6492,6 +6492,7 @@ var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
@@ -6512,7 +6513,8 @@ var $author$project$Logic$renderPiece = function (piece) {
 			[
 				$elm$svg$Svg$Attributes$width('26'),
 				$elm$svg$Svg$Attributes$height('26'),
-				$elm$svg$Svg$Attributes$viewBox('0 0 26 26')
+				$elm$svg$Svg$Attributes$viewBox('0 0 26 26'),
+				$elm$svg$Svg$Attributes$style('position: absolute;')
 			]),
 		_List_fromArray(
 			[
