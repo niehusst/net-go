@@ -5265,6 +5265,7 @@ var $author$project$Board$emptyBoard = function (size) {
 var $author$project$Page$GamePlay$initialModel = F2(
 	function (boardSize, colorChoice) {
 		return {
+			activeTurn: _Utils_eq(colorChoice, $author$project$Board$Black),
 			board: $author$project$Board$emptyBoard(boardSize),
 			boardSize: boardSize,
 			lastMove: $elm$core$Maybe$Nothing,
@@ -6158,6 +6159,7 @@ var $author$project$Board$colorInverse = function (color) {
 var $author$project$Page$GamePlay$endTurn = function (model) {
 	return $elm$core$Platform$Cmd$none;
 };
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$Board$BlackStone = {$: 'BlackStone'};
 var $author$project$Board$WhiteStone = {$: 'WhiteStone'};
 var $elm$core$Bitwise$and = _Bitwise_and;
@@ -6234,6 +6236,7 @@ var $author$project$Page$GamePlay$update = F2(
 			_Utils_update(
 				model,
 				{
+					activeTurn: !model.activeTurn,
 					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
 					lastMove: $elm$core$Maybe$Just(index),
 					playerColor: $author$project$Board$colorInverse(model.playerColor)
@@ -6473,7 +6476,6 @@ var $elm$core$Array$indexedMap = F2(
 var $author$project$Page$GamePlay$PlacePiece = function (a) {
 	return {$: 'PlacePiece', a: a};
 };
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Page$GamePlay$isInnerCell = F2(
 	function (boardSize, index) {
 		var intSize = $author$project$Board$boardSizeToInt(boardSize);
@@ -6591,6 +6593,9 @@ var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 			]),
 		$author$project$Page$GamePlay$viewGameBoard(model));
 };
+var $author$project$Page$GamePlay$viewWaitForOpponent = function (activeTurn) {
+	return activeTurn ? $elm$html$Html$text('') : $elm$html$Html$text('Wait for opponent to play...');
+};
 var $author$project$Page$GamePlay$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6604,7 +6609,8 @@ var $author$project$Page$GamePlay$view = function (model) {
 					[
 						$elm$html$Html$text('Goban state')
 					])),
-				$author$project$Page$GamePlay$viewBuildBoard(model)
+				$author$project$Page$GamePlay$viewBuildBoard(model),
+				$author$project$Page$GamePlay$viewWaitForOpponent(model.activeTurn)
 			]));
 };
 var $elm$html$Html$h1 = _VirtualDom_node('h1');

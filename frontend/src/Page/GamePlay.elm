@@ -17,6 +17,7 @@ type alias Model =
     , board : Board
     , lastMove : Maybe Int
     , playerColor : ColorChoice
+    , activeTurn : Bool
     }
 
 
@@ -29,7 +30,17 @@ view model =
     div []
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
+        , viewWaitForOpponent model.activeTurn
         ]
+
+
+viewWaitForOpponent : Bool -> Html Msg
+viewWaitForOpponent activeTurn =
+    if activeTurn then
+        text ""
+
+    else
+        text "Wait for opponent to play..."
 
 
 viewBuildBoard : Model -> Html Msg
@@ -109,6 +120,7 @@ update msg model =
                 | board = placePiece model.playerColor index model.board
                 , lastMove = Just index
                 , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
+                , activeTurn = not model.activeTurn
               }
             , endTurn model
             )
@@ -149,4 +161,5 @@ initialModel boardSize colorChoice =
     , board = emptyBoard boardSize
     , lastMove = Nothing
     , playerColor = colorChoice
+    , activeTurn = colorChoice == Black
     }
