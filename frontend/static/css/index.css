@@ -16,7 +16,7 @@
   height: 26px;
 }
 
-.inner-board-square::after {
+.inner-board-square::before {
   content: "";
   position: absolute;
   border: 1px solid #000;
@@ -24,4 +24,5 @@
   height: 26px;
   transform: translate3d(13px, 13px, 0);
   box-sizing: border-box;
+  pointer-events: none;
 }

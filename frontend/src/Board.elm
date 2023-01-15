@@ -12,28 +12,14 @@ type alias Board =
     Array Piece
 
 
-getPieceAt : Int -> Int -> Board -> BoardSize -> Maybe Piece
-getPieceAt row col board size =
-    let
-        intSize =
-            boardSizeToInt size
-
-        oneDimensionalIndex =
-            row * intSize + col
-    in
-    Array.get oneDimensionalIndex board
+getPieceAt : Int -> Board -> Maybe Piece
+getPieceAt index board =
+    Array.get index board
 
 
-setPieceAt : Int -> Int -> Piece -> Board -> BoardSize -> Board
-setPieceAt row col piece board size =
-    let
-        intSize =
-            boardSizeToInt size
-
-        oneDimensionalIndex =
-            row * intSize + col
-    in
-    Array.set oneDimensionalIndex piece board
+setPieceAt : Int -> Piece -> Board -> Board
+setPieceAt index piece board =
+    Array.set index piece board
 
 
 type Piece
@@ -51,10 +37,10 @@ colorToString : ColorChoice -> String
 colorToString color =
     case color of
         White ->
-            "White"
+            "white"
 
         Black ->
-            "Black"
+            "black"
 
 
 type BoardSize

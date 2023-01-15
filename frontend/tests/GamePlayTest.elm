@@ -32,18 +32,21 @@ suite =
                             , playerColor = Board.Black
                             }
 
-                        expected9x9Classes =
+                        expected9x9InnerSquaresTruthTable =
                             [ List.repeat (intBoardSize - 1)
-                                ([ List.repeat (intBoardSize - 1) "board-square inner-board-square"
-                                 , [ "board-square" ]
+                                ([ List.repeat (intBoardSize - 1) True
+                                 , [ False ]
                                  ]
                                     |> List.concatMap noop
                                 )
                                 |> List.concatMap noop
-                            , List.repeat intBoardSize "board-square"
+                            , List.repeat intBoardSize False
                             ]
                                 |> List.concatMap noop
+
+                        actual9x9InnerSquaresTruthTable =
+                            List.map (isInnerCell intBoardSize) (List.range 0 ((intBoardSize ^ 2) - 1))
                     in
-                    Expect.equal expected9x9Classes (buildCssClasses model)
+                    Expect.equal expected9x9InnerSquaresTruthTable actual9x9InnerSquaresTruthTable
             ]
         ]

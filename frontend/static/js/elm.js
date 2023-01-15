@@ -6098,6 +6098,9 @@ var $author$project$Main$init = F3(
 	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$GamePlayPageMsg = function (a) {
+	return {$: 'GamePlayPageMsg', a: a};
+};
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$url$Url$addPort = F2(
@@ -6144,6 +6147,87 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
+var $author$project$Board$BlackStone = {$: 'BlackStone'};
+var $author$project$Board$WhiteStone = {$: 'WhiteStone'};
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$setHelp = F4(
+	function (shift, index, value, tree) {
+		var pos = $elm$core$Array$bitMask & (index >>> shift);
+		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+		if (_v0.$ === 'SubTree') {
+			var subTree = _v0.a;
+			var newSub = A4($elm$core$Array$setHelp, shift - $elm$core$Array$shiftStep, index, value, subTree);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$SubTree(newSub),
+				tree);
+		} else {
+			var values = _v0.a;
+			var newLeaf = A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, values);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$Leaf(newLeaf),
+				tree);
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$set = F3(
+	function (index, value, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			tree,
+			A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, tail)) : A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A4($elm$core$Array$setHelp, startShift, index, value, tree),
+			tail));
+	});
+var $author$project$Board$setPieceAt = F3(
+	function (index, piece, board) {
+		return A3($elm$core$Array$set, index, piece, board);
+	});
+var $author$project$Page$GamePlay$placePiece = F3(
+	function (color, index, board) {
+		var piece = function () {
+			if (color.$ === 'White') {
+				return $author$project$Board$WhiteStone;
+			} else {
+				return $author$project$Board$BlackStone;
+			}
+		}();
+		return A3($author$project$Board$setPieceAt, index, piece, board);
+	});
+var $author$project$Page$GamePlay$update = F2(
+	function (msg, model) {
+		var index = msg.a;
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{
+					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
+					lastMove: $elm$core$Maybe$Just(index)
+				}),
+			$elm$core$Platform$Cmd$none);
+	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -6151,50 +6235,71 @@ var $author$project$Page$Home$update = F2(
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
-		switch (_v0.a.$) {
-			case 'UrlChanged':
-				var url = _v0.a.a;
-				var newRoute = $author$project$Route$parseUrl(url);
-				return $author$project$Main$initCurrentPage(
-					_Utils_Tuple2(
-						_Utils_update(
+		_v0$4:
+		while (true) {
+			switch (_v0.a.$) {
+				case 'UrlChanged':
+					var url = _v0.a.a;
+					var newRoute = $author$project$Route$parseUrl(url);
+					return $author$project$Main$initCurrentPage(
+						_Utils_Tuple2(
+							_Utils_update(
+								model,
+								{route: newRoute}),
+							$elm$core$Platform$Cmd$none));
+				case 'LinkClicked':
+					var urlRequest = _v0.a.a;
+					if (urlRequest.$ === 'Internal') {
+						var url = urlRequest.a;
+						return _Utils_Tuple2(
 							model,
-							{route: newRoute}),
-						$elm$core$Platform$Cmd$none));
-			case 'LinkClicked':
-				var urlRequest = _v0.a.a;
-				if (urlRequest.$ === 'Internal') {
-					var url = urlRequest.a;
-					return _Utils_Tuple2(
-						model,
-						A2(
-							$elm$browser$Browser$Navigation$pushUrl,
-							model.navKey,
-							$elm$url$Url$toString(url)));
-				} else {
-					var url = urlRequest.a;
-					return _Utils_Tuple2(
-						model,
-						$elm$browser$Browser$Navigation$load(url));
-				}
-			default:
-				if (_v0.b.$ === 'HomePage') {
-					var submsg = _v0.a.a;
-					var pageModel = _v0.b.a;
-					var _v2 = A2($author$project$Page$Home$update, submsg, pageModel);
-					var updatedPageModel = _v2.a;
-					var updatedCmd = _v2.b;
-					return _Utils_Tuple2(
-						_Utils_update(
+							A2(
+								$elm$browser$Browser$Navigation$pushUrl,
+								model.navKey,
+								$elm$url$Url$toString(url)));
+					} else {
+						var url = urlRequest.a;
+						return _Utils_Tuple2(
 							model,
-							{
-								page: $author$project$Main$HomePage(updatedPageModel)
-							}),
-						A2($elm$core$Platform$Cmd$map, $author$project$Main$HomePageMsg, updatedCmd));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
+							$elm$browser$Browser$Navigation$load(url));
+					}
+				case 'HomePageMsg':
+					if (_v0.b.$ === 'HomePage') {
+						var submsg = _v0.a.a;
+						var pageModel = _v0.b.a;
+						var _v2 = A2($author$project$Page$Home$update, submsg, pageModel);
+						var updatedPageModel = _v2.a;
+						var updatedCmd = _v2.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									page: $author$project$Main$HomePage(updatedPageModel)
+								}),
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$HomePageMsg, updatedCmd));
+					} else {
+						break _v0$4;
+					}
+				default:
+					if (_v0.b.$ === 'GamePlayPage') {
+						var submsg = _v0.a.a;
+						var pageModel = _v0.b.a;
+						var _v3 = A2($author$project$Page$GamePlay$update, submsg, pageModel);
+						var updatedPageModel = _v3.a;
+						var updatedCmd = _v3.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									page: $author$project$Main$GamePlayPage(updatedPageModel)
+								}),
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$GamePlayPageMsg, updatedCmd));
+					} else {
+						break _v0$4;
+					}
+			}
 		}
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
@@ -6233,9 +6338,9 @@ var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $author$project$Board$colorToString = function (color) {
 	if (color.$ === 'White') {
-		return 'White';
+		return 'white';
 	} else {
-		return 'Black';
+		return 'black';
 	}
 };
 var $elm$core$String$fromFloat = _String_fromNumber;
@@ -6291,26 +6396,32 @@ var $author$project$Page$GameCreate$view = function (model) {
 			]));
 };
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Page$GamePlay$isInnerCell = F2(
-	function (boardSize, index) {
-		var isLastRow = _Utils_cmp(index, boardSize * (boardSize - 1)) > -1;
-		var isLastCol = !((index + 1) % boardSize);
-		return !(isLastRow || isLastCol);
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
 	});
-var $author$project$Page$GamePlay$generateCssClass = F3(
-	function (boardSize, index, piece) {
-		var cssClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
-		return cssClass;
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
 	});
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$core$Elm$JsArray$foldl = _JsArray_foldl;
 var $elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
-var $elm$core$Array$tailIndex = function (len) {
-	return (len >>> 5) << 5;
-};
 var $elm$core$Array$indexedMap = F2(
 	function (func, _v0) {
 		var len = _v0.a;
@@ -6347,51 +6458,101 @@ var $elm$core$Array$indexedMap = F2(
 			true,
 			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
 	});
-var $author$project$Page$GamePlay$buildCssClasses = function (model) {
+var $author$project$Page$GamePlay$PlacePiece = function (a) {
+	return {$: 'PlacePiece', a: a};
+};
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Page$GamePlay$isInnerCell = F2(
+	function (boardSize, index) {
+		var isLastRow = _Utils_cmp(index, boardSize * (boardSize - 1)) > -1;
+		var isLastCol = !((index + 1) % boardSize);
+		return !(isLastRow || isLastCol);
+	});
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $author$project$Logic$renderPiece = function (piece) {
+	var fillColor = function () {
+		switch (piece.$) {
+			case 'BlackStone':
+				return 'black';
+			case 'WhiteStone':
+				return 'white';
+			default:
+				return '';
+		}
+	}();
+	var html = _Utils_eq(piece, $author$project$Board$None) ? $elm$html$Html$text('') : A2(
+		$elm$svg$Svg$svg,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$width('26'),
+				$elm$svg$Svg$Attributes$height('26'),
+				$elm$svg$Svg$Attributes$viewBox('0 0 26 26'),
+				$elm$svg$Svg$Attributes$style('position: absolute;')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$svg$Svg$circle,
+				_List_fromArray(
+					[
+						$elm$svg$Svg$Attributes$cx('13'),
+						$elm$svg$Svg$Attributes$cy('13'),
+						$elm$svg$Svg$Attributes$r('11'),
+						$elm$svg$Svg$Attributes$fill(fillColor)
+					]),
+				_List_Nil)
+			]));
+	return html;
+};
+var $author$project$Page$GamePlay$viewBuildCell = F3(
+	function (boardSize, index, piece) {
+		var pieceHtml = $author$project$Logic$renderPiece(piece);
+		var cssClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class(cssClass),
+					$elm$html$Html$Events$onClick(
+					$author$project$Page$GamePlay$PlacePiece(index))
+				]),
+			_List_fromArray(
+				[pieceHtml]));
+	});
+var $author$project$Page$GamePlay$viewGameBoard = function (model) {
 	return $elm$core$Array$toList(
 		A2(
 			$elm$core$Array$indexedMap,
-			$author$project$Page$GamePlay$generateCssClass(
+			$author$project$Page$GamePlay$viewBuildCell(
 				$author$project$Board$boardSizeToInt(model.boardSize)),
 			model.board));
-};
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$core$List$repeatHelp = F3(
-	function (result, n, value) {
-		repeatHelp:
-		while (true) {
-			if (n <= 0) {
-				return result;
-			} else {
-				var $temp$result = A2($elm$core$List$cons, value, result),
-					$temp$n = n - 1,
-					$temp$value = value;
-				result = $temp$result;
-				n = $temp$n;
-				value = $temp$value;
-				continue repeatHelp;
-			}
-		}
-	});
-var $elm$core$List$repeat = F2(
-	function (n, value) {
-		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
-	});
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$Page$GamePlay$viewGameBoard = function (cssClasses) {
-	return A2(
-		$elm$core$List$map,
-		function (cssClass) {
-			return A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class(cssClass)
-					]),
-				_List_Nil);
-		},
-		cssClasses);
 };
 var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 	var intSize = $author$project$Board$boardSizeToInt(model.boardSize);
@@ -6406,8 +6567,7 @@ var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 				$elm$html$Html$Attributes$class('board'),
 				A2($elm$html$Html$Attributes$style, 'grid-template-columns', gridStyle)
 			]),
-		$author$project$Page$GamePlay$viewGameBoard(
-			$author$project$Page$GamePlay$buildCssClasses(model)));
+		$author$project$Page$GamePlay$viewGameBoard(model));
 };
 var $author$project$Page$GamePlay$view = function (model) {
 	return A2(
@@ -6420,7 +6580,7 @@ var $author$project$Page$GamePlay$view = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('here it is:')
+						$elm$html$Html$text('Goban state')
 					])),
 				$author$project$Page$GamePlay$viewBuildBoard(model)
 			]));
@@ -6547,7 +6707,10 @@ var $author$project$Main$viewCurrentPage = function (model) {
 			return $author$project$Page$GameCreate$view(pageModel);
 		default:
 			var pageModel = _v0.a;
-			return $author$project$Page$GamePlay$view(pageModel);
+			return A2(
+				$elm$html$Html$map,
+				$author$project$Main$GamePlayPageMsg,
+				$author$project$Page$GamePlay$view(pageModel));
 	}
 };
 var $author$project$Main$view = function (model) {

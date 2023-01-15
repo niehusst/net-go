@@ -1,15 +1,21 @@
-module Page.GamePlay exposing (Model, buildCssClasses, init, view)
+module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
 import Array
 import Board exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
+import Html.Events exposing (onClick)
+import Logic exposing (..)
+
+
+type Msg
+    = PlacePiece Int
 
 
 type alias Model =
     { boardSize : BoardSize
     , board : Board
-    , lastMove : Maybe ( Int, Int )
+    , lastMove : Maybe Int
     , playerColor : ColorChoice
     }
 
@@ -18,15 +24,15 @@ type alias Model =
 -- VIEW --
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     div []
-        [ h3 [] [ text "here it is:" ]
+        [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
         ]
 
 
-viewBuildBoard : Model -> Html msg
+viewBuildBoard : Model -> Html Msg
 viewBuildBoard model =
     let
         intSize =
@@ -37,19 +43,14 @@ viewBuildBoard model =
     in
     -- border offset, svg, second layer of views w/ z index
     div [ class "board", style "grid-template-columns" gridStyle ]
-        (viewGameBoard <| buildCssClasses model)
+        (viewGameBoard model)
 
 
-viewGameBoard : List String -> List (Html msg)
-viewGameBoard cssClasses =
-    List.map (\cssClass -> div [ class cssClass ] []) cssClasses
-
-
-buildCssClasses : Model -> List String
-buildCssClasses model =
+viewGameBoard : Model -> List (Html Msg)
+viewGameBoard model =
     Array.toList
         (Array.indexedMap
-            (generateCssClass (boardSizeToInt model.boardSize))
+            (viewBuildCell (boardSizeToInt model.boardSize))
             model.board
         )
 
@@ -70,9 +71,12 @@ isInnerCell boardSize index =
     not (isLastRow || isLastCol)
 
 
-generateCssClass : Int -> Int -> Piece -> String
-generateCssClass boardSize index piece =
+viewBuildCell : Int -> Int -> Piece -> Html Msg
+viewBuildCell boardSize index piece =
     let
+        pieceHtml =
+            renderPiece piece
+
         cssClass =
             if isInnerCell boardSize index then
                 "board-square inner-board-square"
@@ -81,7 +85,38 @@ generateCssClass boardSize index piece =
                 "board-square"
     in
     -- TODO: piece image + hover ghost
-    cssClass
+    div [ class cssClass, onClick (PlacePiece index) ]
+        [ pieceHtml ]
+
+
+
+-- UPDATE --
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        PlacePiece index ->
+            ( { model
+                | board = placePiece model.playerColor index model.board
+                , lastMove = Just index
+              }
+            , Cmd.none
+            )
+
+
+placePiece : ColorChoice -> Int -> Board -> Board
+placePiece color index board =
+    let
+        piece =
+            case color of
+                White ->
+                    WhiteStone
+
+                Black ->
+                    BlackStone
+    in
+    setPieceAt index piece board
 
 
 
