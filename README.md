@@ -6,9 +6,9 @@ This project is divided into a Go backend and an Elm frontend.
 Dev setup steps/requirements can be found in READMEs under
 the corresponding directories.
 
-## Basic architecture
+## Basic game architecture
 
-TODO :)
+![Game UML diagram](./assets/game_uml.jpeg)
 
 ## Built with thanks to the following tools
 
