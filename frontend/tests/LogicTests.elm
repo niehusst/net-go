@@ -1,6 +1,7 @@
 module LogicTests exposing (..)
 
 import Logic exposing (..)
+import Test exposing (..)
 
 
 suite : Test
