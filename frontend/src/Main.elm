@@ -1,9 +1,10 @@
 module Main exposing (main)
 
-import Board exposing (BoardSize, ColorChoice)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
+import Model.Board as Board exposing (BoardSize)
+import Model.Piece as Piece exposing (ColorChoice)
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.Home as Home
@@ -158,7 +159,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values
                         pageModel =
-                            GamePlay.init Board.Small Board.Black
+                            GamePlay.init Board.Small Piece.Black
                     in
                     ( GamePlayPage pageModel
                     , Cmd.none

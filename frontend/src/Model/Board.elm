@@ -1,6 +1,7 @@
-module Board exposing (..)
+module Model.Board exposing (..)
 
 import Array exposing (Array)
+import Model.Piece as Piece exposing (ColorChoice, Piece(..), colorToPiece)
 
 
 {-| Using a 1d array here instead of the
@@ -22,39 +23,8 @@ setPieceAt index piece board =
     Array.set index piece board
 
 
-type Piece
-    = BlackStone
-    | WhiteStone
-    | None
-
-
-type ColorChoice
-    = White
-    | Black
-
-
-colorInverse : ColorChoice -> ColorChoice
-colorInverse color =
-    case color of
-        White ->
-            Black
-
-        Black ->
-            White
-
-
-colorToString : ColorChoice -> String
-colorToString color =
-    case color of
-        White ->
-            "white"
-
-        Black ->
-            "black"
-
-
 type BoardSize
-    = Standard
+    = Full
     | Medium
     | Small
 
@@ -62,7 +32,7 @@ type BoardSize
 boardSizeToInt : BoardSize -> Int
 boardSizeToInt size =
     case size of
-        Standard ->
+        Full ->
             19
 
         Medium ->
@@ -72,6 +42,10 @@ boardSizeToInt size =
             9
 
 
+{-| Create a 1 dimensional version of a 2D
+Goban of size `size`, with all the squares
+laid out in order.
+-}
 emptyBoard : BoardSize -> Board
 emptyBoard size =
     let

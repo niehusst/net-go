@@ -1,24 +1,26 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
 import Array
-import Board exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Logic exposing (..)
+import Model.Board as Board exposing (..)
+import Model.Game as Game exposing (..)
+import Model.Move as Move exposing (..)
+import Model.Piece as Piece exposing (..)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
 
 type Msg
-    = PlacePiece Int
+    = PlayPiece Int
+    | PlayPass
 
 
 type alias Model =
-    { boardSize : BoardSize
-    , board : Board
-    , lastMove : Maybe Int
-    , playerColor : ColorChoice
+    { playerColor : ColorChoice
+    , game : Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     }
@@ -61,7 +63,7 @@ viewBuildBoard : Model -> Html Msg
 viewBuildBoard model =
     let
         intSize =
-            boardSizeToInt model.boardSize
+            boardSizeToInt model.game.boardSize
 
         gridStyle =
             String.join " " (List.repeat intSize "auto")
@@ -74,8 +76,8 @@ viewGameBoard : Model -> List (Html Msg)
 viewGameBoard model =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell model.boardSize model.playerColor)
-            model.board
+            (viewBuildCell model.game.boardSize model.playerColor)
+            model.game.board
         )
 
 
@@ -114,7 +116,7 @@ viewBuildCell boardSize color index piece =
             else
                 "board-square"
     in
-    div [ class cellClass, onClick (PlacePiece index) ]
+    div [ class cellClass, onClick (PlayPiece index) ]
         [ pieceHtml
         , div [ class hoverClass ] []
         ]
@@ -161,15 +163,17 @@ renderPiece piece =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PlacePiece index ->
+        PlayPiece index ->
             let
+                move =
+                    Move.Play (colorToPiece model.playerColor) index
+
                 ( moveIsValid, errorMessage ) =
-                    validMove index model.board
+                    validMove move model.game.board
             in
             if moveIsValid then
                 ( { model
-                    | board = placePiece model.playerColor index model.board
-                    , lastMove = Just index
+                    | game = playMove move model.game
                     , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
@@ -182,25 +186,17 @@ update msg model =
                 , Cmd.none
                 )
 
+        PlayPass ->
+            -- TODO
+            ( model
+            , Cmd.none
+            )
+
 
 endTurn : Model -> Cmd Msg
 endTurn model =
     -- TODO: placeholder turn swap w/o networking
     Cmd.none
-
-
-placePiece : ColorChoice -> Int -> Board -> Board
-placePiece color index board =
-    let
-        piece =
-            case color of
-                White ->
-                    WhiteStone
-
-                Black ->
-                    BlackStone
-    in
-    setPieceAt index piece board
 
 
 
@@ -214,9 +210,7 @@ init size color =
 
 initialModel : BoardSize -> ColorChoice -> Model
 initialModel boardSize colorChoice =
-    { boardSize = boardSize
-    , board = emptyBoard boardSize
-    , lastMove = Nothing
+    { game = newGame boardSize
     , playerColor = colorChoice
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing

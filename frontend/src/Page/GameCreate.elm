@@ -1,8 +1,9 @@
 module Page.GameCreate exposing (Model, init, view)
 
-import Board exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (href)
+import Model.Board exposing (BoardSize(..), boardSizeToInt)
+import Model.Piece exposing (ColorChoice(..), colorToString)
 import Route exposing (Route, routeToString)
 
 
@@ -52,7 +53,7 @@ init =
 
 initialModel : Model
 initialModel =
-    { boardSize = Standard
+    { boardSize = Full
     , colorChoice = Black
-    , komi = 6.5 -- current Japanese regulation komi
+    , komi = 5.5 -- current Japanese regulation komi
     }

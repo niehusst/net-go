@@ -5220,7 +5220,7 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$NotFoundPage = {$: 'NotFoundPage'};
-var $author$project$Board$Black = {$: 'Black'};
+var $author$project$Model$Piece$Black = {$: 'Black'};
 var $author$project$Main$GameCreatePage = function (a) {
 	return {$: 'GameCreatePage', a: a};
 };
@@ -5233,15 +5233,15 @@ var $author$project$Main$HomePage = function (a) {
 var $author$project$Main$HomePageMsg = function (a) {
 	return {$: 'HomePageMsg', a: a};
 };
-var $author$project$Board$Small = {$: 'Small'};
+var $author$project$Model$Board$Small = {$: 'Small'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$Board$Standard = {$: 'Standard'};
-var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Board$Standard, colorChoice: $author$project$Board$Black, komi: 6.5};
+var $author$project$Model$Board$Full = {$: 'Full'};
+var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Model$Board$Full, colorChoice: $author$project$Model$Piece$Black, komi: 5.5};
 var $author$project$Page$GameCreate$init = $author$project$Page$GameCreate$initialModel;
-var $author$project$Board$None = {$: 'None'};
-var $author$project$Board$boardSizeToInt = function (size) {
+var $author$project$Model$Piece$None = {$: 'None'};
+var $author$project$Model$Board$boardSizeToInt = function (size) {
 	switch (size.$) {
-		case 'Standard':
+		case 'Full':
 			return 19;
 		case 'Medium':
 			return 12;
@@ -5258,18 +5258,24 @@ var $elm$core$Array$repeat = F2(
 				return e;
 			});
 	});
-var $author$project$Board$emptyBoard = function (size) {
-	var intSize = $author$project$Board$boardSizeToInt(size);
-	return A2($elm$core$Array$repeat, intSize * intSize, $author$project$Board$None);
+var $author$project$Model$Board$emptyBoard = function (size) {
+	var intSize = $author$project$Model$Board$boardSizeToInt(size);
+	return A2($elm$core$Array$repeat, intSize * intSize, $author$project$Model$Piece$None);
+};
+var $author$project$Model$Game$newGame = function (size) {
+	return {
+		board: $author$project$Model$Board$emptyBoard(size),
+		boardSize: size,
+		history: _List_Nil,
+		lastMove: $elm$core$Maybe$Nothing
+	};
 };
 var $author$project$Page$GamePlay$initialModel = F2(
 	function (boardSize, colorChoice) {
 		return {
-			activeTurn: _Utils_eq(colorChoice, $author$project$Board$Black),
-			board: $author$project$Board$emptyBoard(boardSize),
-			boardSize: boardSize,
+			activeTurn: _Utils_eq(colorChoice, $author$project$Model$Piece$Black),
+			game: $author$project$Model$Game$newGame(boardSize),
 			invalidMoveAlert: $elm$core$Maybe$Nothing,
-			lastMove: $elm$core$Maybe$Nothing,
 			playerColor: colorChoice
 		};
 	});
@@ -5303,7 +5309,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 					$author$project$Main$GameCreatePage(pageModel),
 					$elm$core$Platform$Cmd$none);
 			default:
-				var pageModel = A2($author$project$Page$GamePlay$init, $author$project$Board$Small, $author$project$Board$Black);
+				var pageModel = A2($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black);
 				return _Utils_Tuple2(
 					$author$project$Main$GamePlayPage(pageModel),
 					$elm$core$Platform$Cmd$none);
@@ -6149,20 +6155,53 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
-var $author$project$Board$White = {$: 'White'};
-var $author$project$Board$colorInverse = function (color) {
+var $author$project$Model$Move$Play = F2(
+	function (a, b) {
+		return {$: 'Play', a: a, b: b};
+	});
+var $author$project$Model$Piece$White = {$: 'White'};
+var $author$project$Model$Piece$colorInverse = function (color) {
 	if (color.$ === 'White') {
-		return $author$project$Board$Black;
+		return $author$project$Model$Piece$Black;
 	} else {
-		return $author$project$Board$White;
+		return $author$project$Model$Piece$White;
+	}
+};
+var $author$project$Model$Piece$BlackStone = {$: 'BlackStone'};
+var $author$project$Model$Piece$WhiteStone = {$: 'WhiteStone'};
+var $author$project$Model$Piece$colorToPiece = function (color) {
+	if (color.$ === 'White') {
+		return $author$project$Model$Piece$WhiteStone;
+	} else {
+		return $author$project$Model$Piece$BlackStone;
 	}
 };
 var $author$project$Page$GamePlay$endTurn = function (model) {
 	return $elm$core$Platform$Cmd$none;
 };
 var $elm$core$Basics$not = _Basics_not;
-var $author$project$Board$BlackStone = {$: 'BlackStone'};
-var $author$project$Board$WhiteStone = {$: 'WhiteStone'};
+var $author$project$Model$Game$addMoveToHistory = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				history: A2($elm$core$List$cons, move, game.history)
+			});
+	});
+var $author$project$Model$Game$setBoard = F2(
+	function (board, game) {
+		return _Utils_update(
+			game,
+			{board: board});
+	});
+var $author$project$Model$Game$setLastMove = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				lastMove: $elm$core$Maybe$Just(move)
+			});
+	});
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
@@ -6215,20 +6254,31 @@ var $elm$core$Array$set = F3(
 			A4($elm$core$Array$setHelp, startShift, index, value, tree),
 			tail));
 	});
-var $author$project$Board$setPieceAt = F3(
+var $author$project$Model$Board$setPieceAt = F3(
 	function (index, piece, board) {
 		return A3($elm$core$Array$set, index, piece, board);
 	});
-var $author$project$Page$GamePlay$placePiece = F3(
-	function (color, index, board) {
-		var piece = function () {
-			if (color.$ === 'White') {
-				return $author$project$Board$WhiteStone;
-			} else {
-				return $author$project$Board$BlackStone;
-			}
-		}();
-		return A3($author$project$Board$setPieceAt, index, piece, board);
+var $author$project$Model$Game$playMove = F2(
+	function (move, game) {
+		if (move.$ === 'Pass') {
+			return A2(
+				$author$project$Model$Game$setLastMove,
+				move,
+				A2($author$project$Model$Game$addMoveToHistory, move, game));
+		} else {
+			var piece = move.a;
+			var position = move.b;
+			return A2(
+				$author$project$Model$Game$setLastMove,
+				move,
+				A2(
+					$author$project$Model$Game$addMoveToHistory,
+					move,
+					A2(
+						$author$project$Model$Game$setBoard,
+						A3($author$project$Model$Board$setPieceAt, position, piece, game.board),
+						game)));
+		}
 	});
 var $author$project$Logic$validMove = F2(
 	function (position, board) {
@@ -6238,25 +6288,32 @@ var $author$project$Logic$validMove = F2(
 	});
 var $author$project$Page$GamePlay$update = F2(
 	function (msg, model) {
-		var index = msg.a;
-		var _v1 = A2($author$project$Logic$validMove, index, model.board);
-		var moveIsValid = _v1.a;
-		var errorMessage = _v1.b;
-		return moveIsValid ? _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					activeTurn: !model.activeTurn,
-					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
-					invalidMoveAlert: $elm$core$Maybe$Nothing,
-					lastMove: $elm$core$Maybe$Just(index),
-					playerColor: $author$project$Board$colorInverse(model.playerColor)
-				}),
-			$author$project$Page$GamePlay$endTurn(model)) : _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{invalidMoveAlert: errorMessage}),
-			$elm$core$Platform$Cmd$none);
+		if (msg.$ === 'PlayPiece') {
+			var index = msg.a;
+			var move = A2(
+				$author$project$Model$Move$Play,
+				$author$project$Model$Piece$colorToPiece(model.playerColor),
+				index);
+			var _v1 = A2($author$project$Logic$validMove, move, model.game.board);
+			var moveIsValid = _v1.a;
+			var errorMessage = _v1.b;
+			return moveIsValid ? _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						activeTurn: !model.activeTurn,
+						game: A2($author$project$Model$Game$playMove, move, model.game),
+						invalidMoveAlert: $elm$core$Maybe$Nothing,
+						playerColor: $author$project$Model$Piece$colorInverse(model.playerColor)
+					}),
+				$author$project$Page$GamePlay$endTurn(model)) : _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{invalidMoveAlert: errorMessage}),
+				$elm$core$Platform$Cmd$none);
+		} else {
+			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
 	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
@@ -6366,7 +6423,7 @@ var $author$project$Route$routeToString = function (route) {
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$br = _VirtualDom_node('br');
-var $author$project$Board$colorToString = function (color) {
+var $author$project$Model$Piece$colorToString = function (color) {
 	if (color.$ === 'White') {
 		return 'white';
 	} else {
@@ -6381,11 +6438,11 @@ var $author$project$Page$GameCreate$viewGameSettings = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$text(
-				'Color: ' + $author$project$Board$colorToString(model.colorChoice)),
+				'Color: ' + $author$project$Model$Piece$colorToString(model.colorChoice)),
 				A2($elm$html$Html$br, _List_Nil, _List_Nil),
 				$elm$html$Html$text(
 				'Board size: ' + $elm$core$String$fromInt(
-					$author$project$Board$boardSizeToInt(model.boardSize))),
+					$author$project$Model$Board$boardSizeToInt(model.boardSize))),
 				A2($elm$html$Html$br, _List_Nil, _List_Nil),
 				$elm$html$Html$text(
 				'Komi: ' + $elm$core$String$fromFloat(model.komi)),
@@ -6496,12 +6553,12 @@ var $elm$core$Array$indexedMap = F2(
 			true,
 			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
 	});
-var $author$project$Page$GamePlay$PlacePiece = function (a) {
-	return {$: 'PlacePiece', a: a};
+var $author$project$Page$GamePlay$PlayPiece = function (a) {
+	return {$: 'PlayPiece', a: a};
 };
 var $author$project$Page$GamePlay$isInnerCell = F2(
 	function (boardSize, index) {
-		var intSize = $author$project$Board$boardSizeToInt(boardSize);
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
 		var isLastCol = !((index + 1) % intSize);
 		var isLastRow = _Utils_cmp(index, intSize * (intSize - 1)) > -1;
 		return !(isLastRow || isLastCol);
@@ -6545,7 +6602,7 @@ var $author$project$Page$GamePlay$renderPiece = function (piece) {
 				return '';
 		}
 	}();
-	return _Utils_eq(piece, $author$project$Board$None) ? $elm$html$Html$text('') : A2(
+	return _Utils_eq(piece, $author$project$Model$Piece$None) ? $elm$html$Html$text('') : A2(
 		$elm$svg$Svg$svg,
 		_List_fromArray(
 			[
@@ -6571,7 +6628,7 @@ var $author$project$Page$GamePlay$renderPiece = function (piece) {
 var $author$project$Page$GamePlay$viewBuildCell = F4(
 	function (boardSize, color, index, piece) {
 		var pieceHtml = $author$project$Page$GamePlay$renderPiece(piece);
-		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Board$colorToString(color);
+		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Model$Piece$colorToString(color);
 		var cellClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
 		return A2(
 			$elm$html$Html$div,
@@ -6579,7 +6636,7 @@ var $author$project$Page$GamePlay$viewBuildCell = F4(
 				[
 					$elm$html$Html$Attributes$class(cellClass),
 					$elm$html$Html$Events$onClick(
-					$author$project$Page$GamePlay$PlacePiece(index))
+					$author$project$Page$GamePlay$PlayPiece(index))
 				]),
 			_List_fromArray(
 				[
@@ -6597,11 +6654,11 @@ var $author$project$Page$GamePlay$viewGameBoard = function (model) {
 	return $elm$core$Array$toList(
 		A2(
 			$elm$core$Array$indexedMap,
-			A2($author$project$Page$GamePlay$viewBuildCell, model.boardSize, model.playerColor),
-			model.board));
+			A2($author$project$Page$GamePlay$viewBuildCell, model.game.boardSize, model.playerColor),
+			model.game.board));
 };
 var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
-	var intSize = $author$project$Board$boardSizeToInt(model.boardSize);
+	var intSize = $author$project$Model$Board$boardSizeToInt(model.game.boardSize);
 	var gridStyle = A2(
 		$elm$core$String$join,
 		' ',
