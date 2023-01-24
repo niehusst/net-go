@@ -81,7 +81,7 @@ suite =
                         koViolation =
                             Move.Play black 40
                     in
-                    Expect.equal ( False, Just "Ko rule violation" ) <|
+                    Expect.equal ( False, Just "You can't repeat your last move" ) <|
                         validMove koViolation game
             , test "basic suicide is illegal" <|
                 \_ ->
@@ -121,7 +121,7 @@ suite =
                         onTop =
                             Move.Play white 1
                     in
-                    Expect.equal ( False, Just "Can't play on top of other pieces" ) <|
+                    Expect.equal ( False, Just "You can't play on top of other pieces" ) <|
                         validMove onTop game
             ]
         ]

@@ -6280,9 +6280,46 @@ var $author$project$Model$Game$playMove = F2(
 						game)));
 		}
 	});
+var $author$project$Logic$legalPlayChecks = _List_Nil;
+var $author$project$Logic$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
 var $author$project$Logic$validMove = F2(
-	function (position, board) {
-		return _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
+	function (move, gameState) {
+		var applyChecks = F4(
+			function (checks, piece, position, game) {
+				applyChecks:
+				while (true) {
+					if (!checks.b) {
+						return $author$project$Logic$okay;
+					} else {
+						var check = checks.a;
+						var checksTail = checks.b;
+						var _v1 = A3(check, piece, position, game);
+						if ((!_v1.a) && (_v1.b.$ === 'Just')) {
+							var errorMessage = _v1.b.a;
+							return _Utils_Tuple2(
+								false,
+								$elm$core$Maybe$Just(errorMessage));
+						} else {
+							var $temp$checks = checksTail,
+								$temp$piece = piece,
+								$temp$position = position,
+								$temp$game = game;
+							checks = $temp$checks;
+							piece = $temp$piece;
+							position = $temp$position;
+							game = $temp$game;
+							continue applyChecks;
+						}
+					}
+				}
+			});
+		if (move.$ === 'Pass') {
+			return $author$project$Logic$okay;
+		} else {
+			var piece = move.a;
+			var position = move.b;
+			return A4(applyChecks, $author$project$Logic$legalPlayChecks, piece, position, gameState);
+		}
 	});
 var $author$project$Page$GamePlay$update = F2(
 	function (msg, model) {
@@ -6292,7 +6329,7 @@ var $author$project$Page$GamePlay$update = F2(
 				$author$project$Model$Move$Play,
 				$author$project$Model$Piece$colorToPiece(model.playerColor),
 				index);
-			var _v1 = A2($author$project$Logic$validMove, move, model.game.board);
+			var _v1 = A2($author$project$Logic$validMove, move, model.game);
 			var moveIsValid = _v1.a;
 			var errorMessage = _v1.b;
 			return moveIsValid ? _Utils_Tuple2(
