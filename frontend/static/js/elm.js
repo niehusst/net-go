@@ -6282,9 +6282,7 @@ var $author$project$Model$Game$playMove = F2(
 	});
 var $author$project$Logic$validMove = F2(
 	function (position, board) {
-		return _Utils_Tuple2(
-			false,
-			$elm$core$Maybe$Just('todo'));
+		return _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
 	});
 var $author$project$Page$GamePlay$update = F2(
 	function (msg, model) {

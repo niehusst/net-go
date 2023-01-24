@@ -169,7 +169,7 @@ update msg model =
                     Move.Play (colorToPiece model.playerColor) index
 
                 ( moveIsValid, errorMessage ) =
-                    validMove move model.game.board
+                    validMove move model.game
             in
             if moveIsValid then
                 ( { model

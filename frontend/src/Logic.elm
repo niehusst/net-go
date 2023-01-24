@@ -1,6 +1,7 @@
 module Logic exposing (validMove)
 
 import Model.Board as Board exposing (..)
+import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 
 
@@ -8,9 +9,9 @@ import Model.Move as Move exposing (..)
 if yes -> (True, Nothing)
 if not -> (False, Just errorMessage)
 -}
-validMove : Move -> Board -> ( Bool, Maybe String )
+validMove : Move -> Game -> ( Bool, Maybe String )
 validMove position board =
-    ( False, Just "todo" )
+    ( True, Nothing )
 
 
 legalPlayChecks : List (( Int, Board ) -> Bool)
