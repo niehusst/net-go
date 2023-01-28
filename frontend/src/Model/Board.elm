@@ -23,6 +23,34 @@ setPieceAt index piece board =
     Array.set index piece board
 
 
+getPositionUpFrom : Int -> BoardSize -> Int
+getPositionUpFrom index boardSize =
+    let
+        intSize =
+            boardSizeToInt boardSize
+    in
+    index - intSize
+
+
+getPositionDownFrom : Int -> BoardSize -> Int
+getPositionDownFrom index boardSize =
+    let
+        intSize =
+            boardSizeToInt boardSize
+    in
+    index + intSize
+
+
+getPositionLeftFrom : Int -> Int
+getPositionLeftFrom index =
+    index - 1
+
+
+getPositionRightFrom : Int -> Int
+getPositionRightFrom index =
+    index + 1
+
+
 type BoardSize
     = Full
     | Medium

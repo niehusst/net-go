@@ -4,6 +4,11 @@ import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
+import Set exposing (..)
+
+
+type alias MoveCheck =
+    Piece -> Int -> Game -> ( Bool, Maybe String )
 
 
 okay =
@@ -39,10 +44,6 @@ validMove move gameState =
             applyChecks legalPlayChecks piece position gameState
 
 
-type alias MoveCheck =
-    Piece -> Int -> Game -> ( Bool, Maybe String )
-
-
 legalPlayChecks : List MoveCheck
 legalPlayChecks =
     [ \piece position game ->
@@ -74,4 +75,75 @@ legalPlayChecks =
 
             _ ->
                 okay
+    , \piece position game ->
+        let
+            checkMessage =
+                "You can't cause your own capture"
+
+            seenSet : Set Int
+            seenSet =
+                Set.empty
+
+            potentialGameState =
+                { game | board = setPieceAt position piece game.board }
+        in
+        if not (isSurroundedByEnemyOrWall potentialGameState seenSet position) then
+            okay
+
+        else
+            ( False, Just checkMessage )
     ]
+
+
+type alias BoardData r =
+    { r
+        | playerColor : Piece.ColorChoice
+        , board : Board.Board
+        , boardSize : Board.BoardSize
+    }
+
+
+isSurroundedByEnemyOrWall : BoardData r -> Set Int -> Int -> Bool
+isSurroundedByEnemyOrWall boardData visited position =
+    let
+        alreadySeen =
+            Set.member position visited
+
+        updatedVisited =
+            Set.insert position visited
+
+        piece =
+            getPieceAt position boardData.board
+
+        playerPiece =
+            colorToPiece boardData.playerColor
+
+        enemyPiece =
+            colorInverse boardData.playerColor |> colorToPiece
+    in
+    if alreadySeen then
+        -- don't count already seen pieces toward safety
+        True
+
+    else
+        case piece of
+            Just stonePiece ->
+                if stonePiece == playerPiece then
+                    -- check all neighboring spaces
+                    List.all (isSurroundedByEnemyOrWall boardData updatedVisited) <|
+                        [ getPositionUpFrom position boardData.boardSize
+                        , getPositionDownFrom position boardData.boardSize
+                        , getPositionRightFrom position
+                        , getPositionLeftFrom position
+                        ]
+
+                else if stonePiece == enemyPiece then
+                    True
+
+                else
+                    -- empty space; FREEDOM!!!
+                    False
+
+            Nothing ->
+                -- wall
+                True

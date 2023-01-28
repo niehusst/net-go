@@ -6,7 +6,7 @@ import Logic exposing (..)
 import Model.Board as Board exposing (BoardSize(..))
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
-import Model.Piece as Piece exposing (Piece(..))
+import Model.Piece as Piece exposing (ColorChoice(..), Piece(..))
 import Test exposing (..)
 
 
@@ -38,12 +38,23 @@ board =
         |> Array.fromList
 
 
-game : Game
-game =
+blackGame : Game
+blackGame =
     { boardSize = Board.Small
     , board = board
     , lastMove = Just (Move.Play white 40) -- center of board
     , history = []
+    , playerColor = Piece.Black
+    }
+
+
+whiteGame : Game
+whiteGame =
+    { boardSize = Board.Small
+    , board = board
+    , lastMove = Just (Move.Play white 40) -- center of board
+    , history = []
+    , playerColor = Piece.White
     }
 
 
@@ -58,7 +69,7 @@ suite =
                             Move.Play black 12
                     in
                     Expect.equal ( True, Nothing ) <|
-                        validMove openMove game
+                        validMove openMove blackGame
             , test "filling own eye is legal" <|
                 \_ ->
                     let
@@ -66,7 +77,7 @@ suite =
                             Move.Play black 0
                     in
                     Expect.equal ( True, Nothing ) <|
-                        validMove fillEye game
+                        validMove fillEye blackGame
             , test "play inside hollow structure is legal" <|
                 \_ ->
                     let
@@ -74,7 +85,7 @@ suite =
                             Move.Play black 44
                     in
                     Expect.equal ( True, Nothing ) <|
-                        validMove inHollow game
+                        validMove inHollow blackGame
             , test "violate ko rule is illegal" <|
                 \_ ->
                     let
@@ -82,7 +93,7 @@ suite =
                             Move.Play black 40
                     in
                     Expect.equal ( False, Just "You can't repeat your last move" ) <|
-                        validMove koViolation game
+                        validMove koViolation blackGame
             , test "basic suicide is illegal" <|
                 \_ ->
                     let
@@ -90,7 +101,7 @@ suite =
                             Move.Play white 0
                     in
                     Expect.equal ( False, Just "You can't cause your own capture" ) <|
-                        validMove basicSuicide game
+                        validMove basicSuicide whiteGame
             , test "layered suicide is illegal" <|
                 \_ ->
                     let
@@ -98,7 +109,7 @@ suite =
                             Move.Play black 8
                     in
                     Expect.equal ( False, Just "You can't cause your own capture" ) <|
-                        validMove layeredSuicide game
+                        validMove layeredSuicide blackGame
             , test "suicide to capture is legal" <|
                 \_ ->
                     let
@@ -106,7 +117,7 @@ suite =
                             Move.Play black 45
                     in
                     Expect.equal ( True, Nothing ) <|
-                        validMove basicCaptureBeforeDeath game
+                        validMove basicCaptureBeforeDeath blackGame
             , test "layered suicide to capture internal is legal" <|
                 \_ ->
                     let
@@ -114,7 +125,7 @@ suite =
                             Move.Play white 8
                     in
                     Expect.equal ( True, Nothing ) <|
-                        validMove layeredCaptureBeforeDeath game
+                        validMove layeredCaptureBeforeDeath whiteGame
             , test "playing on top of another piece is illegal" <|
                 \_ ->
                     let
@@ -122,6 +133,6 @@ suite =
                             Move.Play white 1
                     in
                     Expect.equal ( False, Just "You can't play on top of other pieces" ) <|
-                        validMove onTop game
+                        validMove onTop whiteGame
             ]
         ]

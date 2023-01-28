@@ -19,8 +19,7 @@ type Msg
 
 
 type alias Model =
-    { playerColor : ColorChoice
-    , game : Game
+    { game : Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     }
@@ -76,7 +75,7 @@ viewGameBoard : Model -> List (Html Msg)
 viewGameBoard model =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell model.game.boardSize model.playerColor)
+            (viewBuildCell model.game.boardSize model.game.playerColor)
             model.game.board
         )
 
@@ -166,15 +165,14 @@ update msg model =
         PlayPiece index ->
             let
                 move =
-                    Move.Play (colorToPiece model.playerColor) index
+                    Move.Play (colorToPiece model.game.playerColor) index
 
                 ( moveIsValid, errorMessage ) =
                     validMove move model.game
             in
             if moveIsValid then
                 ( { model
-                    | game = playMove move model.game
-                    , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
+                    | game = playMove move model.game |> setPlayerColor (colorInverse model.game.playerColor) -- TODO: remove color swap w/ networking
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
                   }
@@ -210,8 +208,7 @@ init size color =
 
 initialModel : BoardSize -> ColorChoice -> Model
 initialModel boardSize colorChoice =
-    { game = newGame boardSize
-    , playerColor = colorChoice
+    { game = newGame boardSize colorChoice
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
     }
