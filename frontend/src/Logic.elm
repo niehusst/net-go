@@ -80,19 +80,22 @@ legalPlayChecks =
             checkMessage =
                 "You can't cause your own capture"
 
-            seenSet : Set Int
-            seenSet =
-                Set.empty
+            beginningState =
+                { surrounded = True, visited = Set.empty }
 
             potentialGameState =
                 { game | board = setPieceAt position piece game.board }
         in
-        if not (isSurroundedByEnemyOrWall potentialGameState seenSet position) then
+        if not (isSurroundedByEnemyOrWall potentialGameState position beginningState).surrounded then
             okay
 
         else
             ( False, Just checkMessage )
     ]
+
+
+
+-- HELPERS
 
 
 type alias BoardData r =
@@ -103,47 +106,60 @@ type alias BoardData r =
     }
 
 
-isSurroundedByEnemyOrWall : BoardData r -> Set Int -> Int -> Bool
-isSurroundedByEnemyOrWall boardData visited position =
+type alias SurroundedState =
+    { surrounded : Bool
+    , visited : Set Int
+    }
+
+
+isSurroundedByEnemyOrWall : BoardData r -> Int -> SurroundedState -> SurroundedState
+isSurroundedByEnemyOrWall boardData position state =
     let
         alreadySeen =
-            Set.member position visited
+            Set.member position state.visited
 
         updatedVisited =
-            Set.insert position visited
-
-        piece =
-            getPieceAt position boardData.board
-
-        playerPiece =
-            colorToPiece boardData.playerColor
-
-        enemyPiece =
-            colorInverse boardData.playerColor |> colorToPiece
+            Set.insert position state.visited
     in
-    if alreadySeen then
-        -- don't count already seen pieces toward safety
-        True
+    case ( state.surrounded, alreadySeen ) of
+        ( False, _ ) ->
+            -- exit early
+            state
 
-    else
-        case piece of
-            Just stonePiece ->
-                if stonePiece == playerPiece then
-                    -- check all neighboring spaces
-                    List.all (isSurroundedByEnemyOrWall boardData updatedVisited) <|
-                        [ getPositionUpFrom position boardData.boardSize
-                        , getPositionDownFrom position boardData.boardSize
-                        , getPositionRightFrom position
-                        , getPositionLeftFrom position
-                        ]
+        ( _, True ) ->
+            -- don't count already seen pieces toward safety
+            state
 
-                else if stonePiece == enemyPiece then
-                    True
+        _ ->
+            let
+                piece =
+                    getPieceAt position boardData.board
 
-                else
-                    -- empty space; FREEDOM!!!
-                    False
+                playerPiece =
+                    colorToPiece boardData.playerColor
 
-            Nothing ->
-                -- wall
-                True
+                enemyPiece =
+                    colorInverse boardData.playerColor |> colorToPiece
+
+                updatedState =
+                    { state | visited = updatedVisited }
+            in
+            case piece of
+                Just stonePiece ->
+                    if stonePiece == playerPiece then
+                        -- check all neighboring spaces
+                        isSurroundedByEnemyOrWall boardData (getPositionUpFrom position boardData.boardSize) updatedState
+                            |> isSurroundedByEnemyOrWall boardData (getPositionDownFrom position boardData.boardSize)
+                            |> isSurroundedByEnemyOrWall boardData (getPositionRightFrom position)
+                            |> isSurroundedByEnemyOrWall boardData (getPositionLeftFrom position)
+
+                    else if stonePiece == enemyPiece then
+                        { surrounded = True, visited = updatedVisited }
+
+                    else
+                        -- empty space; FREEDOM!!!
+                        { surrounded = False, visited = updatedVisited }
+
+                Nothing ->
+                    -- wall
+                    { surrounded = True, visited = updatedVisited }
