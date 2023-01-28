@@ -117,9 +117,6 @@ isSurroundedByEnemyOrWall boardData position state =
     let
         alreadySeen =
             Set.member position state.visited
-
-        updatedVisited =
-            Set.insert position state.visited
     in
     case ( state.surrounded, alreadySeen ) of
         ( False, _ ) ->
@@ -127,11 +124,14 @@ isSurroundedByEnemyOrWall boardData position state =
             state
 
         ( _, True ) ->
-            -- don't count already seen pieces toward safety
+            -- don't recheck already seen pieces
             state
 
         _ ->
             let
+                updatedVisited =
+                    Set.insert position state.visited
+
                 piece =
                     getPieceAt position boardData.board
 
@@ -150,8 +150,8 @@ isSurroundedByEnemyOrWall boardData position state =
                         -- check all neighboring spaces
                         isSurroundedByEnemyOrWall boardData (getPositionUpFrom position boardData.boardSize) updatedState
                             |> isSurroundedByEnemyOrWall boardData (getPositionDownFrom position boardData.boardSize)
-                            |> isSurroundedByEnemyOrWall boardData (getPositionRightFrom position)
-                            |> isSurroundedByEnemyOrWall boardData (getPositionLeftFrom position)
+                            |> isSurroundedByEnemyOrWall boardData (getPositionRightFrom position boardData.boardSize)
+                            |> isSurroundedByEnemyOrWall boardData (getPositionLeftFrom position boardData.boardSize)
 
                     else if stonePiece == enemyPiece then
                         { surrounded = True, visited = updatedVisited }

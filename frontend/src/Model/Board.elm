@@ -41,14 +41,32 @@ getPositionDownFrom index boardSize =
     index + intSize
 
 
-getPositionLeftFrom : Int -> Int
-getPositionLeftFrom index =
-    index - 1
+getPositionLeftFrom : Int -> BoardSize -> Int
+getPositionLeftFrom index boardSize =
+    let
+        intSize =
+            boardSizeToInt boardSize
+    in
+    if modBy intSize index == 0 then
+        -- out of bounds
+        -1
+
+    else
+        index - 1
 
 
-getPositionRightFrom : Int -> Int
-getPositionRightFrom index =
-    index + 1
+getPositionRightFrom : Int -> BoardSize -> Int
+getPositionRightFrom index boardSize =
+    let
+        intSize =
+            boardSizeToInt boardSize
+    in
+    if modBy intSize (index + 1) == 0 then
+        -- out of bounds
+        -1
+
+    else
+        index + 1
 
 
 type BoardSize
