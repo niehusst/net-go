@@ -80,17 +80,19 @@ legalPlayChecks =
             checkMessage =
                 "You can't cause your own capture"
 
-            beginningState =
-                { surrounded = True, visited = Set.empty }
+            boardWithPlayedPiece =
+                setPieceAt position piece game.board
 
-            potentialGameState =
-                { game | board = setPieceAt position piece game.board }
+            ( potentialBoardState, _ ) =
+                removeCapturedPieces boardWithPlayedPiece
         in
-        if not (isSurroundedByEnemyOrWall potentialGameState position beginningState).surrounded then
-            okay
+        case getPieceAt poisition game.board of
+            Piece.None ->
+                -- the piece just played was captured
+                ( False, Just checkMessage )
 
-        else
-            ( False, Just checkMessage )
+            _ ->
+                okay
     ]
 
 
@@ -106,6 +108,65 @@ type alias BoardData r =
     }
 
 
+{-| Checks entire board to remove any captured pieces from it.
+Assumes that any capturing moves have been applied to board
+before function call.
+
+Returns the updated board and the number of pieces captured.
+
+(Since you can't capture your own pieces, the only possibility is for
+scored points to be awarded to the player who played the piece, so
+returning point value for both players is unnecessary, assuming
+legal play has been enforced on prior turns.)
+
+-}
+removeCapturedPieces : BoardData -> ( Board, Int )
+removeCapturedPieces boardData =
+    let
+        positionsToRemove : List Int
+        positionsToRemove =
+            List.empty
+
+        beginningState =
+            { surrounded = True, visited = Set.empty }
+
+        -- TODO: kernel should iter over every piece on board and perform dfs flood to find captured groups. uses a set to avoid redoing dfs on already tested groups
+        completeState =
+            kernel boardData
+
+        updatedBoard =
+            removePiecesAt positionsToRemove boardData.board
+    in
+    ( updatedBoard, List.size positionsToRemove )
+
+
+{-| TODO type signature and also everything
+-}
+kernel boardData =
+    case indexedBoard of
+        [] ->
+            state
+
+        ( position, _ ) :: indexedTail ->
+            isSurroundedByEnemyOrWall boardData position state
+
+
+removePiecesAt : List Int -> Board -> Board
+removePiecesAt positions board =
+    let
+        sortedPositions =
+            List.sort positions
+
+        -- TODO: mega not done
+        removePiece : List Int -> ( Board, Board ) -> ( Board, Board )
+        removePiece position ( oldBoard, newBoard ) =
+            "TODO"
+    in
+    List.indexedMap (removePiece sortedPositions) board
+
+
+{-| `visited` is a set of position indices on the board that have already been checked
+-}
 type alias SurroundedState =
     { surrounded : Bool
     , visited : Set Int
