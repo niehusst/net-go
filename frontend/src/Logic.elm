@@ -1,7 +1,6 @@
 module Logic exposing (validMove)
 
 import Array
-import Dict exposing (Dict)
 import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
@@ -82,14 +81,14 @@ legalPlayChecks =
             checkMessage =
                 "You can't cause your own capture"
 
-            boardWithPlayedPiece =
-                setPieceAt position piece game.board
+            gameWithPlayedPiece =
+                { game | board = setPieceAt position piece game.board }
 
             ( potentialBoardState, _ ) =
-                removeCapturedPieces boardWithPlayedPiece
+                removeCapturedPieces gameWithPlayedPiece
         in
         case getPieceAt position game.board of
-            Piece.None ->
+            Just Piece.None ->
                 -- the piece just played was captured
                 ( False, Just checkMessage )
 
@@ -128,29 +127,17 @@ legal play has been enforced on prior turns.)
 removeCapturedPieces : BoardData r -> ( Board, Int )
 removeCapturedPieces boardData =
     let
-        --        beginningState =
-        --            { surrounded = True, visited = Set.empty }
-        capturedPositionsDict =
-            findCapturedEnemyPieces boardData <|
-                Array.toIndexedList boardData.board <|
-                    Dict.empty
+        capturedPositionsSet =
+            findCapturedEnemyPieces
+                boardData
+                (Array.toIndexedList boardData.board)
+                Set.empty
+                Set.empty
 
         updatedBoard =
-            removePiecesAt capturedPositionsDict boardData.board
-
-        numberOfCapturedPieces =
-            Dict.foldr <|
-                (\_ surrounded sum ->
-                    if surrounded then
-                        sum + 1
-
-                    else
-                        sum
-                )
-                    0
-                    capturedPositionsDict
+            removePiecesAt capturedPositionsSet boardData.board
     in
-    ( updatedBoard, numberOfCapturedPieces )
+    ( updatedBoard, Set.size capturedPositionsSet )
 
 
 {-| Find all the captured pieces of color `color` and return
@@ -159,24 +146,49 @@ that position is surrounded.
 
 color - color of piece to check if surrounded
 indexedBoard - zip of a Board type with its indices
-seenState - map from position to whether that position is known to be captured or not (no value if there it is not known for that position yet)
+globalVisited - set of all positions that have been checked for capture
+captured - set of positions of captured pieces
+
+returns the built up `captured` set once board iteration is complete
 
 -}
-findCapturedEnemyPieces : BoardData r -> List ( Int, Piece.Piece ) -> Dict Int Bool -> Dict Int Bool
-findCapturedEnemyPieces boardData indexedBoard seenState =
+findCapturedEnemyPieces : BoardData r -> List ( Int, Piece.Piece ) -> Set Int -> Set Int -> Set Int
+findCapturedEnemyPieces boardData indexedBoard globalVisited captured =
     case indexedBoard of
         [] ->
-            seenState
+            captured
 
         ( position, piece ) :: indexedTail ->
-            let
-                updatedSeenState =
-                    markCapturedPieces piece position boardData seenState
-            in
-            findCapturedEnemyPieces boardData indexedTail updatedSeenState
+            if Set.member position globalVisited then
+                -- advance without redoing work
+                findCapturedEnemyPieces boardData indexedTail globalVisited captured
+
+            else
+                let
+                    -- we havent seen this position before, so we know it's not
+                    -- connected to any other pieces we've already checked.
+                    -- Therefore, we can start over with a new empty seen set
+                    ( groupIsCaptured, seenPositions ) =
+                        markCapturedPieces piece position boardData Set.empty
+
+                    updatedGlobalVisited =
+                        Set.union globalVisited seenPositions
+
+                    updatedCaptured =
+                        if groupIsCaptured then
+                            Set.union captured seenPositions
+
+                        else
+                            captured
+                in
+                findCapturedEnemyPieces
+                    boardData
+                    indexedTail
+                    updatedGlobalVisited
+                    updatedCaptured
 
 
-markCapturedPieces : Piece.Piece -> Int -> BoardData r -> Dict Int Bool -> Dict Int Bool
+markCapturedPieces : Piece.Piece -> Int -> BoardData r -> Set Int -> ( Bool, Set Int )
 markCapturedPieces piece position boardData seenState =
     let
         enemyColor =
@@ -185,41 +197,49 @@ markCapturedPieces piece position boardData seenState =
         isEnemyPiece =
             piece == colorToPiece enemyColor
     in
-    if isEnemyPiece && not (Dict.member position seenState) then
+    if isEnemyPiece && not (Set.member position seenState) then
         let
             enemyBoardData =
                 { boardData | playerColor = colorInverse boardData.playerColor }
 
-            -- TODO: seenstate is type mismatch. need to resolve
-            ( surrounded, _ ) =
-                isSurroundedByEnemyOrWall enemyBoardData position seenState
+            initialState =
+                { surrounded = True, visited = seenState }
+
+            checkedState =
+                isSurroundedByEnemyOrWall enemyBoardData position initialState
         in
-        Dict.insert position surrounded seenState
+        ( checkedState.surrounded, checkedState.visited )
 
     else
-        seenState
+        -- take no action for non enemy pieces, which can't be captured
+        ( False, seenState )
 
 
-{-| Given a dict of positions mapped to whether or
-not the piece at that position is captured, return
-an updated board where all the captured positions
+{-| Given a set of positions of captured pieces,
+return an updated board where all the captured positions
 have been set to Piece.None.
 -}
-removePiecesAt : Dict Int Bool -> Board -> Board
+removePiecesAt : Set Int -> Board -> Board
 removePiecesAt captured board =
     Array.indexedMap
         (\index piece ->
-            case Dict.get index captured of
-                Just True ->
-                    Piece.None
+            if Set.member index captured then
+                Piece.None
 
-                _ ->
-                    piece
+            else
+                piece
         )
         board
 
 
-{-| `visited` is a set of position indices on the board that have already been checked
+{-| Convenience data struct for searching the board for
+captured pieces
+
+`surrounded` indicates whether the group of conneted pieces
+being evaluated are completely surrounded.
+`visited` is a set position indices on the board
+that have already been checked.
+
 -}
 type alias SurroundedState =
     { surrounded : Bool
@@ -227,6 +247,10 @@ type alias SurroundedState =
     }
 
 
+{-| DFS flood to see if pieces of the color `BoardData.playerColor`
+are surrounded by enemy pieces or the wall (aka captured)
+starting from the space `position` on `BoardData.board`.
+-}
 isSurroundedByEnemyOrWall : BoardData r -> Int -> SurroundedState -> SurroundedState
 isSurroundedByEnemyOrWall boardData position state =
     let
@@ -244,9 +268,6 @@ isSurroundedByEnemyOrWall boardData position state =
 
         _ ->
             let
-                updatedVisited =
-                    Set.insert position state.visited
-
                 piece =
                     getPieceAt position boardData.board
 
@@ -255,13 +276,17 @@ isSurroundedByEnemyOrWall boardData position state =
 
                 enemyPiece =
                     colorInverse boardData.playerColor |> colorToPiece
-
-                updatedState =
-                    { state | visited = updatedVisited }
             in
             case piece of
                 Just stonePiece ->
                     if stonePiece == playerPiece then
+                        let
+                            updatedVisited =
+                                Set.insert position state.visited
+
+                            updatedState =
+                                { state | visited = updatedVisited }
+                        in
                         -- check all neighboring spaces
                         isSurroundedByEnemyOrWall boardData (getPositionUpFrom position boardData.boardSize) updatedState
                             |> isSurroundedByEnemyOrWall boardData (getPositionDownFrom position boardData.boardSize)
@@ -269,12 +294,12 @@ isSurroundedByEnemyOrWall boardData position state =
                             |> isSurroundedByEnemyOrWall boardData (getPositionLeftFrom position boardData.boardSize)
 
                     else if stonePiece == enemyPiece then
-                        { surrounded = True, visited = updatedVisited }
+                        { state | surrounded = True }
 
                     else
                         -- empty space; FREEDOM!!!
-                        { surrounded = False, visited = updatedVisited }
+                        { state | surrounded = False }
 
                 Nothing ->
                     -- wall
-                    { surrounded = True, visited = updatedVisited }
+                    { state | surrounded = True }
