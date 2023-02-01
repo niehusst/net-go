@@ -1,10 +1,12 @@
 module Logic exposing (validMove)
 
+import Array
+import Dict exposing (Dict)
 import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
-import Set exposing (..)
+import Set exposing (Set)
 
 
 type alias MoveCheck =
@@ -86,7 +88,7 @@ legalPlayChecks =
             ( potentialBoardState, _ ) =
                 removeCapturedPieces boardWithPlayedPiece
         in
-        case getPieceAt poisition game.board of
+        case getPieceAt position game.board of
             Piece.None ->
                 -- the piece just played was captured
                 ( False, Just checkMessage )
@@ -108,61 +110,113 @@ type alias BoardData r =
     }
 
 
-{-| Checks entire board to remove any captured pieces from it.
+{-| Checks entire board to remove any captured pieces of the
+enemy color from it.
 Assumes that any capturing moves have been applied to board
 before function call.
 
-Returns the updated board and the number of pieces captured.
+Returns the updated board and the number of pieces captured
+(for scoring purposes).
 
 (Since you can't capture your own pieces, the only possibility is for
 scored points to be awarded to the player who played the piece, so
-returning point value for both players is unnecessary, assuming
+returning point value, or checking to remove pieces, for both
+players is unnecessary; assuming
 legal play has been enforced on prior turns.)
 
 -}
-removeCapturedPieces : BoardData -> ( Board, Int )
+removeCapturedPieces : BoardData r -> ( Board, Int )
 removeCapturedPieces boardData =
     let
-        positionsToRemove : List Int
-        positionsToRemove =
-            List.empty
-
-        beginningState =
-            { surrounded = True, visited = Set.empty }
-
-        -- TODO: kernel should iter over every piece on board and perform dfs flood to find captured groups. uses a set to avoid redoing dfs on already tested groups
-        completeState =
-            kernel boardData
+        --        beginningState =
+        --            { surrounded = True, visited = Set.empty }
+        capturedPositionsDict =
+            findCapturedEnemyPieces boardData <|
+                Array.toIndexedList boardData.board <|
+                    Dict.empty
 
         updatedBoard =
-            removePiecesAt positionsToRemove boardData.board
+            removePiecesAt capturedPositionsDict boardData.board
+
+        numberOfCapturedPieces =
+            Dict.foldr <|
+                (\_ surrounded sum ->
+                    if surrounded then
+                        sum + 1
+
+                    else
+                        sum
+                )
+                    0
+                    capturedPositionsDict
     in
-    ( updatedBoard, List.size positionsToRemove )
+    ( updatedBoard, numberOfCapturedPieces )
 
 
-{-| TODO type signature and also everything
+{-| Find all the captured pieces of color `color` and return
+as a dictionary mapping from position to whether piece at
+that position is surrounded.
+
+color - color of piece to check if surrounded
+indexedBoard - zip of a Board type with its indices
+seenState - map from position to whether that position is known to be captured or not (no value if there it is not known for that position yet)
+
 -}
-kernel boardData =
+findCapturedEnemyPieces : BoardData r -> List ( Int, Piece.Piece ) -> Dict Int Bool -> Dict Int Bool
+findCapturedEnemyPieces boardData indexedBoard seenState =
     case indexedBoard of
         [] ->
-            state
+            seenState
 
-        ( position, _ ) :: indexedTail ->
-            isSurroundedByEnemyOrWall boardData position state
+        ( position, piece ) :: indexedTail ->
+            let
+                updatedSeenState =
+                    markCapturedPieces piece position boardData seenState
+            in
+            findCapturedEnemyPieces boardData indexedTail updatedSeenState
 
 
-removePiecesAt : List Int -> Board -> Board
-removePiecesAt positions board =
+markCapturedPieces : Piece.Piece -> Int -> BoardData r -> Dict Int Bool -> Dict Int Bool
+markCapturedPieces piece position boardData seenState =
     let
-        sortedPositions =
-            List.sort positions
+        enemyColor =
+            colorInverse boardData.playerColor
 
-        -- TODO: mega not done
-        removePiece : List Int -> ( Board, Board ) -> ( Board, Board )
-        removePiece position ( oldBoard, newBoard ) =
-            "TODO"
+        isEnemyPiece =
+            piece == colorToPiece enemyColor
     in
-    List.indexedMap (removePiece sortedPositions) board
+    if isEnemyPiece && not (Dict.member position seenState) then
+        let
+            enemyBoardData =
+                { boardData | playerColor = colorInverse boardData.playerColor }
+
+            -- TODO: seenstate is type mismatch. need to resolve
+            ( surrounded, _ ) =
+                isSurroundedByEnemyOrWall enemyBoardData position seenState
+        in
+        Dict.insert position surrounded seenState
+
+    else
+        seenState
+
+
+{-| Given a dict of positions mapped to whether or
+not the piece at that position is captured, return
+an updated board where all the captured positions
+have been set to Piece.None.
+-}
+removePiecesAt : Dict Int Bool -> Board -> Board
+removePiecesAt captured board =
+    Array.indexedMap
+        (\index piece ->
+            case Dict.get index captured of
+                Just True ->
+                    Piece.None
+
+                _ ->
+                    piece
+        )
+        board
 
 
 {-| `visited` is a set of position indices on the board that have already been checked
