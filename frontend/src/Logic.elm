@@ -1,7 +1,6 @@
 module Logic exposing (validMove)
 
 import Array
-import Debug
 import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
@@ -98,9 +97,6 @@ legalPlayChecks =
 
             ( enemyCaptureBoardState, _ ) =
                 removeCapturedPieces gameWithPlayedPieceOnEnemyTurn
-
-            --            _ =
-            --                printBoard potentialBoardState game.boardSize
         in
         case getPieceAt position enemyCaptureBoardState of
             Just Piece.None ->
@@ -110,17 +106,6 @@ legalPlayChecks =
             _ ->
                 okay
     ]
-
-
-printBoard board size =
-    let
-        -- TODO: get rid of debug helper
-        intSize =
-            boardSizeToInt size
-    in
-    List.reverse (List.range 0 intSize)
-        |> List.map
-            (\i -> Debug.log "" (Array.slice (i * intSize) ((i * intSize) + intSize) board))
 
 
 

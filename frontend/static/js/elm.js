@@ -6430,7 +6430,7 @@ var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
 			}
 		}
 	});
-var $author$project$Logic$markCapturedPieces = F4(
+var $author$project$Logic$markCapturedEnemyPieces = F4(
 	function (piece, position, boardData, seenState) {
 		var enemyColor = $author$project$Model$Piece$colorInverse(boardData.playerColor);
 		var isEnemyPiece = _Utils_eq(
@@ -6507,7 +6507,7 @@ var $author$project$Logic$findCapturedEnemyPieces = F4(
 					captured = $temp$captured;
 					continue findCapturedEnemyPieces;
 				} else {
-					var _v2 = A4($author$project$Logic$markCapturedPieces, piece, position, boardData, $elm$core$Set$empty);
+					var _v2 = A4($author$project$Logic$markCapturedEnemyPieces, piece, position, boardData, $elm$core$Set$empty);
 					var groupIsCaptured = _v2.a;
 					var seenPositions = _v2.b;
 					var updatedCaptured = groupIsCaptured ? A2($elm$core$Set$union, captured, seenPositions) : captured;
@@ -6670,10 +6670,18 @@ var $author$project$Logic$legalPlayChecks = _List_fromArray(
 				});
 			var checkMessage = 'You can\'t cause your own capture';
 			var _v4 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPiece);
-			var potentialBoardState = _v4.a;
-			var _v5 = A2($author$project$Model$Board$getPieceAt, position, game.board);
-			if ((_v5.$ === 'Just') && (_v5.a.$ === 'None')) {
-				var _v6 = _v5.a;
+			var playerCaptureBoardState = _v4.a;
+			var gameWithPlayedPieceOnEnemyTurn = _Utils_update(
+				game,
+				{
+					board: playerCaptureBoardState,
+					playerColor: $author$project$Model$Piece$colorInverse(game.playerColor)
+				});
+			var _v5 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPieceOnEnemyTurn);
+			var enemyCaptureBoardState = _v5.a;
+			var _v6 = A2($author$project$Model$Board$getPieceAt, position, enemyCaptureBoardState);
+			if ((_v6.$ === 'Just') && (_v6.a.$ === 'None')) {
+				var _v7 = _v6.a;
 				return _Utils_Tuple2(
 					false,
 					$elm$core$Maybe$Just(checkMessage));
