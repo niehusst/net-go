@@ -5220,7 +5220,7 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$NotFoundPage = {$: 'NotFoundPage'};
-var $author$project$Board$Black = {$: 'Black'};
+var $author$project$Model$Piece$Black = {$: 'Black'};
 var $author$project$Main$GameCreatePage = function (a) {
 	return {$: 'GameCreatePage', a: a};
 };
@@ -5233,15 +5233,15 @@ var $author$project$Main$HomePage = function (a) {
 var $author$project$Main$HomePageMsg = function (a) {
 	return {$: 'HomePageMsg', a: a};
 };
-var $author$project$Board$Small = {$: 'Small'};
+var $author$project$Model$Board$Small = {$: 'Small'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$Board$Standard = {$: 'Standard'};
-var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Board$Standard, colorChoice: $author$project$Board$Black, komi: 6.5};
+var $author$project$Model$Board$Full = {$: 'Full'};
+var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Model$Board$Full, colorChoice: $author$project$Model$Piece$Black, komi: 5.5};
 var $author$project$Page$GameCreate$init = $author$project$Page$GameCreate$initialModel;
-var $author$project$Board$None = {$: 'None'};
-var $author$project$Board$boardSizeToInt = function (size) {
+var $author$project$Model$Piece$None = {$: 'None'};
+var $author$project$Model$Board$boardSizeToInt = function (size) {
 	switch (size.$) {
-		case 'Standard':
+		case 'Full':
 			return 19;
 		case 'Medium':
 			return 12;
@@ -5258,17 +5258,26 @@ var $elm$core$Array$repeat = F2(
 				return e;
 			});
 	});
-var $author$project$Board$emptyBoard = function (size) {
-	var intSize = $author$project$Board$boardSizeToInt(size);
-	return A2($elm$core$Array$repeat, intSize * intSize, $author$project$Board$None);
+var $author$project$Model$Board$emptyBoard = function (size) {
+	var intSize = $author$project$Model$Board$boardSizeToInt(size);
+	return A2($elm$core$Array$repeat, intSize * intSize, $author$project$Model$Piece$None);
 };
+var $author$project$Model$Game$newGame = F2(
+	function (size, color) {
+		return {
+			board: $author$project$Model$Board$emptyBoard(size),
+			boardSize: size,
+			history: _List_Nil,
+			lastMove: $elm$core$Maybe$Nothing,
+			playerColor: color
+		};
+	});
 var $author$project$Page$GamePlay$initialModel = F2(
 	function (boardSize, colorChoice) {
 		return {
-			board: $author$project$Board$emptyBoard(boardSize),
-			boardSize: boardSize,
-			lastMove: $elm$core$Maybe$Nothing,
-			playerColor: colorChoice
+			activeTurn: _Utils_eq(colorChoice, $author$project$Model$Piece$Black),
+			game: A2($author$project$Model$Game$newGame, boardSize, colorChoice),
+			invalidMoveAlert: $elm$core$Maybe$Nothing
 		};
 	});
 var $author$project$Page$GamePlay$init = F2(
@@ -5301,7 +5310,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 					$author$project$Main$GameCreatePage(pageModel),
 					$elm$core$Platform$Cmd$none);
 			default:
-				var pageModel = A2($author$project$Page$GamePlay$init, $author$project$Board$Small, $author$project$Board$Black);
+				var pageModel = A2($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black);
 				return _Utils_Tuple2(
 					$author$project$Main$GamePlayPage(pageModel),
 					$elm$core$Platform$Cmd$none);
@@ -6147,19 +6156,53 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
-var $author$project$Board$White = {$: 'White'};
-var $author$project$Board$colorInverse = function (color) {
+var $author$project$Model$Move$Play = F2(
+	function (a, b) {
+		return {$: 'Play', a: a, b: b};
+	});
+var $author$project$Model$Piece$White = {$: 'White'};
+var $author$project$Model$Piece$colorInverse = function (color) {
 	if (color.$ === 'White') {
-		return $author$project$Board$Black;
+		return $author$project$Model$Piece$Black;
 	} else {
-		return $author$project$Board$White;
+		return $author$project$Model$Piece$White;
+	}
+};
+var $author$project$Model$Piece$BlackStone = {$: 'BlackStone'};
+var $author$project$Model$Piece$WhiteStone = {$: 'WhiteStone'};
+var $author$project$Model$Piece$colorToPiece = function (color) {
+	if (color.$ === 'White') {
+		return $author$project$Model$Piece$WhiteStone;
+	} else {
+		return $author$project$Model$Piece$BlackStone;
 	}
 };
 var $author$project$Page$GamePlay$endTurn = function (model) {
 	return $elm$core$Platform$Cmd$none;
 };
-var $author$project$Board$BlackStone = {$: 'BlackStone'};
-var $author$project$Board$WhiteStone = {$: 'WhiteStone'};
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Model$Game$addMoveToHistory = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				history: A2($elm$core$List$cons, move, game.history)
+			});
+	});
+var $author$project$Model$Game$setBoard = F2(
+	function (board, game) {
+		return _Utils_update(
+			game,
+			{board: board});
+	});
+var $author$project$Model$Game$setLastMove = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				lastMove: $elm$core$Maybe$Just(move)
+			});
+	});
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
@@ -6212,33 +6255,510 @@ var $elm$core$Array$set = F3(
 			A4($elm$core$Array$setHelp, startShift, index, value, tree),
 			tail));
 	});
-var $author$project$Board$setPieceAt = F3(
+var $author$project$Model$Board$setPieceAt = F3(
 	function (index, piece, board) {
 		return A3($elm$core$Array$set, index, piece, board);
 	});
-var $author$project$Page$GamePlay$placePiece = F3(
-	function (color, index, board) {
-		var piece = function () {
-			if (color.$ === 'White') {
-				return $author$project$Board$WhiteStone;
+var $author$project$Model$Game$playMove = F2(
+	function (move, game) {
+		if (move.$ === 'Pass') {
+			return A2(
+				$author$project$Model$Game$setLastMove,
+				move,
+				A2($author$project$Model$Game$addMoveToHistory, move, game));
+		} else {
+			var piece = move.a;
+			var position = move.b;
+			return A2(
+				$author$project$Model$Game$setLastMove,
+				move,
+				A2(
+					$author$project$Model$Game$addMoveToHistory,
+					move,
+					A2(
+						$author$project$Model$Game$setBoard,
+						A3($author$project$Model$Board$setPieceAt, position, piece, game.board),
+						game)));
+		}
+	});
+var $author$project$Model$Game$setPlayerColor = F2(
+	function (color, game) {
+		return _Utils_update(
+			game,
+			{playerColor: color});
+	});
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
 			} else {
-				return $author$project$Board$BlackStone;
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
 			}
-		}();
-		return A3($author$project$Board$setPieceAt, index, piece, board);
+		}
+	});
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $author$project$Model$Board$getPieceAt = F2(
+	function (index, board) {
+		return A2($elm$core$Array$get, index, board);
+	});
+var $author$project$Logic$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $author$project$Model$Board$getPositionDownFrom = F2(
+	function (index, boardSize) {
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
+		return index + intSize;
+	});
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $author$project$Model$Board$getPositionLeftFrom = F2(
+	function (index, boardSize) {
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
+		return (!A2($elm$core$Basics$modBy, intSize, index)) ? (-1) : (index - 1);
+	});
+var $author$project$Model$Board$getPositionRightFrom = F2(
+	function (index, boardSize) {
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
+		return (!A2($elm$core$Basics$modBy, intSize, index + 1)) ? (-1) : (index + 1);
+	});
+var $author$project$Model$Board$getPositionUpFrom = F2(
+	function (index, boardSize) {
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
+		return index - intSize;
+	});
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
+	});
+var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
+	function (boardData, position, state) {
+		var alreadySeen = A2($elm$core$Set$member, position, state.visited);
+		var _v0 = _Utils_Tuple2(state.surrounded, alreadySeen);
+		if (!_v0.a) {
+			return state;
+		} else {
+			if (_v0.b) {
+				return state;
+			} else {
+				var playerPiece = $author$project$Model$Piece$colorToPiece(boardData.playerColor);
+				var piece = A2($author$project$Model$Board$getPieceAt, position, boardData.board);
+				var enemyPiece = $author$project$Model$Piece$colorToPiece(
+					$author$project$Model$Piece$colorInverse(boardData.playerColor));
+				if (piece.$ === 'Just') {
+					var stonePiece = piece.a;
+					if (_Utils_eq(stonePiece, playerPiece)) {
+						var updatedVisited = A2($elm$core$Set$insert, position, state.visited);
+						var updatedState = _Utils_update(
+							state,
+							{visited: updatedVisited});
+						return A3(
+							$author$project$Logic$isSurroundedByEnemyOrWall,
+							boardData,
+							A2($author$project$Model$Board$getPositionLeftFrom, position, boardData.boardSize),
+							A3(
+								$author$project$Logic$isSurroundedByEnemyOrWall,
+								boardData,
+								A2($author$project$Model$Board$getPositionRightFrom, position, boardData.boardSize),
+								A3(
+									$author$project$Logic$isSurroundedByEnemyOrWall,
+									boardData,
+									A2($author$project$Model$Board$getPositionDownFrom, position, boardData.boardSize),
+									A3(
+										$author$project$Logic$isSurroundedByEnemyOrWall,
+										boardData,
+										A2($author$project$Model$Board$getPositionUpFrom, position, boardData.boardSize),
+										updatedState))));
+					} else {
+						if (_Utils_eq(stonePiece, enemyPiece)) {
+							return _Utils_update(
+								state,
+								{surrounded: true});
+						} else {
+							return _Utils_update(
+								state,
+								{surrounded: false});
+						}
+					}
+				} else {
+					return _Utils_update(
+						state,
+						{surrounded: true});
+				}
+			}
+		}
+	});
+var $author$project$Logic$markCapturedEnemyPieces = F4(
+	function (piece, position, boardData, seenState) {
+		var enemyColor = $author$project$Model$Piece$colorInverse(boardData.playerColor);
+		var isEnemyPiece = _Utils_eq(
+			piece,
+			$author$project$Model$Piece$colorToPiece(enemyColor));
+		if (isEnemyPiece && (!A2($elm$core$Set$member, position, seenState))) {
+			var initialState = {surrounded: true, visited: seenState};
+			var enemyBoardData = _Utils_update(
+				boardData,
+				{
+					playerColor: $author$project$Model$Piece$colorInverse(boardData.playerColor)
+				});
+			var checkedState = A3($author$project$Logic$isSurroundedByEnemyOrWall, enemyBoardData, position, initialState);
+			return _Utils_Tuple2(checkedState.surrounded, checkedState.visited);
+		} else {
+			return _Utils_Tuple2(false, seenState);
+		}
+	});
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Dict$union = F2(
+	function (t1, t2) {
+		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
+	});
+var $elm$core$Set$union = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$union, dict1, dict2));
+	});
+var $author$project$Logic$findCapturedEnemyPieces = F4(
+	function (boardData, indexedBoard, globalVisited, captured) {
+		findCapturedEnemyPieces:
+		while (true) {
+			if (!indexedBoard.b) {
+				return captured;
+			} else {
+				var _v1 = indexedBoard.a;
+				var position = _v1.a;
+				var piece = _v1.b;
+				var indexedTail = indexedBoard.b;
+				if (A2($elm$core$Set$member, position, globalVisited)) {
+					var $temp$boardData = boardData,
+						$temp$indexedBoard = indexedTail,
+						$temp$globalVisited = globalVisited,
+						$temp$captured = captured;
+					boardData = $temp$boardData;
+					indexedBoard = $temp$indexedBoard;
+					globalVisited = $temp$globalVisited;
+					captured = $temp$captured;
+					continue findCapturedEnemyPieces;
+				} else {
+					var _v2 = A4($author$project$Logic$markCapturedEnemyPieces, piece, position, boardData, $elm$core$Set$empty);
+					var groupIsCaptured = _v2.a;
+					var seenPositions = _v2.b;
+					var updatedCaptured = groupIsCaptured ? A2($elm$core$Set$union, captured, seenPositions) : captured;
+					var updatedGlobalVisited = A2($elm$core$Set$union, globalVisited, seenPositions);
+					var $temp$boardData = boardData,
+						$temp$indexedBoard = indexedTail,
+						$temp$globalVisited = updatedGlobalVisited,
+						$temp$captured = updatedCaptured;
+					boardData = $temp$boardData;
+					indexedBoard = $temp$indexedBoard;
+					globalVisited = $temp$globalVisited;
+					captured = $temp$captured;
+					continue findCapturedEnemyPieces;
+				}
+			}
+		}
+	});
+var $elm$core$Elm$JsArray$foldl = _JsArray_foldl;
+var $elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
+var $elm$core$Array$indexedMap = F2(
+	function (func, _v0) {
+		var len = _v0.a;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var initialBuilder = {
+			nodeList: _List_Nil,
+			nodeListSize: 0,
+			tail: A3(
+				$elm$core$Elm$JsArray$indexedMap,
+				func,
+				$elm$core$Array$tailIndex(len),
+				tail)
+		};
+		var helper = F2(
+			function (node, builder) {
+				if (node.$ === 'SubTree') {
+					var subTree = node.a;
+					return A3($elm$core$Elm$JsArray$foldl, helper, builder, subTree);
+				} else {
+					var leaf = node.a;
+					var offset = builder.nodeListSize * $elm$core$Array$branchFactor;
+					var mappedLeaf = $elm$core$Array$Leaf(
+						A3($elm$core$Elm$JsArray$indexedMap, func, offset, leaf));
+					return {
+						nodeList: A2($elm$core$List$cons, mappedLeaf, builder.nodeList),
+						nodeListSize: builder.nodeListSize + 1,
+						tail: builder.tail
+					};
+				}
+			});
+		return A2(
+			$elm$core$Array$builderToArray,
+			true,
+			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
+	});
+var $author$project$Logic$removePiecesAt = F2(
+	function (captured, board) {
+		return A2(
+			$elm$core$Array$indexedMap,
+			F2(
+				function (index, piece) {
+					return A2($elm$core$Set$member, index, captured) ? $author$project$Model$Piece$None : piece;
+				}),
+			board);
+	});
+var $elm$core$Dict$sizeHelp = F2(
+	function (n, dict) {
+		sizeHelp:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return n;
+			} else {
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$n = A2($elm$core$Dict$sizeHelp, n + 1, right),
+					$temp$dict = left;
+				n = $temp$n;
+				dict = $temp$dict;
+				continue sizeHelp;
+			}
+		}
+	});
+var $elm$core$Dict$size = function (dict) {
+	return A2($elm$core$Dict$sizeHelp, 0, dict);
+};
+var $elm$core$Set$size = function (_v0) {
+	var dict = _v0.a;
+	return $elm$core$Dict$size(dict);
+};
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Array$toIndexedList = function (array) {
+	var len = array.a;
+	var helper = F2(
+		function (entry, _v0) {
+			var index = _v0.a;
+			var list = _v0.b;
+			return _Utils_Tuple2(
+				index - 1,
+				A2(
+					$elm$core$List$cons,
+					_Utils_Tuple2(index, entry),
+					list));
+		});
+	return A3(
+		$elm$core$Array$foldr,
+		helper,
+		_Utils_Tuple2(len - 1, _List_Nil),
+		array).b;
+};
+var $author$project$Logic$removeCapturedPieces = function (boardData) {
+	var capturedPositionsSet = A4(
+		$author$project$Logic$findCapturedEnemyPieces,
+		boardData,
+		$elm$core$Array$toIndexedList(boardData.board),
+		$elm$core$Set$empty,
+		$elm$core$Set$empty);
+	var updatedBoard = A2($author$project$Logic$removePiecesAt, capturedPositionsSet, boardData.board);
+	return _Utils_Tuple2(
+		updatedBoard,
+		$elm$core$Set$size(capturedPositionsSet));
+};
+var $author$project$Logic$legalPlayChecks = _List_fromArray(
+	[
+		F3(
+		function (piece, position, game) {
+			var pieceAtPosition = A2($author$project$Model$Board$getPieceAt, position, game.board);
+			var checkMessage = 'You can\'t play on top of other pieces';
+			if ((pieceAtPosition.$ === 'Just') && (pieceAtPosition.a.$ === 'None')) {
+				var _v1 = pieceAtPosition.a;
+				return $author$project$Logic$okay;
+			} else {
+				return _Utils_Tuple2(
+					false,
+					$elm$core$Maybe$Just(checkMessage));
+			}
+		}),
+		F3(
+		function (piece, position, game) {
+			var checkMessage = 'You can\'t repeat your last move';
+			var _v2 = game.lastMove;
+			if ((_v2.$ === 'Just') && (_v2.a.$ === 'Play')) {
+				var _v3 = _v2.a;
+				var prevPos = _v3.b;
+				return _Utils_eq(position, prevPos) ? _Utils_Tuple2(
+					false,
+					$elm$core$Maybe$Just(checkMessage)) : $author$project$Logic$okay;
+			} else {
+				return $author$project$Logic$okay;
+			}
+		}),
+		F3(
+		function (piece, position, game) {
+			var gameWithPlayedPiece = _Utils_update(
+				game,
+				{
+					board: A3($author$project$Model$Board$setPieceAt, position, piece, game.board)
+				});
+			var checkMessage = 'You can\'t cause your own capture';
+			var _v4 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPiece);
+			var playerCaptureBoardState = _v4.a;
+			var gameWithPlayedPieceOnEnemyTurn = _Utils_update(
+				game,
+				{
+					board: playerCaptureBoardState,
+					playerColor: $author$project$Model$Piece$colorInverse(game.playerColor)
+				});
+			var _v5 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPieceOnEnemyTurn);
+			var enemyCaptureBoardState = _v5.a;
+			var _v6 = A2($author$project$Model$Board$getPieceAt, position, enemyCaptureBoardState);
+			if ((_v6.$ === 'Just') && (_v6.a.$ === 'None')) {
+				var _v7 = _v6.a;
+				return _Utils_Tuple2(
+					false,
+					$elm$core$Maybe$Just(checkMessage));
+			} else {
+				return $author$project$Logic$okay;
+			}
+		})
+	]);
+var $author$project$Logic$validMove = F2(
+	function (move, gameState) {
+		var applyChecks = F4(
+			function (checks, piece, position, game) {
+				applyChecks:
+				while (true) {
+					if (!checks.b) {
+						return $author$project$Logic$okay;
+					} else {
+						var check = checks.a;
+						var checksTail = checks.b;
+						var _v1 = A3(check, piece, position, game);
+						if ((!_v1.a) && (_v1.b.$ === 'Just')) {
+							var errorMessage = _v1.b.a;
+							return _Utils_Tuple2(
+								false,
+								$elm$core$Maybe$Just(errorMessage));
+						} else {
+							var $temp$checks = checksTail,
+								$temp$piece = piece,
+								$temp$position = position,
+								$temp$game = game;
+							checks = $temp$checks;
+							piece = $temp$piece;
+							position = $temp$position;
+							game = $temp$game;
+							continue applyChecks;
+						}
+					}
+				}
+			});
+		if (move.$ === 'Pass') {
+			return $author$project$Logic$okay;
+		} else {
+			var piece = move.a;
+			var position = move.b;
+			return A4(applyChecks, $author$project$Logic$legalPlayChecks, piece, position, gameState);
+		}
 	});
 var $author$project$Page$GamePlay$update = F2(
 	function (msg, model) {
-		var index = msg.a;
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					board: A3($author$project$Page$GamePlay$placePiece, model.playerColor, index, model.board),
-					lastMove: $elm$core$Maybe$Just(index),
-					playerColor: $author$project$Board$colorInverse(model.playerColor)
-				}),
-			$author$project$Page$GamePlay$endTurn(model));
+		if (msg.$ === 'PlayPiece') {
+			var index = msg.a;
+			var move = A2(
+				$author$project$Model$Move$Play,
+				$author$project$Model$Piece$colorToPiece(model.game.playerColor),
+				index);
+			var _v1 = A2($author$project$Logic$validMove, move, model.game);
+			var moveIsValid = _v1.a;
+			var errorMessage = _v1.b;
+			return moveIsValid ? _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						activeTurn: !model.activeTurn,
+						game: A2(
+							$author$project$Model$Game$setPlayerColor,
+							$author$project$Model$Piece$colorInverse(model.game.playerColor),
+							A2($author$project$Model$Game$playMove, move, model.game)),
+						invalidMoveAlert: $elm$core$Maybe$Nothing
+					}),
+				$author$project$Page$GamePlay$endTurn(model)) : _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{invalidMoveAlert: errorMessage}),
+				$elm$core$Platform$Cmd$none);
+		} else {
+			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
 	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
@@ -6348,7 +6868,7 @@ var $author$project$Route$routeToString = function (route) {
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$br = _VirtualDom_node('br');
-var $author$project$Board$colorToString = function (color) {
+var $author$project$Model$Piece$colorToString = function (color) {
 	if (color.$ === 'White') {
 		return 'white';
 	} else {
@@ -6363,11 +6883,11 @@ var $author$project$Page$GameCreate$viewGameSettings = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$text(
-				'Color: ' + $author$project$Board$colorToString(model.colorChoice)),
+				'Color: ' + $author$project$Model$Piece$colorToString(model.colorChoice)),
 				A2($elm$html$Html$br, _List_Nil, _List_Nil),
 				$elm$html$Html$text(
 				'Board size: ' + $elm$core$String$fromInt(
-					$author$project$Board$boardSizeToInt(model.boardSize))),
+					$author$project$Model$Board$boardSizeToInt(model.boardSize))),
 				A2($elm$html$Html$br, _List_Nil, _List_Nil),
 				$elm$html$Html$text(
 				'Komi: ' + $elm$core$String$fromFloat(model.komi)),
@@ -6408,6 +6928,14 @@ var $author$project$Page$GameCreate$view = function (model) {
 			]));
 };
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $author$project$Page$GamePlay$viewAlert = function (error) {
+	if (error.$ === 'Nothing') {
+		return $elm$html$Html$text('');
+	} else {
+		var errorMessage = error.a;
+		return $elm$html$Html$text('Invalid move: ' + errorMessage);
+	}
+};
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
@@ -6432,51 +6960,12 @@ var $elm$core$List$repeat = F2(
 	});
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$core$Elm$JsArray$foldl = _JsArray_foldl;
-var $elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
-var $elm$core$Array$indexedMap = F2(
-	function (func, _v0) {
-		var len = _v0.a;
-		var tree = _v0.c;
-		var tail = _v0.d;
-		var initialBuilder = {
-			nodeList: _List_Nil,
-			nodeListSize: 0,
-			tail: A3(
-				$elm$core$Elm$JsArray$indexedMap,
-				func,
-				$elm$core$Array$tailIndex(len),
-				tail)
-		};
-		var helper = F2(
-			function (node, builder) {
-				if (node.$ === 'SubTree') {
-					var subTree = node.a;
-					return A3($elm$core$Elm$JsArray$foldl, helper, builder, subTree);
-				} else {
-					var leaf = node.a;
-					var offset = builder.nodeListSize * $elm$core$Array$branchFactor;
-					var mappedLeaf = $elm$core$Array$Leaf(
-						A3($elm$core$Elm$JsArray$indexedMap, func, offset, leaf));
-					return {
-						nodeList: A2($elm$core$List$cons, mappedLeaf, builder.nodeList),
-						nodeListSize: builder.nodeListSize + 1,
-						tail: builder.tail
-					};
-				}
-			});
-		return A2(
-			$elm$core$Array$builderToArray,
-			true,
-			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
-	});
-var $author$project$Page$GamePlay$PlacePiece = function (a) {
-	return {$: 'PlacePiece', a: a};
+var $author$project$Page$GamePlay$PlayPiece = function (a) {
+	return {$: 'PlayPiece', a: a};
 };
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Page$GamePlay$isInnerCell = F2(
 	function (boardSize, index) {
-		var intSize = $author$project$Board$boardSizeToInt(boardSize);
+		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
 		var isLastCol = !((index + 1) % intSize);
 		var isLastRow = _Utils_cmp(index, intSize * (intSize - 1)) > -1;
 		return !(isLastRow || isLastCol);
@@ -6509,7 +6998,7 @@ var $elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $author$project$Logic$renderPiece = function (piece) {
+var $author$project$Page$GamePlay$renderPiece = function (piece) {
 	var fillColor = function () {
 		switch (piece.$) {
 			case 'BlackStone':
@@ -6520,7 +7009,7 @@ var $author$project$Logic$renderPiece = function (piece) {
 				return '';
 		}
 	}();
-	var html = _Utils_eq(piece, $author$project$Board$None) ? $elm$html$Html$text('') : A2(
+	return _Utils_eq(piece, $author$project$Model$Piece$None) ? $elm$html$Html$text('') : A2(
 		$elm$svg$Svg$svg,
 		_List_fromArray(
 			[
@@ -6542,12 +7031,11 @@ var $author$project$Logic$renderPiece = function (piece) {
 					]),
 				_List_Nil)
 			]));
-	return html;
 };
 var $author$project$Page$GamePlay$viewBuildCell = F4(
 	function (boardSize, color, index, piece) {
-		var pieceHtml = $author$project$Logic$renderPiece(piece);
-		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Board$colorToString(color);
+		var pieceHtml = $author$project$Page$GamePlay$renderPiece(piece);
+		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Model$Piece$colorToString(color);
 		var cellClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
 		return A2(
 			$elm$html$Html$div,
@@ -6555,7 +7043,7 @@ var $author$project$Page$GamePlay$viewBuildCell = F4(
 				[
 					$elm$html$Html$Attributes$class(cellClass),
 					$elm$html$Html$Events$onClick(
-					$author$project$Page$GamePlay$PlacePiece(index))
+					$author$project$Page$GamePlay$PlayPiece(index))
 				]),
 			_List_fromArray(
 				[
@@ -6573,11 +7061,11 @@ var $author$project$Page$GamePlay$viewGameBoard = function (model) {
 	return $elm$core$Array$toList(
 		A2(
 			$elm$core$Array$indexedMap,
-			A2($author$project$Page$GamePlay$viewBuildCell, model.boardSize, model.playerColor),
-			model.board));
+			A2($author$project$Page$GamePlay$viewBuildCell, model.game.boardSize, model.game.playerColor),
+			model.game.board));
 };
 var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
-	var intSize = $author$project$Board$boardSizeToInt(model.boardSize);
+	var intSize = $author$project$Model$Board$boardSizeToInt(model.game.boardSize);
 	var gridStyle = A2(
 		$elm$core$String$join,
 		' ',
@@ -6590,6 +7078,9 @@ var $author$project$Page$GamePlay$viewBuildBoard = function (model) {
 				A2($elm$html$Html$Attributes$style, 'grid-template-columns', gridStyle)
 			]),
 		$author$project$Page$GamePlay$viewGameBoard(model));
+};
+var $author$project$Page$GamePlay$viewWaitForOpponent = function (activeTurn) {
+	return activeTurn ? $elm$html$Html$text('') : $elm$html$Html$text('Wait for opponent to play...');
 };
 var $author$project$Page$GamePlay$view = function (model) {
 	return A2(
@@ -6604,7 +7095,9 @@ var $author$project$Page$GamePlay$view = function (model) {
 					[
 						$elm$html$Html$text('Goban state')
 					])),
-				$author$project$Page$GamePlay$viewBuildBoard(model)
+				$author$project$Page$GamePlay$viewBuildBoard(model),
+				$author$project$Page$GamePlay$viewWaitForOpponent(model.activeTurn),
+				$author$project$Page$GamePlay$viewAlert(model.invalidMoveAlert)
 			]));
 };
 var $elm$html$Html$h1 = _VirtualDom_node('h1');

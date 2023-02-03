@@ -1,22 +1,27 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
 import Array
-import Board exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Logic exposing (..)
+import Model.Board as Board exposing (..)
+import Model.Game as Game exposing (..)
+import Model.Move as Move exposing (..)
+import Model.Piece as Piece exposing (..)
+import Svg exposing (circle, svg)
+import Svg.Attributes as SAtts
 
 
 type Msg
-    = PlacePiece Int
+    = PlayPiece Int
+    | PlayPass
 
 
 type alias Model =
-    { boardSize : BoardSize
-    , board : Board
-    , lastMove : Maybe Int
-    , playerColor : ColorChoice
+    { game : Game
+    , activeTurn : Bool
+    , invalidMoveAlert : Maybe String
     }
 
 
@@ -29,19 +34,39 @@ view model =
     div []
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
+        , viewWaitForOpponent model.activeTurn
+        , viewAlert model.invalidMoveAlert
         ]
+
+
+viewAlert : Maybe String -> Html Msg
+viewAlert error =
+    case error of
+        Nothing ->
+            text ""
+
+        Just errorMessage ->
+            text ("Invalid move: " ++ errorMessage)
+
+
+viewWaitForOpponent : Bool -> Html Msg
+viewWaitForOpponent activeTurn =
+    if activeTurn then
+        text ""
+
+    else
+        text "Wait for opponent to play..."
 
 
 viewBuildBoard : Model -> Html Msg
 viewBuildBoard model =
     let
         intSize =
-            boardSizeToInt model.boardSize
+            boardSizeToInt model.game.boardSize
 
         gridStyle =
             String.join " " (List.repeat intSize "auto")
     in
-    -- border offset, svg, second layer of views w/ z index
     div [ class "board", style "grid-template-columns" gridStyle ]
         (viewGameBoard model)
 
@@ -50,8 +75,8 @@ viewGameBoard : Model -> List (Html Msg)
 viewGameBoard model =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell model.boardSize model.playerColor)
-            model.board
+            (viewBuildCell model.game.boardSize model.game.playerColor)
+            model.game.board
         )
 
 
@@ -90,11 +115,44 @@ viewBuildCell boardSize color index piece =
             else
                 "board-square"
     in
-    -- TODO: piece hover ghost
-    div [ class cellClass, onClick (PlacePiece index) ]
+    div [ class cellClass, onClick (PlayPiece index) ]
         [ pieceHtml
         , div [ class hoverClass ] []
         ]
+
+
+renderPiece : Piece -> Html msg
+renderPiece piece =
+    let
+        fillColor =
+            case piece of
+                BlackStone ->
+                    "black"
+
+                WhiteStone ->
+                    "white"
+
+                None ->
+                    ""
+    in
+    if piece == None then
+        text ""
+
+    else
+        svg
+            [ SAtts.width "26"
+            , SAtts.height "26"
+            , SAtts.viewBox "0 0 26 26"
+            , SAtts.style "position: absolute;"
+            ]
+            [ circle
+                [ SAtts.cx "13"
+                , SAtts.cy "13"
+                , SAtts.r "11"
+                , SAtts.fill fillColor
+                ]
+                []
+            ]
 
 
 
@@ -104,13 +162,32 @@ viewBuildCell boardSize color index piece =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PlacePiece index ->
-            ( { model
-                | board = placePiece model.playerColor index model.board
-                , lastMove = Just index
-                , playerColor = colorInverse model.playerColor -- TODO: remove w/ networking
-              }
-            , endTurn model
+        PlayPiece index ->
+            let
+                move =
+                    Move.Play (colorToPiece model.game.playerColor) index
+
+                ( moveIsValid, errorMessage ) =
+                    validMove move model.game
+            in
+            if moveIsValid then
+                ( { model
+                    | game = playMove move model.game |> setPlayerColor (colorInverse model.game.playerColor) -- TODO: remove color swap w/ networking
+                    , activeTurn = not model.activeTurn
+                    , invalidMoveAlert = Nothing
+                  }
+                , endTurn model
+                )
+
+            else
+                ( { model | invalidMoveAlert = errorMessage }
+                , Cmd.none
+                )
+
+        PlayPass ->
+            -- TODO
+            ( model
+            , Cmd.none
             )
 
 
@@ -118,20 +195,6 @@ endTurn : Model -> Cmd Msg
 endTurn model =
     -- TODO: placeholder turn swap w/o networking
     Cmd.none
-
-
-placePiece : ColorChoice -> Int -> Board -> Board
-placePiece color index board =
-    let
-        piece =
-            case color of
-                White ->
-                    WhiteStone
-
-                Black ->
-                    BlackStone
-    in
-    setPieceAt index piece board
 
 
 
@@ -145,8 +208,7 @@ init size color =
 
 initialModel : BoardSize -> ColorChoice -> Model
 initialModel boardSize colorChoice =
-    { boardSize = boardSize
-    , board = emptyBoard boardSize
-    , lastMove = Nothing
-    , playerColor = colorChoice
+    { game = newGame boardSize colorChoice
+    , activeTurn = colorChoice == Black
+    , invalidMoveAlert = Nothing
     }
