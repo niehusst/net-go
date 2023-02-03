@@ -1,6 +1,7 @@
 module Logic exposing (validMove)
 
 import Array
+import Debug
 import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
@@ -81,13 +82,27 @@ legalPlayChecks =
             checkMessage =
                 "You can't cause your own capture"
 
+            -- perform capture before checking if captured
             gameWithPlayedPiece =
                 { game | board = setPieceAt position piece game.board }
 
-            ( potentialBoardState, _ ) =
+            ( playerCaptureBoardState, _ ) =
                 removeCapturedPieces gameWithPlayedPiece
+
+            -- now check that the played piece does not capture itself
+            gameWithPlayedPieceOnEnemyTurn =
+                { game
+                    | board = playerCaptureBoardState
+                    , playerColor = colorInverse game.playerColor
+                }
+
+            ( enemyCaptureBoardState, _ ) =
+                removeCapturedPieces gameWithPlayedPieceOnEnemyTurn
+
+            --            _ =
+            --                printBoard potentialBoardState game.boardSize
         in
-        case getPieceAt position game.board of
+        case getPieceAt position enemyCaptureBoardState of
             Just Piece.None ->
                 -- the piece just played was captured
                 ( False, Just checkMessage )
@@ -95,6 +110,17 @@ legalPlayChecks =
             _ ->
                 okay
     ]
+
+
+printBoard board size =
+    let
+        -- TODO: get rid of debug helper
+        intSize =
+            boardSizeToInt size
+    in
+    List.reverse (List.range 0 intSize)
+        |> List.map
+            (\i -> Debug.log "" (Array.slice (i * intSize) ((i * intSize) + intSize) board))
 
 
 
@@ -167,9 +193,9 @@ findCapturedEnemyPieces boardData indexedBoard globalVisited captured =
                 let
                     -- we havent seen this position before, so we know it's not
                     -- connected to any other pieces we've already checked.
-                    -- Therefore, we can start over with a new empty seen set
+                    -- Therefore, we dont have to pass `globalVisited` as seenSet
                     ( groupIsCaptured, seenPositions ) =
-                        markCapturedPieces piece position boardData Set.empty
+                        markCapturedEnemyPieces piece position boardData Set.empty
 
                     updatedGlobalVisited =
                         Set.union globalVisited seenPositions
@@ -188,8 +214,8 @@ findCapturedEnemyPieces boardData indexedBoard globalVisited captured =
                     updatedCaptured
 
 
-markCapturedPieces : Piece.Piece -> Int -> BoardData r -> Set Int -> ( Bool, Set Int )
-markCapturedPieces piece position boardData seenState =
+markCapturedEnemyPieces : Piece.Piece -> Int -> BoardData r -> Set Int -> ( Bool, Set Int )
+markCapturedEnemyPieces piece position boardData seenState =
     let
         enemyColor =
             colorInverse boardData.playerColor
