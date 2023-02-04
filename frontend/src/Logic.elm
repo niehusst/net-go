@@ -2,7 +2,7 @@ module Logic exposing (removeCapturedPieces, validMove)
 
 import Array
 import Model.Board as Board exposing (..)
-import Model.Game as Game exposing (..)
+import Model.Game as Game exposing (Game)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
 import Set exposing (Set)
@@ -16,14 +16,14 @@ okay =
     ( True, Nothing )
 
 
-{-| Determine whether a move on the board is legal.
+{-| Determine whether a move to be applied to the board is legal.
 if yes -> (True, Nothing)
 if not -> (False, Just errorMessage)
 -}
-validMove : Move.Move -> BoardData r -> ( Bool, Maybe String )
+validMove : Move.Move -> Game -> ( Bool, Maybe String )
 validMove move gameState =
     let
-        applyChecks : List MoveCheck -> Piece -> Int -> BoardData r -> ( Bool, Maybe String )
+        applyChecks : List MoveCheck -> Piece -> Int -> Game -> ( Bool, Maybe String )
         applyChecks checks piece position game =
             case checks of
                 [] ->

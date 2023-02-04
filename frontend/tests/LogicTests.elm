@@ -28,9 +28,9 @@ board =
     , [ black, empty, empty, empty, empty, empty, white, black, black ]
     , [ empty, empty, empty, empty, empty, empty, white, white, white ]
     , [ empty, empty, empty, empty, white, black, empty, white, empty ]
-    , [ white, empty, empty, white, empty, white, black, white, empty ]
-    , [ empty, white, empty, empty, white, black, empty, white, empty ]
-    , [ white, black, white, empty, white, white, white, white, white ]
+    , [ white, black, empty, white, empty, white, black, white, empty ]
+    , [ empty, white, black, empty, white, black, empty, white, empty ]
+    , [ white, black, empty, white, white, white, white, white, white ]
     , [ black, empty, empty, white, black, black, black, black, black ]
     , [ empty, empty, empty, white, black, empty, black, empty, black ]
     ]
@@ -134,5 +134,16 @@ suite =
                     in
                     Expect.equal ( False, Just "You can't play on top of other pieces" ) <|
                         validMove onTop whiteGame
+            ]
+        , describe "removeCapturedPieces"
+            [ todo "capturing single piece in eye removes it from the board"
+            , todo "captured pieces against the wall are removed"
+            , todo "seki captures black on white play"
+            , todo "seki captures white on black play"
+            , todo "when no pieces are captured, board remains unchanged"
+            , todo "life is not captured"
+            , todo "layered captured pieces are removed from board"
+            , todo "double capture removes both captured pieces from board"
+            , todo "captured group of multiple pieces are all removed from board"
             ]
         ]
