@@ -7,6 +7,7 @@ import Model.Board as Board exposing (BoardSize)
 import Model.Piece as Piece exposing (ColorChoice)
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
+import Page.GameScore as GameScore
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Route exposing (Route)
@@ -25,6 +26,7 @@ type Page
     | HomePage Home.Model
     | GameCreatePage GameCreate.Model
     | GamePlayPage GamePlay.Model
+    | GameScorePage GameScore.Model
 
 
 type Msg
@@ -32,6 +34,7 @@ type Msg
     | UrlChanged Url
     | HomePageMsg Home.Msg
     | GamePlayPageMsg GamePlay.Msg
+    | GameScorePageMsg GameScore.Msg
 
 
 
@@ -61,6 +64,10 @@ viewCurrentPage model =
         GamePlayPage pageModel ->
             GamePlay.view pageModel
                 |> Html.map GamePlayPageMsg
+
+        GameScorePage pageModel ->
+            GameScore.view pageModel
+                |> Html.map GameScorePageMsg
 
 
 
@@ -106,6 +113,15 @@ update msg model =
             in
             ( { model | page = GamePlayPage updatedPageModel }
             , Cmd.map GamePlayPageMsg updatedCmd
+            )
+
+        ( GameScorePageMsg submsg, GameScorePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    GameScore.update submsg pageModel
+            in
+            ( { model | page = GameScorePage updatedPageModel }
+            , Cmd.map GameScorePageMsg updatedCmd
             )
 
         ( _, _ ) ->
@@ -157,11 +173,20 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GamePlay ->
                     let
-                        -- TODO: give real values
+                        -- TODO: give real values from form
                         pageModel =
-                            GamePlay.init Board.Small Piece.Black
+                            GamePlay.init Board.Small Piece.Black model.navKey
                     in
                     ( GamePlayPage pageModel
+                    , Cmd.none
+                    )
+
+                Route.GameScore ->
+                    let
+                        pageModel =
+                            GameScore.init
+                    in
+                    ( GameScorePage pageModel
                     , Cmd.none
                     )
     in

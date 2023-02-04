@@ -11,6 +11,7 @@ type alias Game =
     , lastMove : Maybe Move
     , history : List Move
     , playerColor : ColorChoice
+    , isOver : Bool
     }
 
 
@@ -21,6 +22,7 @@ newGame size color =
     , lastMove = Nothing
     , history = []
     , playerColor = color
+    , isOver = False
     }
 
 
@@ -32,6 +34,11 @@ setPlayerColor color game =
 setBoard : Board -> Game -> Game
 setBoard board game =
     { game | board = board }
+
+
+setIsOver : Bool -> Game -> Game
+setIsOver flag game =
+    { game | isOver = flag }
 
 
 setLastMove : Move -> Game -> Game

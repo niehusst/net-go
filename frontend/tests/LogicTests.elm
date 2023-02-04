@@ -45,6 +45,7 @@ blackGame =
     , lastMove = Just (Move.Play white 40) -- center of board
     , history = []
     , playerColor = Piece.Black
+    , isOver = False
     }
 
 
@@ -55,6 +56,7 @@ whiteGame =
     , lastMove = Just (Move.Play white 40) -- center of board
     , history = []
     , playerColor = Piece.White
+    , isOver = False
     }
 
 
@@ -134,6 +136,14 @@ suite =
                     in
                     Expect.equal ( False, Just "You can't play on top of other pieces" ) <|
                         validMove onTop whiteGame
+            , test "filling life eye is illegal" <|
+                \_ ->
+                    let
+                        fillLife =
+                            Move.Play white 79
+                    in
+                    Expect.equal ( False, Just "You can't cause your own capture" ) <|
+                        validMove fillLife whiteGame
             ]
         , describe "removeCapturedPieces"
             [ test "capturing single piece in eye removes it from the board" <|

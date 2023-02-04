@@ -5227,6 +5227,9 @@ var $author$project$Main$GameCreatePage = function (a) {
 var $author$project$Main$GamePlayPage = function (a) {
 	return {$: 'GamePlayPage', a: a};
 };
+var $author$project$Main$GameScorePage = function (a) {
+	return {$: 'GameScorePage', a: a};
+};
 var $author$project$Main$HomePage = function (a) {
 	return {$: 'HomePage', a: a};
 };
@@ -5268,22 +5271,21 @@ var $author$project$Model$Game$newGame = F2(
 			board: $author$project$Model$Board$emptyBoard(size),
 			boardSize: size,
 			history: _List_Nil,
+			isOver: false,
 			lastMove: $elm$core$Maybe$Nothing,
 			playerColor: color
 		};
 	});
-var $author$project$Page$GamePlay$initialModel = F2(
-	function (boardSize, colorChoice) {
+var $author$project$Page$GamePlay$init = F3(
+	function (boardSize, colorChoice, navKey) {
 		return {
 			activeTurn: _Utils_eq(colorChoice, $author$project$Model$Piece$Black),
 			game: A2($author$project$Model$Game$newGame, boardSize, colorChoice),
-			invalidMoveAlert: $elm$core$Maybe$Nothing
+			invalidMoveAlert: $elm$core$Maybe$Nothing,
+			navKey: navKey
 		};
 	});
-var $author$project$Page$GamePlay$init = F2(
-	function (size, color) {
-		return A2($author$project$Page$GamePlay$initialModel, size, color);
-	});
+var $author$project$Page$GameScore$init = {};
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Page$Home$init = _Utils_Tuple2(
 	{},
@@ -5309,10 +5311,15 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 				return _Utils_Tuple2(
 					$author$project$Main$GameCreatePage(pageModel),
 					$elm$core$Platform$Cmd$none);
-			default:
-				var pageModel = A2($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black);
+			case 'GamePlay':
+				var pageModel = A3($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black, model.navKey);
 				return _Utils_Tuple2(
 					$author$project$Main$GamePlayPage(pageModel),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var pageModel = $author$project$Page$GameScore$init;
+				return _Utils_Tuple2(
+					$author$project$Main$GameScorePage(pageModel),
 					$elm$core$Platform$Cmd$none);
 		}
 	}();
@@ -5329,6 +5336,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 var $author$project$Route$NotFound = {$: 'NotFound'};
 var $author$project$Route$GameCreate = {$: 'GameCreate'};
 var $author$project$Route$GamePlay = {$: 'GamePlay'};
+var $author$project$Route$GameScore = {$: 'GameScore'};
 var $author$project$Route$Home = {$: 'Home'};
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
@@ -5454,7 +5462,14 @@ var $author$project$Route$matchRoute = $elm$url$Url$Parser$oneOf(
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Route$GamePlay,
-			$elm$url$Url$Parser$s('game'))
+			$elm$url$Url$Parser$s('game')),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Route$GameScore,
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('game'),
+				$elm$url$Url$Parser$s('score')))
 		]));
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
@@ -6110,6 +6125,9 @@ var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$GamePlayPageMsg = function (a) {
 	return {$: 'GamePlayPageMsg', a: a};
 };
+var $author$project$Main$GameScorePageMsg = function (a) {
+	return {$: 'GameScorePageMsg', a: a};
+};
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$url$Url$addPort = F2(
@@ -6156,6 +6174,7 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
+var $author$project$Model$Move$Pass = {$: 'Pass'};
 var $author$project$Model$Move$Play = F2(
 	function (a, b) {
 		return {$: 'Play', a: a, b: b};
@@ -6180,8 +6199,31 @@ var $author$project$Model$Piece$colorToPiece = function (color) {
 var $author$project$Page$GamePlay$endTurn = function (model) {
 	return $elm$core$Platform$Cmd$none;
 };
+var $author$project$Route$routeToString = function (route) {
+	switch (route.$) {
+		case 'NotFound':
+			return '/route-not-found';
+		case 'Home':
+			return '/';
+		case 'GameCreate':
+			return '/game/create';
+		case 'GamePlay':
+			return '/game';
+		default:
+			return '/game/score';
+	}
+};
+var $author$project$Route$pushUrl = F2(
+	function (route, navKey) {
+		return A2(
+			$elm$browser$Browser$Navigation$pushUrl,
+			navKey,
+			$author$project$Route$routeToString(route));
+	});
+var $author$project$Page$GamePlay$goToScoring = function (model) {
+	return A2($author$project$Route$pushUrl, $author$project$Route$GameScore, model.navKey);
+};
 var $elm$core$Basics$not = _Basics_not;
-var $author$project$Model$Move$Pass = {$: 'Pass'};
 var $author$project$Model$Game$addMoveToHistory = F2(
 	function (move, game) {
 		return _Utils_update(
@@ -6190,20 +6232,6 @@ var $author$project$Model$Game$addMoveToHistory = F2(
 				history: A2($elm$core$List$cons, move, game.history)
 			});
 	});
-var $author$project$Model$Game$setLastMove = F2(
-	function (move, game) {
-		return _Utils_update(
-			game,
-			{
-				lastMove: $elm$core$Maybe$Just(move)
-			});
-	});
-var $author$project$Page$GamePlay$passTurn = function (game) {
-	return A2(
-		$author$project$Model$Game$addMoveToHistory,
-		$author$project$Model$Move$Pass,
-		A2($author$project$Model$Game$setLastMove, $author$project$Model$Move$Pass, game));
-};
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
@@ -6557,6 +6585,14 @@ var $author$project$Logic$removeCapturedPieces = function (boardData) {
 		updatedBoard,
 		$elm$core$Set$size(capturedPositionsSet));
 };
+var $author$project$Model$Game$setLastMove = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				lastMove: $elm$core$Maybe$Just(move)
+			});
+	});
 var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
 var $elm$core$Array$setHelp = F4(
 	function (shift, index, value, tree) {
@@ -6608,9 +6644,9 @@ var $author$project$Page$GamePlay$playMove = F2(
 	function (move, game) {
 		if (move.$ === 'Pass') {
 			return A2(
-				$author$project$Model$Game$setLastMove,
+				$author$project$Model$Game$addMoveToHistory,
 				move,
-				A2($author$project$Model$Game$addMoveToHistory, move, game));
+				A2($author$project$Model$Game$setLastMove, move, game));
 		} else {
 			var piece = move.a;
 			var position = move.b;
@@ -6630,6 +6666,12 @@ var $author$project$Page$GamePlay$playMove = F2(
 					lastMove: $elm$core$Maybe$Just(move)
 				});
 		}
+	});
+var $author$project$Model$Game$setIsOver = F2(
+	function (flag, game) {
+		return _Utils_update(
+			game,
+			{isOver: flag});
 	});
 var $author$project$Model$Game$setPlayerColor = F2(
 	function (color, game) {
@@ -6763,19 +6805,36 @@ var $author$project$Page$GamePlay$update = F2(
 					{invalidMoveAlert: errorMessage}),
 				$elm$core$Platform$Cmd$none);
 		} else {
+			var gameEnded = function () {
+				var _v2 = _Utils_Tuple2(model.game.lastMove, model.game.history);
+				if (((_v2.a.$ === 'Just') && (_v2.a.a.$ === 'Pass')) && _v2.b.b) {
+					var _v3 = _v2.a.a;
+					var _v4 = _v2.b;
+					var move = _v4.a;
+					var moves = _v4.b;
+					return _Utils_eq(move, $author$project$Model$Move$Pass);
+				} else {
+					return false;
+				}
+			}();
+			var updatedGame = A2(
+				$author$project$Model$Game$setPlayerColor,
+				$author$project$Model$Piece$colorInverse(model.game.playerColor),
+				A2(
+					$author$project$Model$Game$setIsOver,
+					gameEnded,
+					A2($author$project$Page$GamePlay$playMove, $author$project$Model$Move$Pass, model.game)));
+			var command = gameEnded ? $author$project$Page$GamePlay$goToScoring(model) : $author$project$Page$GamePlay$endTurn(model);
 			return _Utils_Tuple2(
 				_Utils_update(
 					model,
-					{
-						activeTurn: !model.activeTurn,
-						game: A2(
-							$author$project$Model$Game$setPlayerColor,
-							$author$project$Model$Piece$colorInverse(model.game.playerColor),
-							$author$project$Page$GamePlay$passTurn(model.game)),
-						invalidMoveAlert: $elm$core$Maybe$Nothing
-					}),
-				$author$project$Page$GamePlay$endTurn(model));
+					{activeTurn: !model.activeTurn, game: updatedGame, invalidMoveAlert: $elm$core$Maybe$Nothing}),
+				command);
 		}
+	});
+var $author$project$Page$GameScore$update = F2(
+	function (msg, model) {
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $author$project$Page$Home$update = F2(
 	function (msg, model) {
@@ -6784,7 +6843,7 @@ var $author$project$Page$Home$update = F2(
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
-		_v0$4:
+		_v0$5:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'UrlChanged':
@@ -6827,9 +6886,9 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$HomePageMsg, updatedCmd));
 					} else {
-						break _v0$4;
+						break _v0$5;
 					}
-				default:
+				case 'GamePlayPageMsg':
 					if (_v0.b.$ === 'GamePlayPage') {
 						var submsg = _v0.a.a;
 						var pageModel = _v0.b.a;
@@ -6844,7 +6903,24 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$GamePlayPageMsg, updatedCmd));
 					} else {
-						break _v0$4;
+						break _v0$5;
+					}
+				default:
+					if (_v0.b.$ === 'GameScorePage') {
+						var submsg = _v0.a.a;
+						var pageModel = _v0.b.a;
+						var _v4 = A2($author$project$Page$GameScore$update, submsg, pageModel);
+						var updatedPageModel = _v4.a;
+						var updatedCmd = _v4.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									page: $author$project$Main$GameScorePage(updatedPageModel)
+								}),
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$GameScorePageMsg, updatedCmd));
+					} else {
+						break _v0$5;
 					}
 			}
 		}
@@ -6869,18 +6945,6 @@ var $elm$html$Html$Attributes$href = function (url) {
 		$elm$html$Html$Attributes$stringProperty,
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
-};
-var $author$project$Route$routeToString = function (route) {
-	switch (route.$) {
-		case 'NotFound':
-			return '/route-not-found';
-		case 'Home':
-			return '/';
-		case 'GameCreate':
-			return '/game/create';
-		default:
-			return '/game';
-	}
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
@@ -7134,6 +7198,9 @@ var $author$project$Page$GamePlay$view = function (model) {
 				$author$project$Page$GamePlay$viewAlert(model.invalidMoveAlert)
 			]));
 };
+var $author$project$Page$GameScore$view = function (model) {
+	return $elm$html$Html$text('TODO');
+};
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$strong = _VirtualDom_node('strong');
@@ -7254,12 +7321,18 @@ var $author$project$Main$viewCurrentPage = function (model) {
 		case 'GameCreatePage':
 			var pageModel = _v0.a;
 			return $author$project$Page$GameCreate$view(pageModel);
-		default:
+		case 'GamePlayPage':
 			var pageModel = _v0.a;
 			return A2(
 				$elm$html$Html$map,
 				$author$project$Main$GamePlayPageMsg,
 				$author$project$Page$GamePlay$view(pageModel));
+		default:
+			var pageModel = _v0.a;
+			return A2(
+				$elm$html$Html$map,
+				$author$project$Main$GameScorePageMsg,
+				$author$project$Page$GameScore$view(pageModel));
 	}
 };
 var $author$project$Main$view = function (model) {
