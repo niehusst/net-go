@@ -1,4 +1,4 @@
-module Logic exposing (validMove)
+module Logic exposing (removeCapturedPieces, validMove)
 
 import Array
 import Model.Board as Board exposing (..)
@@ -20,10 +20,10 @@ okay =
 if yes -> (True, Nothing)
 if not -> (False, Just errorMessage)
 -}
-validMove : Move.Move -> Game -> ( Bool, Maybe String )
+validMove : Move.Move -> BoardData r -> ( Bool, Maybe String )
 validMove move gameState =
     let
-        applyChecks : List MoveCheck -> Piece -> Int -> Game -> ( Bool, Maybe String )
+        applyChecks : List MoveCheck -> Piece -> Int -> BoardData r -> ( Bool, Maybe String )
         applyChecks checks piece position game =
             case checks of
                 [] ->
@@ -43,6 +43,41 @@ validMove move gameState =
 
         Move.Play piece position ->
             applyChecks legalPlayChecks piece position gameState
+
+
+{-| Checks entire board to remove any captured pieces of the
+enemy color from it.
+Assumes that any capturing moves have been applied to board
+before function call.
+
+Returns a Tuple of the updated board and the number of pieces captured
+(for scoring purposes).
+
+(Since you can't capture your own pieces, the only possibility is for
+scored points to be awarded to the player who played the piece, so
+returning point value, or checking to remove pieces, for both
+players is unnecessary; assuming
+legal play has been enforced on prior turns.)
+
+-}
+removeCapturedPieces : BoardData r -> ( Board, Int )
+removeCapturedPieces boardData =
+    let
+        capturedPositionsSet =
+            findCapturedEnemyPieces
+                boardData
+                (Array.toIndexedList boardData.board)
+                Set.empty
+                Set.empty
+
+        updatedBoard =
+            removePiecesAt capturedPositionsSet boardData.board
+    in
+    ( updatedBoard, Set.size capturedPositionsSet )
+
+
+
+-- HELPERS
 
 
 legalPlayChecks : List MoveCheck
@@ -108,47 +143,12 @@ legalPlayChecks =
     ]
 
 
-
--- HELPERS
-
-
 type alias BoardData r =
     { r
         | playerColor : Piece.ColorChoice
         , board : Board.Board
         , boardSize : Board.BoardSize
     }
-
-
-{-| Checks entire board to remove any captured pieces of the
-enemy color from it.
-Assumes that any capturing moves have been applied to board
-before function call.
-
-Returns the updated board and the number of pieces captured
-(for scoring purposes).
-
-(Since you can't capture your own pieces, the only possibility is for
-scored points to be awarded to the player who played the piece, so
-returning point value, or checking to remove pieces, for both
-players is unnecessary; assuming
-legal play has been enforced on prior turns.)
-
--}
-removeCapturedPieces : BoardData r -> ( Board, Int )
-removeCapturedPieces boardData =
-    let
-        capturedPositionsSet =
-            findCapturedEnemyPieces
-                boardData
-                (Array.toIndexedList boardData.board)
-                Set.empty
-                Set.empty
-
-        updatedBoard =
-            removePiecesAt capturedPositionsSet boardData.board
-    in
-    ( updatedBoard, Set.size capturedPositionsSet )
 
 
 {-| Find all the captured pieces of color `color` and return
