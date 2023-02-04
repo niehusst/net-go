@@ -6189,104 +6189,15 @@ var $author$project$Model$Game$addMoveToHistory = F2(
 				history: A2($elm$core$List$cons, move, game.history)
 			});
 	});
-var $author$project$Model$Game$setBoard = F2(
-	function (board, game) {
-		return _Utils_update(
-			game,
-			{board: board});
-	});
-var $author$project$Model$Game$setLastMove = F2(
-	function (move, game) {
-		return _Utils_update(
-			game,
-			{
-				lastMove: $elm$core$Maybe$Just(move)
-			});
-	});
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
 var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
-var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
-var $elm$core$Array$setHelp = F4(
-	function (shift, index, value, tree) {
-		var pos = $elm$core$Array$bitMask & (index >>> shift);
-		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
-		if (_v0.$ === 'SubTree') {
-			var subTree = _v0.a;
-			var newSub = A4($elm$core$Array$setHelp, shift - $elm$core$Array$shiftStep, index, value, subTree);
-			return A3(
-				$elm$core$Elm$JsArray$unsafeSet,
-				pos,
-				$elm$core$Array$SubTree(newSub),
-				tree);
-		} else {
-			var values = _v0.a;
-			var newLeaf = A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, values);
-			return A3(
-				$elm$core$Elm$JsArray$unsafeSet,
-				pos,
-				$elm$core$Array$Leaf(newLeaf),
-				tree);
-		}
-	});
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var $elm$core$Array$tailIndex = function (len) {
-	return (len >>> 5) << 5;
-};
-var $elm$core$Array$set = F3(
-	function (index, value, array) {
-		var len = array.a;
-		var startShift = array.b;
-		var tree = array.c;
-		var tail = array.d;
-		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
-			index,
-			$elm$core$Array$tailIndex(len)) > -1) ? A4(
-			$elm$core$Array$Array_elm_builtin,
-			len,
-			startShift,
-			tree,
-			A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, tail)) : A4(
-			$elm$core$Array$Array_elm_builtin,
-			len,
-			startShift,
-			A4($elm$core$Array$setHelp, startShift, index, value, tree),
-			tail));
-	});
-var $author$project$Model$Board$setPieceAt = F3(
-	function (index, piece, board) {
-		return A3($elm$core$Array$set, index, piece, board);
-	});
-var $author$project$Model$Game$playMove = F2(
-	function (move, game) {
-		if (move.$ === 'Pass') {
-			return A2(
-				$author$project$Model$Game$setLastMove,
-				move,
-				A2($author$project$Model$Game$addMoveToHistory, move, game));
-		} else {
-			var piece = move.a;
-			var position = move.b;
-			return A2(
-				$author$project$Model$Game$setLastMove,
-				move,
-				A2(
-					$author$project$Model$Game$addMoveToHistory,
-					move,
-					A2(
-						$author$project$Model$Game$setBoard,
-						A3($author$project$Model$Board$setPieceAt, position, piece, game.board),
-						game)));
-		}
-	});
-var $author$project$Model$Game$setPlayerColor = F2(
-	function (color, game) {
-		return _Utils_update(
-			game,
-			{playerColor: color});
-	});
 var $elm$core$Array$getHelp = F3(
 	function (shift, index, tree) {
 		getHelp:
@@ -6308,6 +6219,10 @@ var $elm$core$Array$getHelp = F3(
 			}
 		}
 	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
 var $elm$core$Array$get = F2(
 	function (index, _v0) {
 		var len = _v0.a;
@@ -6324,11 +6239,6 @@ var $author$project$Model$Board$getPieceAt = F2(
 	function (index, board) {
 		return A2($elm$core$Array$get, index, board);
 	});
-var $author$project$Logic$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
-var $elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
-var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
 var $author$project$Model$Board$getPositionDownFrom = F2(
 	function (index, boardSize) {
 		var intSize = $author$project$Model$Board$boardSizeToInt(boardSize);
@@ -6632,6 +6542,95 @@ var $author$project$Logic$removeCapturedPieces = function (boardData) {
 		updatedBoard,
 		$elm$core$Set$size(capturedPositionsSet));
 };
+var $author$project$Model$Game$setLastMove = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				lastMove: $elm$core$Maybe$Just(move)
+			});
+	});
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$setHelp = F4(
+	function (shift, index, value, tree) {
+		var pos = $elm$core$Array$bitMask & (index >>> shift);
+		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+		if (_v0.$ === 'SubTree') {
+			var subTree = _v0.a;
+			var newSub = A4($elm$core$Array$setHelp, shift - $elm$core$Array$shiftStep, index, value, subTree);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$SubTree(newSub),
+				tree);
+		} else {
+			var values = _v0.a;
+			var newLeaf = A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, values);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$Leaf(newLeaf),
+				tree);
+		}
+	});
+var $elm$core$Array$set = F3(
+	function (index, value, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			tree,
+			A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, tail)) : A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A4($elm$core$Array$setHelp, startShift, index, value, tree),
+			tail));
+	});
+var $author$project$Model$Board$setPieceAt = F3(
+	function (index, piece, board) {
+		return A3($elm$core$Array$set, index, piece, board);
+	});
+var $author$project$Page$GamePlay$playMove = F2(
+	function (move, game) {
+		if (move.$ === 'Pass') {
+			return A2(
+				$author$project$Model$Game$setLastMove,
+				move,
+				A2($author$project$Model$Game$addMoveToHistory, move, game));
+		} else {
+			var piece = move.a;
+			var position = move.b;
+			var gameBoardWithMove = _Utils_update(
+				game,
+				{
+					board: A3($author$project$Model$Board$setPieceAt, position, piece, game.board)
+				});
+			var _v1 = $author$project$Logic$removeCapturedPieces(gameBoardWithMove);
+			var boardWithoutCapturedPieces = _v1.a;
+			var scoredPoints = _v1.b;
+			return _Utils_update(
+				game,
+				{
+					board: boardWithoutCapturedPieces,
+					history: A2($elm$core$List$cons, move, game.history),
+					lastMove: $elm$core$Maybe$Just(move)
+				});
+		}
+	});
+var $author$project$Model$Game$setPlayerColor = F2(
+	function (color, game) {
+		return _Utils_update(
+			game,
+			{playerColor: color});
+	});
+var $author$project$Logic$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
 var $author$project$Logic$legalPlayChecks = _List_fromArray(
 	[
 		F3(
@@ -6748,7 +6747,7 @@ var $author$project$Page$GamePlay$update = F2(
 						game: A2(
 							$author$project$Model$Game$setPlayerColor,
 							$author$project$Model$Piece$colorInverse(model.game.playerColor),
-							A2($author$project$Model$Game$playMove, move, model.game)),
+							A2($author$project$Page$GamePlay$playMove, move, model.game)),
 						invalidMoveAlert: $elm$core$Maybe$Nothing
 					}),
 				$author$project$Page$GamePlay$endTurn(model)) : _Utils_Tuple2(

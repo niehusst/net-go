@@ -197,6 +197,29 @@ endTurn model =
     Cmd.none
 
 
+playMove : Move.Move -> Game.Game -> Game.Game
+playMove move game =
+    case move of
+        Move.Pass ->
+            setLastMove move (addMoveToHistory move game)
+
+        Move.Play piece position ->
+            let
+                gameBoardWithMove =
+                    { game | board = setPieceAt position piece game.board }
+
+                ( boardWithoutCapturedPieces, scoredPoints ) =
+                    removeCapturedPieces gameBoardWithMove
+
+                -- TODO update your score once that exists
+            in
+            { game
+                | lastMove = Just move
+                , board = boardWithoutCapturedPieces
+                , history = move :: game.history
+            }
+
+
 
 -- INIT --
 
