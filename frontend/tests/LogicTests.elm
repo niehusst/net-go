@@ -3,7 +3,7 @@ module LogicTests exposing (..)
 import Array
 import Expect exposing (Expectation)
 import Logic exposing (..)
-import Model.Board as Board exposing (BoardSize(..))
+import Model.Board as Board exposing (BoardSize(..), setPieceAt)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (ColorChoice(..), Piece(..))
@@ -24,10 +24,10 @@ empty =
 
 board : Board.Board
 board =
-    [ [ empty, black, empty, empty, empty, empty, white, black, empty ]
-    , [ black, empty, empty, empty, empty, empty, white, black, black ]
-    , [ empty, empty, empty, empty, empty, empty, white, white, white ]
-    , [ empty, empty, empty, empty, white, black, empty, white, empty ]
+    [ [ empty, black, empty, black, white, empty, white, black, empty ]
+    , [ black, black, white, black, white, empty, white, black, black ]
+    , [ empty, black, white, black, white, empty, white, white, white ]
+    , [ empty, black, black, white, white, black, empty, white, empty ]
     , [ white, black, empty, white, empty, white, black, white, empty ]
     , [ empty, white, black, empty, white, black, empty, white, empty ]
     , [ white, black, empty, white, white, white, white, white, white ]
@@ -66,7 +66,7 @@ suite =
                 \_ ->
                     let
                         openMove =
-                            Move.Play black 12
+                            Move.Play black 73
                     in
                     Expect.equal ( True, Nothing ) <|
                         validMove openMove blackGame
@@ -136,14 +136,139 @@ suite =
                         validMove onTop whiteGame
             ]
         , describe "removeCapturedPieces"
-            [ todo "capturing single piece in eye removes it from the board"
-            , todo "captured pieces against the wall are removed"
-            , todo "seki captures black on white play"
-            , todo "seki captures white on black play"
-            , todo "when no pieces are captured, board remains unchanged"
-            , todo "life is not captured"
-            , todo "layered captured pieces are removed from board"
-            , todo "double capture removes both captured pieces from board"
-            , todo "captured group of multiple pieces are all removed from board"
+            [ test "capturing single piece in eye removes it from the board" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            whiteGame.board
+
+                        expectedNumCapturedPieces =
+                            1
+
+                        capturedBlackGameState =
+                            { whiteGame | board = setPieceAt 40 black whiteGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedBlackGameState)
+            , test "captured pieces against the wall are removed" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            whiteGame.board
+
+                        expectedNumCapturedPieces =
+                            3
+
+                        boardBlackPiecesCapturedAgainstWall =
+                            setPieceAt 35 black whiteGame.board
+                                |> setPieceAt 44 black
+                                |> setPieceAt 53 black
+
+                        capturedBlackGameState =
+                            { whiteGame | board = boardBlackPiecesCapturedAgainstWall }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedBlackGameState)
+            , test "seki captures black on white play" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            setPieceAt 2 white whiteGame.board
+                                |> setPieceAt 3 empty
+                                |> setPieceAt 12 empty
+                                |> setPieceAt 21 empty
+
+                        expectedNumCapturedPieces =
+                            3
+
+                        capturedBlackGameState =
+                            { whiteGame | board = setPieceAt 2 white whiteGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedBlackGameState)
+            , test "seki captures white on black play" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            setPieceAt 2 black blackGame.board
+                                |> setPieceAt 11 empty
+                                |> setPieceAt 20 empty
+
+                        expectedNumCapturedPieces =
+                            2
+
+                        capturedWhiteGameState =
+                            { blackGame | board = setPieceAt 2 black blackGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedWhiteGameState)
+            , test "when no pieces are captured, board remains unchanged" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            whiteGame.board
+
+                        expectedNumCapturedPieces =
+                            0
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces whiteGame)
+            , test "layered captured pieces are removed from board" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            setPieceAt 8 white blackGame.board
+                                |> setPieceAt 7 empty
+                                |> setPieceAt 16 empty
+                                |> setPieceAt 17 empty
+
+                        expectedNumCapturedPieces =
+                            3
+
+                        capturedBlackGameState =
+                            { whiteGame | board = setPieceAt 8 white whiteGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedBlackGameState)
+            , test "captured group of multiple pieces are all removed from board" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            setPieceAt 7 empty whiteGame.board
+                                |> setPieceAt 16 empty
+                                |> setPieceAt 17 empty
+
+                        expectedNumCapturedPieces =
+                            4
+
+                        capturedBlackGameState =
+                            { whiteGame | board = setPieceAt 8 black whiteGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedBlackGameState)
+            , test "double capture removes both captured pieces from board" <|
+                \_ ->
+                    let
+                        expectedEndBoard =
+                            setPieceAt 45 black blackGame.board
+                                |> setPieceAt 46 empty
+                                |> setPieceAt 54 empty
+
+                        expectedNumCapturedPieces =
+                            2
+
+                        capturedWhiteGameState =
+                            { blackGame | board = setPieceAt 45 black blackGame.board }
+                    in
+                    Expect.equal
+                        ( expectedEndBoard, expectedNumCapturedPieces )
+                        (removeCapturedPieces capturedWhiteGameState)
             ]
         ]
