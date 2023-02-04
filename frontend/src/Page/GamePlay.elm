@@ -1,6 +1,7 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
 import Array
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
@@ -9,6 +10,7 @@ import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
+import Route
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -22,6 +24,7 @@ type alias Model =
     { game : Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
+    , navKey : Nav.Key
     }
 
 
@@ -35,6 +38,8 @@ view model =
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
         , viewWaitForOpponent model.activeTurn
+        , div []
+            [ button [ onClick PlayPass ] [ text "Pass" ] ]
         , viewAlert model.invalidMoveAlert
         ]
 
@@ -172,7 +177,10 @@ update msg model =
             in
             if moveIsValid then
                 ( { model
-                    | game = playMove move model.game |> setPlayerColor (colorInverse model.game.playerColor) -- TODO: remove color swap w/ networking
+                    | game =
+                        playMove move model.game
+                            -- TODO: remove color swap w/ networking
+                            |> setPlayerColor (colorInverse model.game.playerColor)
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
                   }
@@ -185,9 +193,36 @@ update msg model =
                 )
 
         PlayPass ->
-            -- TODO
-            ( model
-            , Cmd.none
+            let
+                -- check that player's last move was pass
+                -- and that the opponents last move was pass
+                gameEnded =
+                    case ( model.game.lastMove, model.game.history ) of
+                        ( Just Move.Pass, move :: moves ) ->
+                            move == Move.Pass
+
+                        _ ->
+                            False
+
+                updatedGame =
+                    playMove Move.Pass model.game
+                        |> setIsOver gameEnded
+                        -- TODO remove color swap w/ networking
+                        |> setPlayerColor (colorInverse model.game.playerColor)
+
+                command =
+                    if gameEnded then
+                        goToScoring model
+
+                    else
+                        endTurn model
+            in
+            ( { model
+                | activeTurn = not model.activeTurn
+                , invalidMoveAlert = Nothing
+                , game = updatedGame
+              }
+            , command
             )
 
 
@@ -197,11 +232,18 @@ endTurn model =
     Cmd.none
 
 
+goToScoring : Model -> Cmd Msg
+goToScoring model =
+    -- TODO: notify other player of game end before navigation
+    Route.pushUrl Route.GameScore model.navKey
+
+
 playMove : Move.Move -> Game.Game -> Game.Game
 playMove move game =
     case move of
         Move.Pass ->
-            setLastMove move (addMoveToHistory move game)
+            setLastMove move game
+                |> addMoveToHistory move
 
         Move.Play piece position ->
             let
@@ -224,14 +266,10 @@ playMove move game =
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Model
-init size color =
-    initialModel size color
-
-
-initialModel : BoardSize -> ColorChoice -> Model
-initialModel boardSize colorChoice =
+init : BoardSize -> ColorChoice -> Nav.Key -> Model
+init boardSize colorChoice navKey =
     { game = newGame boardSize colorChoice
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
+    , navKey = navKey
     }

@@ -10,6 +10,7 @@ type Route
     | Home
     | GameCreate
     | GamePlay
+    | GameScore
 
 
 matchRoute : Parser (Route -> a) a
@@ -18,6 +19,7 @@ matchRoute =
         [ map Home top
         , map GameCreate (s "game" </> s "create")
         , map GamePlay (s "game") -- TODO: set game code
+        , map GameScore (s "game" </> s "score") -- TODO: set game code between
         ]
 
 
@@ -50,5 +52,9 @@ routeToString route =
             "/game/create"
 
         GamePlay ->
-            -- TODO: dont forget to change this too
+            -- TODO: add game code?
             "/game"
+
+        GameScore ->
+            -- TODO: add game code
+            "/game/score"
