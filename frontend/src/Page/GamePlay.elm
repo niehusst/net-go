@@ -35,6 +35,8 @@ view model =
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
         , viewWaitForOpponent model.activeTurn
+        , div []
+            [ button [ onClick PlayPass ] [ text "Pass" ] ]
         , viewAlert model.invalidMoveAlert
         ]
 
@@ -172,7 +174,11 @@ update msg model =
             in
             if moveIsValid then
                 ( { model
-                    | game = playMove move model.game |> setPlayerColor (colorInverse model.game.playerColor) -- TODO: remove color swap w/ networking
+                    | game =
+                        playMove move model.game
+                            |> setPlayerColor (colorInverse model.game.playerColor)
+
+                    -- TODO: remove color swap w/ networking
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
                   }
@@ -185,10 +191,22 @@ update msg model =
                 )
 
         PlayPass ->
-            -- TODO
-            ( model
-            , Cmd.none
+            -- TODO remove color swap w/ networking
+            ( { model
+                | activeTurn = not model.activeTurn
+                , invalidMoveAlert = Nothing
+                , game =
+                    passTurn model.game
+                        |> setPlayerColor (colorInverse model.game.playerColor)
+              }
+            , endTurn model
             )
+
+
+passTurn : Game.Game -> Game.Game
+passTurn game =
+    setLastMove Move.Pass game
+        |> addMoveToHistory Move.Pass
 
 
 endTurn : Model -> Cmd Msg

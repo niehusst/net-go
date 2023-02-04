@@ -6181,6 +6181,7 @@ var $author$project$Page$GamePlay$endTurn = function (model) {
 	return $elm$core$Platform$Cmd$none;
 };
 var $elm$core$Basics$not = _Basics_not;
+var $author$project$Model$Move$Pass = {$: 'Pass'};
 var $author$project$Model$Game$addMoveToHistory = F2(
 	function (move, game) {
 		return _Utils_update(
@@ -6189,6 +6190,20 @@ var $author$project$Model$Game$addMoveToHistory = F2(
 				history: A2($elm$core$List$cons, move, game.history)
 			});
 	});
+var $author$project$Model$Game$setLastMove = F2(
+	function (move, game) {
+		return _Utils_update(
+			game,
+			{
+				lastMove: $elm$core$Maybe$Just(move)
+			});
+	});
+var $author$project$Page$GamePlay$passTurn = function (game) {
+	return A2(
+		$author$project$Model$Game$addMoveToHistory,
+		$author$project$Model$Move$Pass,
+		A2($author$project$Model$Game$setLastMove, $author$project$Model$Move$Pass, game));
+};
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
@@ -6542,14 +6557,6 @@ var $author$project$Logic$removeCapturedPieces = function (boardData) {
 		updatedBoard,
 		$elm$core$Set$size(capturedPositionsSet));
 };
-var $author$project$Model$Game$setLastMove = F2(
-	function (move, game) {
-		return _Utils_update(
-			game,
-			{
-				lastMove: $elm$core$Maybe$Just(move)
-			});
-	});
 var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
 var $elm$core$Array$setHelp = F4(
 	function (shift, index, value, tree) {
@@ -6756,7 +6763,18 @@ var $author$project$Page$GamePlay$update = F2(
 					{invalidMoveAlert: errorMessage}),
 				$elm$core$Platform$Cmd$none);
 		} else {
-			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						activeTurn: !model.activeTurn,
+						game: A2(
+							$author$project$Model$Game$setPlayerColor,
+							$author$project$Model$Piece$colorInverse(model.game.playerColor),
+							$author$project$Page$GamePlay$passTurn(model.game)),
+						invalidMoveAlert: $elm$core$Maybe$Nothing
+					}),
+				$author$project$Page$GamePlay$endTurn(model));
 		}
 	});
 var $author$project$Page$Home$update = F2(
@@ -6926,7 +6944,25 @@ var $author$project$Page$GameCreate$view = function (model) {
 					]))
 			]));
 };
+var $author$project$Page$GamePlay$PlayPass = {$: 'PlayPass'};
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
 var $author$project$Page$GamePlay$viewAlert = function (error) {
 	if (error.$ === 'Nothing') {
 		return $elm$html$Html$text('');
@@ -6969,23 +7005,6 @@ var $author$project$Page$GamePlay$isInnerCell = F2(
 		var isLastRow = _Utils_cmp(index, intSize * (intSize - 1)) > -1;
 		return !(isLastRow || isLastCol);
 	});
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
@@ -7096,6 +7115,22 @@ var $author$project$Page$GamePlay$view = function (model) {
 					])),
 				$author$project$Page$GamePlay$viewBuildBoard(model),
 				$author$project$Page$GamePlay$viewWaitForOpponent(model.activeTurn),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Page$GamePlay$PlayPass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Pass')
+							]))
+					])),
 				$author$project$Page$GamePlay$viewAlert(model.invalidMoveAlert)
 			]));
 };
