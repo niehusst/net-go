@@ -7,6 +7,7 @@ import Model.Board as Board exposing (BoardSize(..), setPieceAt)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (ColorChoice(..), Piece(..))
+import Model.Score as Score
 import Test exposing (..)
 
 
@@ -46,6 +47,7 @@ blackGame =
     , history = []
     , playerColor = Piece.Black
     , isOver = False
+    , score = Score.initWithKomi 0
     }
 
 
@@ -57,6 +59,7 @@ whiteGame =
     , history = []
     , playerColor = Piece.White
     , isOver = False
+    , score = Score.initWithKomi 0
     }
 
 

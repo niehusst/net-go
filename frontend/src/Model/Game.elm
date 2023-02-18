@@ -3,6 +3,7 @@ module Model.Game exposing (..)
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece exposing (ColorChoice)
+import Model.Score as Score exposing (Score)
 
 
 type alias Game =
@@ -12,18 +13,25 @@ type alias Game =
     , history : List Move
     , playerColor : ColorChoice
     , isOver : Bool
+    , score : Score
     }
 
 
-newGame : BoardSize -> ColorChoice -> Game
-newGame size color =
+newGame : BoardSize -> ColorChoice -> Float -> Game
+newGame size color komi =
     { boardSize = size
     , board = emptyBoard size
     , lastMove = Nothing
     , history = []
     , playerColor = color
     , isOver = False
+    , score = Score.initWithKomi komi
     }
+
+
+setScore : Score -> Game -> Game
+setScore score game =
+    { game | score = score }
 
 
 setPlayerColor : ColorChoice -> Game -> Game

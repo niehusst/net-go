@@ -175,7 +175,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         pageModel =
-                            GamePlay.init Board.Small Piece.Black model.navKey
+                            GamePlay.init Board.Small Piece.Black 0.0 model.navKey
                     in
                     ( GamePlayPage pageModel
                     , Cmd.none

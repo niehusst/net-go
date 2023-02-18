@@ -5265,22 +5265,26 @@ var $author$project$Model$Board$emptyBoard = function (size) {
 	var intSize = $author$project$Model$Board$boardSizeToInt(size);
 	return A2($elm$core$Array$repeat, intSize * intSize, $author$project$Model$Piece$None);
 };
-var $author$project$Model$Game$newGame = F2(
-	function (size, color) {
+var $author$project$Model$Score$initWithKomi = function (komi) {
+	return {blackPoints: 0.0, isForfeit: false, whitePoints: komi};
+};
+var $author$project$Model$Game$newGame = F3(
+	function (size, color, komi) {
 		return {
 			board: $author$project$Model$Board$emptyBoard(size),
 			boardSize: size,
 			history: _List_Nil,
 			isOver: false,
 			lastMove: $elm$core$Maybe$Nothing,
-			playerColor: color
+			playerColor: color,
+			score: $author$project$Model$Score$initWithKomi(komi)
 		};
 	});
-var $author$project$Page$GamePlay$init = F3(
-	function (boardSize, colorChoice, navKey) {
+var $author$project$Page$GamePlay$init = F4(
+	function (boardSize, colorChoice, komi, navKey) {
 		return {
 			activeTurn: _Utils_eq(colorChoice, $author$project$Model$Piece$Black),
-			game: A2($author$project$Model$Game$newGame, boardSize, colorChoice),
+			game: A3($author$project$Model$Game$newGame, boardSize, colorChoice, komi),
 			invalidMoveAlert: $elm$core$Maybe$Nothing,
 			navKey: navKey
 		};
@@ -5312,7 +5316,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 					$author$project$Main$GameCreatePage(pageModel),
 					$elm$core$Platform$Cmd$none);
 			case 'GamePlay':
-				var pageModel = A3($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black, model.navKey);
+				var pageModel = A4($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black, 0.0, model.navKey);
 				return _Utils_Tuple2(
 					$author$project$Main$GamePlayPage(pageModel),
 					$elm$core$Platform$Cmd$none);
