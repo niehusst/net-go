@@ -10,6 +10,7 @@ import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
+import Model.Score as Score
 import Route
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
@@ -253,12 +254,23 @@ playMove move game =
                 ( boardWithoutCapturedPieces, scoredPoints ) =
                     removeCapturedPieces gameBoardWithMove
 
-                -- TODO update your score once that exists
+                updatedScore =
+                    let
+                        points =
+                            toFloat scoredPoints
+                    in
+                    case game.playerColor of
+                        Piece.Black ->
+                            Score.increaseBlackPoints points game.score
+
+                        Piece.White ->
+                            Score.increaseWhitePoints points game.score
             in
             { game
                 | lastMove = Just move
                 , board = boardWithoutCapturedPieces
                 , history = move :: game.history
+                , score = updatedScore
             }
 
 

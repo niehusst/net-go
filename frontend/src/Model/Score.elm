@@ -33,3 +33,13 @@ scoreToString score =
 
     else
         "Draw"
+
+
+increaseWhitePoints : Float -> Score -> Score
+increaseWhitePoints points score =
+    { score | whitePoints = score.whitePoints + points }
+
+
+increaseBlackPoints : Float -> Score -> Score
+increaseBlackPoints points score =
+    { score | blackPoints = score.blackPoints + points }

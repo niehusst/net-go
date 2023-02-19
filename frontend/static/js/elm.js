@@ -6236,6 +6236,18 @@ var $author$project$Model$Game$addMoveToHistory = F2(
 				history: A2($elm$core$List$cons, move, game.history)
 			});
 	});
+var $author$project$Model$Score$increaseBlackPoints = F2(
+	function (points, score) {
+		return _Utils_update(
+			score,
+			{blackPoints: score.blackPoints + points});
+	});
+var $author$project$Model$Score$increaseWhitePoints = F2(
+	function (points, score) {
+		return _Utils_update(
+			score,
+			{whitePoints: score.whitePoints + points});
+	});
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
@@ -6662,12 +6674,22 @@ var $author$project$Page$GamePlay$playMove = F2(
 			var _v1 = $author$project$Logic$removeCapturedPieces(gameBoardWithMove);
 			var boardWithoutCapturedPieces = _v1.a;
 			var scoredPoints = _v1.b;
+			var updatedScore = function () {
+				var points = scoredPoints;
+				var _v2 = game.playerColor;
+				if (_v2.$ === 'Black') {
+					return A2($author$project$Model$Score$increaseBlackPoints, points, game.score);
+				} else {
+					return A2($author$project$Model$Score$increaseWhitePoints, points, game.score);
+				}
+			}();
 			return _Utils_update(
 				game,
 				{
 					board: boardWithoutCapturedPieces,
 					history: A2($elm$core$List$cons, move, game.history),
-					lastMove: $elm$core$Maybe$Just(move)
+					lastMove: $elm$core$Maybe$Just(move),
+					score: updatedScore
 				});
 		}
 	});
