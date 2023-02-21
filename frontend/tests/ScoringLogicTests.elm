@@ -1,4 +1,4 @@
-module ScoringTests exposing (..)
+module ScoringLogicTests exposing (..)
 
 import Array
 import Expect exposing (Expectation)
@@ -34,6 +34,22 @@ complexGame =
     , [ empty, empty, black, white, white, black, black, black, black ]
     , [ empty, empty, black, white, white, white, black, empty, white ]
     , [ empty, empty, black, black, black, white, black, white, empty ]
+    ]
+        |> List.foldr (++) []
+        |> Array.fromList
+
+
+incompleteGame : Board.Board
+incompleteGame =
+    [ [ empty, empty, empty, empty, empty, empty, black, black, empty ]
+    , [ empty, empty, empty, empty, empty, empty, white, black, white ]
+    , [ empty, empty, empty, empty, empty, empty, empty, empty, white ]
+    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
+    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
+    , [ empty, empty, empty, empty, white, empty, empty, empty, empty ]
+    , [ empty, empty, empty, black, empty, empty, empty, white, empty ]
+    , [ black, empty, empty, empty, empty, empty, empty, empty, empty ]
+    , [ white, empty, empty, empty, empty, empty, empty, empty, empty ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -203,12 +219,18 @@ suite =
             , test "captured stone points are weighed into final score" <|
                 \_ ->
                     let
-                        -- TODO not sure if i want this test if using area scoring.
                         expectedScore =
-                            ""
+                            "B+6.5"
+
+                        captureScore =
+                            let
+                                initialScore =
+                                    initWithKomi 5.5
+                            in
+                            { initialScore | blackPoints = 12.0 }
 
                         actualScore =
-                            scoreGame { game | board = tie }
+                            scoreGame { game | board = tie, score = captureScore }
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -231,5 +253,16 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal "Forfeit" actualScore
+            , test "very incomplete game gets scored" <|
+                \_ ->
+                    let
+                        expectedScore =
+                            "Draw"
+
+                        actualScore =
+                            scoreGame { game | board = incompleteGame }
+                                |> scoreToString
+                    in
+                    Expect.equal expectedScore actualScore
             ]
         ]
