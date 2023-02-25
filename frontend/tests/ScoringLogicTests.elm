@@ -165,7 +165,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "B+3.0"
+                            "B+3"
 
                         actualScore =
                             scoreGame game
@@ -176,7 +176,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "B+2.0"
+                            "B+2"
 
                         actualScore =
                             scoreGame { game | board = life }
@@ -187,7 +187,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "W+4.0"
+                            "W+4"
 
                         actualScore =
                             scoreGame { game | board = deadStones }
@@ -198,7 +198,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "W+7.0"
+                            "W+7"
 
                         actualScore =
                             scoreGame { game | board = falseLife }
