@@ -248,8 +248,14 @@ suite =
             , test "forfeited games are not scored since they are forfeit" <|
                 \_ ->
                     let
+                        score =
+                            Score.initWithKomi 0.0
+
+                        forfeitScore =
+                            { score | isForfeit = True }
+
                         actualScore =
-                            scoreGame game
+                            scoreGame { game | score = forfeitScore }
                                 |> scoreToString
                     in
                     Expect.equal "Forfeit" actualScore
