@@ -1,10 +1,11 @@
 module ScoringLogic exposing (scoreGame)
 
+import Array
 import Model.Board as Board exposing (..)
 import Model.Game as Game exposing (..)
+import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
 import Model.Score as Score exposing (Score)
-import Set
-import Util.ListExtensions exposing (indexedFoldl)
+import Set exposing (Set)
 
 
 
@@ -15,17 +16,6 @@ type TerritoryColor
     = BlackTerritory
     | WhiteTerritory
     | ContestedTerritory
-
-
-{-| `territoryColor` indicates the player that captured the territory.
-`territorySize` is the count of territory points captured.
-`seen` is a set of explored indices that we dont need to check again.
--}
-type alias ScoringState =
-    { territoryColor : TerritoryColor
-    , territorySize : Int
-    , seen : Set Int
-    }
 
 
 {-| Given a game, return the final Score for the game.
@@ -44,7 +34,7 @@ scoreGame game =
             gameToScore =
                 clearDeadStones game
         in
-        countAllPoints gameToScore.board gameToScore.score
+        countAllPoints gameToScore gameToScore.score
 
 
 {-| For each group of empty spaces on `board`, check if it's
@@ -53,8 +43,8 @@ number of surrounded spaces to that color's points.
 Returns the updated score with the points from surrouned
 spaces counted.
 -}
-countAllPoints : Board.Board -> Score -> Score
-countAllPoints board score =
+countAllPoints : BoardData r -> Score -> Score
+countAllPoints boardData initialScore =
     let
         -- TODO: this is a lot of case nesting. break into smaller funcs or compress cases?
         kernel : List Int -> Set Int -> Score -> ( Set Int, Score )
@@ -66,7 +56,7 @@ countAllPoints board score =
                 pos :: positionsTail ->
                     let
                         piece =
-                            getPieceAt pos board
+                            getPieceAt pos boardData.board
 
                         isSeen =
                             Set.member pos seen
@@ -77,26 +67,29 @@ countAllPoints board score =
                                 -- count up the captured territory starting from this empty territory
                                 ( updatedSeen, updatedScore ) =
                                     let
-                                        countingState =
-                                            countPointsFrom pos board
+                                        ( territoryColor, territoryPoints, visited ) =
+                                            countPointsFrom pos boardData
 
-                                        updatedSeen =
-                                            Set.union (Set.insert pos seen) countingState.seen
+                                        combinedSeen =
+                                            Set.union (Set.insert pos seen) visited
+
+                                        floatPoints =
+                                            toFloat territoryPoints
                                     in
-                                    case countingState.territoryColor of
+                                    case territoryColor of
                                         BlackTerritory ->
-                                            ( updatedSeen
-                                            , { score | blackPoints = score.blackPoints + countingState.territoryPoints }
+                                            ( combinedSeen
+                                            , { score | blackPoints = score.blackPoints + floatPoints }
                                             )
 
                                         WhiteTerritory ->
-                                            ( updatedSeen
-                                            , { score | whitePoints = score.whitePoints + countingState.territoryPoints }
+                                            ( combinedSeen
+                                            , { score | whitePoints = score.whitePoints + floatPoints }
                                             )
 
                                         ContestedTerritory ->
                                             -- piece wasnt surrounded by 1 color, no points awarded
-                                            ( updatedSeen, score )
+                                            ( combinedSeen, score )
                             in
                             kernel positionsTail updatedSeen updatedScore
 
@@ -106,36 +99,104 @@ countAllPoints board score =
 
         ( _, countedScore ) =
             kernel
-                (List.range 0 (Array.length board))
+                (List.range 0 (Array.length boardData.board))
                 Set.empty
-                score
+                initialScore
     in
     countedScore
 
 
-{-| Counts the captured territory connected from the input `position`.
-Returns both the quantity of captured territory and also the color
-that captured this territory.
+{-| Counts the captured territory connected to the input index on the board, `position`.
+Returns a tuple of:
+
+  - what single color (if any) captured the territory
+  - the quantity of captured territory
+  - the set of explored positions on the board (so caller does not have to recheck them)
+
 -}
-countPointsFrom : Int -> Board.Board -> ScoringState
-countPointsFrom position board =
+countPointsFrom : Int -> BoardData r -> ( TerritoryColor, Int, Set Int )
+countPointsFrom position boardData =
     let
         startingState =
-            { territoryColor = ContestedTerritory
-            , territoryPoints = 0
-            , seen = Set.empty
+            { visited = Set.empty
+            , surroundingPieces = Set.empty
             }
 
-        kernel : ScoringState -> Int -> Board.Board -> ScoringState
-        kernel state pos board =
-            if Set.member pos state.seen then
-                state
+        surroundingData =
+            getSurroundingData boardData position startingState
 
-            else
-                -- TODO: everythign (copy or alter isSurroundedByEnemyOrWall?)
-                state
+        surroundingPieces =
+            Set.toList surroundingData.surroundingPieces
+                |> List.map intToPiece
+
+        territoryOwner =
+            case surroundingPieces of
+                (Just WhiteStone) :: [] ->
+                    WhiteTerritory
+
+                (Just BlackStone) :: [] ->
+                    BlackTerritory
+
+                _ ->
+                    ContestedTerritory
     in
-    kernel startingState position board
+    ( territoryOwner
+    , Set.size surroundingData.visited
+    , surroundingData.visited
+    )
+
+
+{-| Convenience datatype for holding board related data
+necessary for 2D board traversal.
+-}
+type alias BoardData r =
+    { r
+        | boardSize : BoardSize
+        , board : Board
+    }
+
+
+{-| Helper type for determing which pieces surround empty territory.
+`visited`: set of (empty) positions that have already been explored
+`surroundingPieces`: set of int representation of pieces that are surrounding the empty territory
+-}
+type alias SurroundingState =
+    { visited : Set Int
+    , surroundingPieces : Set Int
+    }
+
+
+getSurroundingData : BoardData r -> Int -> SurroundingState -> SurroundingState
+getSurroundingData boardData position state =
+    if Set.member position state.visited then
+        -- don't recheck already seen pieces
+        state
+
+    else
+        case getPieceAt position boardData.board of
+            Just stonePiece ->
+                if stonePiece == None then
+                    -- continue exploring empty space chain
+                    let
+                        updatedState =
+                            { state | visited = Set.insert position state.visited }
+                    in
+                    getSurroundingData boardData (getPositionUpFrom position boardData.boardSize) updatedState
+                        |> getSurroundingData boardData (getPositionDownFrom position boardData.boardSize)
+                        |> getSurroundingData boardData (getPositionRightFrom position boardData.boardSize)
+                        |> getSurroundingData boardData (getPositionLeftFrom position boardData.boardSize)
+
+                else
+                    -- record a surrounding piece
+                    let
+                        pieceAsInt =
+                            pieceToInt stonePiece
+                    in
+                    { state | surroundingPieces = Set.insert pieceAsInt state.surroundingPieces }
+
+            Nothing ->
+                -- wall. counts for either color, so dont record
+                state
 
 
 
@@ -152,24 +213,24 @@ clearDeadStones game =
             getDeadStones game.board
 
         clearIndices : List Int -> Board.Board -> Board.Board
-        clearIndices indices board =
+        clearIndices indices gameBoard =
             List.foldl
-                (\board index -> setPieceAt index Piece.None board)
-                board
+                (\index board -> setPieceAt index Piece.None board)
+                gameBoard
                 indices
 
         -- award opponents points per dead stone
         newScore =
             List.foldl
-                (\score index ->
+                (\index score ->
                     case getPieceAt index game.board of
-                        Just Piece.BlackPiece ->
+                        Just BlackStone ->
                             { score | whitePoints = score.whitePoints + 1 }
 
-                        Just Piece.WhtiePiece ->
+                        Just WhiteStone ->
                             { score | blackPoints = score.blackPoints + 1 }
 
-                        Nothing ->
+                        _ ->
                             score
                 )
                 game.score
