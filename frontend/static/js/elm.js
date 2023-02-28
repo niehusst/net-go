@@ -5220,7 +5220,7 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$NotFoundPage = {$: 'NotFoundPage'};
-var $author$project$Model$Piece$Black = {$: 'Black'};
+var $author$project$Model$ColorChoice$Black = {$: 'Black'};
 var $author$project$Main$GameCreatePage = function (a) {
 	return {$: 'GameCreatePage', a: a};
 };
@@ -5239,7 +5239,7 @@ var $author$project$Main$HomePageMsg = function (a) {
 var $author$project$Model$Board$Small = {$: 'Small'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Model$Board$Full = {$: 'Full'};
-var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Model$Board$Full, colorChoice: $author$project$Model$Piece$Black, komi: 5.5};
+var $author$project$Page$GameCreate$initialModel = {boardSize: $author$project$Model$Board$Full, colorChoice: $author$project$Model$ColorChoice$Black, komi: 5.5};
 var $author$project$Page$GameCreate$init = $author$project$Page$GameCreate$initialModel;
 var $author$project$Model$Piece$None = {$: 'None'};
 var $author$project$Model$Board$boardSizeToInt = function (size) {
@@ -5283,7 +5283,7 @@ var $author$project$Model$Game$newGame = F3(
 var $author$project$Page$GamePlay$init = F4(
 	function (boardSize, colorChoice, komi, navKey) {
 		return {
-			activeTurn: _Utils_eq(colorChoice, $author$project$Model$Piece$Black),
+			activeTurn: _Utils_eq(colorChoice, $author$project$Model$ColorChoice$Black),
 			game: A3($author$project$Model$Game$newGame, boardSize, colorChoice, komi),
 			invalidMoveAlert: $elm$core$Maybe$Nothing,
 			navKey: navKey
@@ -5316,7 +5316,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 					$author$project$Main$GameCreatePage(pageModel),
 					$elm$core$Platform$Cmd$none);
 			case 'GamePlay':
-				var pageModel = A4($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$Piece$Black, 0.0, model.navKey);
+				var pageModel = A4($author$project$Page$GamePlay$init, $author$project$Model$Board$Small, $author$project$Model$ColorChoice$Black, 0.0, model.navKey);
 				return _Utils_Tuple2(
 					$author$project$Main$GamePlayPage(pageModel),
 					$elm$core$Platform$Cmd$none);
@@ -6183,17 +6183,17 @@ var $author$project$Model$Move$Play = F2(
 	function (a, b) {
 		return {$: 'Play', a: a, b: b};
 	});
-var $author$project$Model$Piece$White = {$: 'White'};
-var $author$project$Model$Piece$colorInverse = function (color) {
+var $author$project$Model$ColorChoice$White = {$: 'White'};
+var $author$project$Model$ColorChoice$colorInverse = function (color) {
 	if (color.$ === 'White') {
-		return $author$project$Model$Piece$Black;
+		return $author$project$Model$ColorChoice$Black;
 	} else {
-		return $author$project$Model$Piece$White;
+		return $author$project$Model$ColorChoice$White;
 	}
 };
 var $author$project$Model$Piece$BlackStone = {$: 'BlackStone'};
 var $author$project$Model$Piece$WhiteStone = {$: 'WhiteStone'};
-var $author$project$Model$Piece$colorToPiece = function (color) {
+var $author$project$Model$ColorChoice$colorToPiece = function (color) {
 	if (color.$ === 'White') {
 		return $author$project$Model$Piece$WhiteStone;
 	} else {
@@ -6342,7 +6342,7 @@ var $elm$core$Set$member = F2(
 		var dict = _v0.a;
 		return A2($elm$core$Dict$member, key, dict);
 	});
-var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
+var $author$project$Logic$Rules$isSurroundedByEnemyOrWall = F3(
 	function (boardData, position, state) {
 		var alreadySeen = A2($elm$core$Set$member, position, state.visited);
 		var _v0 = _Utils_Tuple2(state.surrounded, alreadySeen);
@@ -6352,10 +6352,10 @@ var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
 			if (_v0.b) {
 				return state;
 			} else {
-				var playerPiece = $author$project$Model$Piece$colorToPiece(boardData.playerColor);
+				var playerPiece = $author$project$Model$ColorChoice$colorToPiece(boardData.playerColor);
 				var piece = A2($author$project$Model$Board$getPieceAt, position, boardData.board);
-				var enemyPiece = $author$project$Model$Piece$colorToPiece(
-					$author$project$Model$Piece$colorInverse(boardData.playerColor));
+				var enemyPiece = $author$project$Model$ColorChoice$colorToPiece(
+					$author$project$Model$ColorChoice$colorInverse(boardData.playerColor));
 				if (piece.$ === 'Just') {
 					var stonePiece = piece.a;
 					if (_Utils_eq(stonePiece, playerPiece)) {
@@ -6364,19 +6364,19 @@ var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
 							state,
 							{visited: updatedVisited});
 						return A3(
-							$author$project$Logic$isSurroundedByEnemyOrWall,
+							$author$project$Logic$Rules$isSurroundedByEnemyOrWall,
 							boardData,
 							A2($author$project$Model$Board$getPositionLeftFrom, position, boardData.boardSize),
 							A3(
-								$author$project$Logic$isSurroundedByEnemyOrWall,
+								$author$project$Logic$Rules$isSurroundedByEnemyOrWall,
 								boardData,
 								A2($author$project$Model$Board$getPositionRightFrom, position, boardData.boardSize),
 								A3(
-									$author$project$Logic$isSurroundedByEnemyOrWall,
+									$author$project$Logic$Rules$isSurroundedByEnemyOrWall,
 									boardData,
 									A2($author$project$Model$Board$getPositionDownFrom, position, boardData.boardSize),
 									A3(
-										$author$project$Logic$isSurroundedByEnemyOrWall,
+										$author$project$Logic$Rules$isSurroundedByEnemyOrWall,
 										boardData,
 										A2($author$project$Model$Board$getPositionUpFrom, position, boardData.boardSize),
 										updatedState))));
@@ -6399,20 +6399,20 @@ var $author$project$Logic$isSurroundedByEnemyOrWall = F3(
 			}
 		}
 	});
-var $author$project$Logic$markCapturedEnemyPieces = F4(
+var $author$project$Logic$Rules$markCapturedEnemyPieces = F4(
 	function (piece, position, boardData, seenState) {
-		var enemyColor = $author$project$Model$Piece$colorInverse(boardData.playerColor);
+		var enemyColor = $author$project$Model$ColorChoice$colorInverse(boardData.playerColor);
 		var isEnemyPiece = _Utils_eq(
 			piece,
-			$author$project$Model$Piece$colorToPiece(enemyColor));
+			$author$project$Model$ColorChoice$colorToPiece(enemyColor));
 		if (isEnemyPiece && (!A2($elm$core$Set$member, position, seenState))) {
 			var initialState = {surrounded: true, visited: seenState};
 			var enemyBoardData = _Utils_update(
 				boardData,
 				{
-					playerColor: $author$project$Model$Piece$colorInverse(boardData.playerColor)
+					playerColor: $author$project$Model$ColorChoice$colorInverse(boardData.playerColor)
 				});
-			var checkedState = A3($author$project$Logic$isSurroundedByEnemyOrWall, enemyBoardData, position, initialState);
+			var checkedState = A3($author$project$Logic$Rules$isSurroundedByEnemyOrWall, enemyBoardData, position, initialState);
 			return _Utils_Tuple2(checkedState.surrounded, checkedState.visited);
 		} else {
 			return _Utils_Tuple2(false, seenState);
@@ -6454,7 +6454,7 @@ var $elm$core$Set$union = F2(
 		return $elm$core$Set$Set_elm_builtin(
 			A2($elm$core$Dict$union, dict1, dict2));
 	});
-var $author$project$Logic$findCapturedEnemyPieces = F4(
+var $author$project$Logic$Rules$findCapturedEnemyPieces = F4(
 	function (boardData, indexedBoard, globalVisited, captured) {
 		findCapturedEnemyPieces:
 		while (true) {
@@ -6476,7 +6476,7 @@ var $author$project$Logic$findCapturedEnemyPieces = F4(
 					captured = $temp$captured;
 					continue findCapturedEnemyPieces;
 				} else {
-					var _v2 = A4($author$project$Logic$markCapturedEnemyPieces, piece, position, boardData, $elm$core$Set$empty);
+					var _v2 = A4($author$project$Logic$Rules$markCapturedEnemyPieces, piece, position, boardData, $elm$core$Set$empty);
 					var groupIsCaptured = _v2.a;
 					var seenPositions = _v2.b;
 					var updatedCaptured = groupIsCaptured ? A2($elm$core$Set$union, captured, seenPositions) : captured;
@@ -6532,7 +6532,7 @@ var $elm$core$Array$indexedMap = F2(
 			true,
 			A3($elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
 	});
-var $author$project$Logic$removePiecesAt = F2(
+var $author$project$Logic$Rules$removePiecesAt = F2(
 	function (captured, board) {
 		return A2(
 			$elm$core$Array$indexedMap,
@@ -6589,14 +6589,14 @@ var $elm$core$Array$toIndexedList = function (array) {
 		_Utils_Tuple2(len - 1, _List_Nil),
 		array).b;
 };
-var $author$project$Logic$removeCapturedPieces = function (boardData) {
+var $author$project$Logic$Rules$removeCapturedPieces = function (boardData) {
 	var capturedPositionsSet = A4(
-		$author$project$Logic$findCapturedEnemyPieces,
+		$author$project$Logic$Rules$findCapturedEnemyPieces,
 		boardData,
 		$elm$core$Array$toIndexedList(boardData.board),
 		$elm$core$Set$empty,
 		$elm$core$Set$empty);
-	var updatedBoard = A2($author$project$Logic$removePiecesAt, capturedPositionsSet, boardData.board);
+	var updatedBoard = A2($author$project$Logic$Rules$removePiecesAt, capturedPositionsSet, boardData.board);
 	return _Utils_Tuple2(
 		updatedBoard,
 		$elm$core$Set$size(capturedPositionsSet));
@@ -6671,7 +6671,7 @@ var $author$project$Page$GamePlay$playMove = F2(
 				{
 					board: A3($author$project$Model$Board$setPieceAt, position, piece, game.board)
 				});
-			var _v1 = $author$project$Logic$removeCapturedPieces(gameBoardWithMove);
+			var _v1 = $author$project$Logic$Rules$removeCapturedPieces(gameBoardWithMove);
 			var boardWithoutCapturedPieces = _v1.a;
 			var scoredPoints = _v1.b;
 			var updatedScore = function () {
@@ -6705,8 +6705,8 @@ var $author$project$Model$Game$setPlayerColor = F2(
 			game,
 			{playerColor: color});
 	});
-var $author$project$Logic$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
-var $author$project$Logic$legalPlayChecks = _List_fromArray(
+var $author$project$Logic$Rules$okay = _Utils_Tuple2(true, $elm$core$Maybe$Nothing);
+var $author$project$Logic$Rules$legalPlayChecks = _List_fromArray(
 	[
 		F3(
 		function (piece, position, game) {
@@ -6714,7 +6714,7 @@ var $author$project$Logic$legalPlayChecks = _List_fromArray(
 			var checkMessage = 'You can\'t play on top of other pieces';
 			if ((pieceAtPosition.$ === 'Just') && (pieceAtPosition.a.$ === 'None')) {
 				var _v1 = pieceAtPosition.a;
-				return $author$project$Logic$okay;
+				return $author$project$Logic$Rules$okay;
 			} else {
 				return _Utils_Tuple2(
 					false,
@@ -6730,9 +6730,9 @@ var $author$project$Logic$legalPlayChecks = _List_fromArray(
 				var prevPos = _v3.b;
 				return _Utils_eq(position, prevPos) ? _Utils_Tuple2(
 					false,
-					$elm$core$Maybe$Just(checkMessage)) : $author$project$Logic$okay;
+					$elm$core$Maybe$Just(checkMessage)) : $author$project$Logic$Rules$okay;
 			} else {
-				return $author$project$Logic$okay;
+				return $author$project$Logic$Rules$okay;
 			}
 		}),
 		F3(
@@ -6743,15 +6743,15 @@ var $author$project$Logic$legalPlayChecks = _List_fromArray(
 					board: A3($author$project$Model$Board$setPieceAt, position, piece, game.board)
 				});
 			var checkMessage = 'You can\'t cause your own capture';
-			var _v4 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPiece);
+			var _v4 = $author$project$Logic$Rules$removeCapturedPieces(gameWithPlayedPiece);
 			var playerCaptureBoardState = _v4.a;
 			var gameWithPlayedPieceOnEnemyTurn = _Utils_update(
 				game,
 				{
 					board: playerCaptureBoardState,
-					playerColor: $author$project$Model$Piece$colorInverse(game.playerColor)
+					playerColor: $author$project$Model$ColorChoice$colorInverse(game.playerColor)
 				});
-			var _v5 = $author$project$Logic$removeCapturedPieces(gameWithPlayedPieceOnEnemyTurn);
+			var _v5 = $author$project$Logic$Rules$removeCapturedPieces(gameWithPlayedPieceOnEnemyTurn);
 			var enemyCaptureBoardState = _v5.a;
 			var _v6 = A2($author$project$Model$Board$getPieceAt, position, enemyCaptureBoardState);
 			if ((_v6.$ === 'Just') && (_v6.a.$ === 'None')) {
@@ -6760,18 +6760,18 @@ var $author$project$Logic$legalPlayChecks = _List_fromArray(
 					false,
 					$elm$core$Maybe$Just(checkMessage));
 			} else {
-				return $author$project$Logic$okay;
+				return $author$project$Logic$Rules$okay;
 			}
 		})
 	]);
-var $author$project$Logic$validMove = F2(
+var $author$project$Logic$Rules$validMove = F2(
 	function (move, gameState) {
 		var applyChecks = F4(
 			function (checks, piece, position, game) {
 				applyChecks:
 				while (true) {
 					if (!checks.b) {
-						return $author$project$Logic$okay;
+						return $author$project$Logic$Rules$okay;
 					} else {
 						var check = checks.a;
 						var checksTail = checks.b;
@@ -6796,11 +6796,11 @@ var $author$project$Logic$validMove = F2(
 				}
 			});
 		if (move.$ === 'Pass') {
-			return $author$project$Logic$okay;
+			return $author$project$Logic$Rules$okay;
 		} else {
 			var piece = move.a;
 			var position = move.b;
-			return A4(applyChecks, $author$project$Logic$legalPlayChecks, piece, position, gameState);
+			return A4(applyChecks, $author$project$Logic$Rules$legalPlayChecks, piece, position, gameState);
 		}
 	});
 var $author$project$Page$GamePlay$update = F2(
@@ -6809,9 +6809,9 @@ var $author$project$Page$GamePlay$update = F2(
 			var index = msg.a;
 			var move = A2(
 				$author$project$Model$Move$Play,
-				$author$project$Model$Piece$colorToPiece(model.game.playerColor),
+				$author$project$Model$ColorChoice$colorToPiece(model.game.playerColor),
 				index);
-			var _v1 = A2($author$project$Logic$validMove, move, model.game);
+			var _v1 = A2($author$project$Logic$Rules$validMove, move, model.game);
 			var moveIsValid = _v1.a;
 			var errorMessage = _v1.b;
 			return moveIsValid ? _Utils_Tuple2(
@@ -6821,7 +6821,7 @@ var $author$project$Page$GamePlay$update = F2(
 						activeTurn: !model.activeTurn,
 						game: A2(
 							$author$project$Model$Game$setPlayerColor,
-							$author$project$Model$Piece$colorInverse(model.game.playerColor),
+							$author$project$Model$ColorChoice$colorInverse(model.game.playerColor),
 							A2($author$project$Page$GamePlay$playMove, move, model.game)),
 						invalidMoveAlert: $elm$core$Maybe$Nothing
 					}),
@@ -6845,7 +6845,7 @@ var $author$project$Page$GamePlay$update = F2(
 			}();
 			var updatedGame = A2(
 				$author$project$Model$Game$setPlayerColor,
-				$author$project$Model$Piece$colorInverse(model.game.playerColor),
+				$author$project$Model$ColorChoice$colorInverse(model.game.playerColor),
 				A2(
 					$author$project$Model$Game$setIsOver,
 					gameEnded,
@@ -6975,7 +6975,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$br = _VirtualDom_node('br');
-var $author$project$Model$Piece$colorToString = function (color) {
+var $author$project$Model$ColorChoice$colorToString = function (color) {
 	if (color.$ === 'White') {
 		return 'white';
 	} else {
@@ -6990,7 +6990,7 @@ var $author$project$Page$GameCreate$viewGameSettings = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$text(
-				'Color: ' + $author$project$Model$Piece$colorToString(model.colorChoice)),
+				'Color: ' + $author$project$Model$ColorChoice$colorToString(model.colorChoice)),
 				A2($elm$html$Html$br, _List_Nil, _List_Nil),
 				$elm$html$Html$text(
 				'Board size: ' + $elm$core$String$fromInt(
@@ -7143,7 +7143,7 @@ var $author$project$Page$GamePlay$renderPiece = function (piece) {
 var $author$project$Page$GamePlay$viewBuildCell = F4(
 	function (boardSize, color, index, piece) {
 		var pieceHtml = $author$project$Page$GamePlay$renderPiece(piece);
-		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Model$Piece$colorToString(color);
+		var hoverClass = 'hidden-hover-element board-square-' + $author$project$Model$ColorChoice$colorToString(color);
 		var cellClass = A2($author$project$Page$GamePlay$isInnerCell, boardSize, index) ? 'board-square inner-board-square' : 'board-square';
 		return A2(
 			$elm$html$Html$div,

@@ -1,12 +1,13 @@
-module LogicTests exposing (..)
+module RulesTests exposing (..)
 
 import Array
 import Expect exposing (Expectation)
-import Logic exposing (..)
+import Logic.Rules exposing (..)
 import Model.Board as Board exposing (BoardSize(..), setPieceAt)
+import Model.ColorChoice exposing (ColorChoice(..))
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
-import Model.Piece as Piece exposing (ColorChoice(..), Piece(..))
+import Model.Piece as Piece exposing (Piece(..))
 import Model.Score as Score
 import Test exposing (..)
 
@@ -45,7 +46,7 @@ blackGame =
     , board = board
     , lastMove = Just (Move.Play white 40) -- center of board
     , history = []
-    , playerColor = Piece.Black
+    , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0
     }
@@ -57,7 +58,7 @@ whiteGame =
     , board = board
     , lastMove = Just (Move.Play white 40) -- center of board
     , history = []
-    , playerColor = Piece.White
+    , playerColor = White
     , isOver = False
     , score = Score.initWithKomi 0
     }

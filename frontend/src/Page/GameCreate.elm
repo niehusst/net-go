@@ -3,7 +3,7 @@ module Page.GameCreate exposing (Model, init, view)
 import Html exposing (..)
 import Html.Attributes exposing (href)
 import Model.Board exposing (BoardSize(..), boardSizeToInt)
-import Model.Piece exposing (ColorChoice(..), colorToString)
+import Model.ColorChoice exposing (ColorChoice(..), colorToString)
 import Route exposing (Route, routeToString)
 
 

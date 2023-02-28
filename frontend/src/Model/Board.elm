@@ -1,7 +1,8 @@
 module Model.Board exposing (..)
 
 import Array exposing (Array)
-import Model.Piece as Piece exposing (ColorChoice, Piece(..), colorToPiece)
+import Model.ColorChoice exposing (ColorChoice, colorToPiece)
+import Model.Piece as Piece exposing (Piece(..))
 
 
 {-| Using a 1d array here instead of the

@@ -1,4 +1,4 @@
-module ScoringLogic exposing (scoreGame)
+module Logic.Scoring exposing (scoreGame)
 
 import Array
 import Model.Board as Board exposing (..)

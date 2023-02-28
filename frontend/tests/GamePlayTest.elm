@@ -3,6 +3,7 @@ module GamePlayTest exposing (..)
 import Array
 import Expect exposing (Expectation)
 import Model.Board as Board exposing (..)
+import Model.ColorChoice exposing (ColorChoice(..))
 import Model.Piece as Piece
 import Page.GamePlay as GamePlay exposing (..)
 import Test exposing (..)
@@ -30,7 +31,7 @@ suite =
                             { boardSize = boardSize
                             , board = Array.repeat (intBoardSize ^ 2) Piece.None
                             , lastMove = Nothing
-                            , playerColor = Piece.Black
+                            , playerColor = Black
                             }
 
                         expected9x9InnerSquaresTruthTable =

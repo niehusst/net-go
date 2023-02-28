@@ -5,8 +5,9 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
-import Logic exposing (..)
+import Logic.Rules exposing (..)
 import Model.Board as Board exposing (..)
+import Model.ColorChoice as ColorChoice exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
@@ -260,10 +261,10 @@ playMove move game =
                             toFloat scoredPoints
                     in
                     case game.playerColor of
-                        Piece.Black ->
+                        ColorChoice.Black ->
                             Score.increaseBlackPoints points game.score
 
-                        Piece.White ->
+                        ColorChoice.White ->
                             Score.increaseWhitePoints points game.score
             in
             { game

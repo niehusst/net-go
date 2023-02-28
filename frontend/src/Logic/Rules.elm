@@ -1,7 +1,8 @@
-module Logic exposing (removeCapturedPieces, validMove)
+module Logic.Rules exposing (removeCapturedPieces, validMove)
 
 import Array
 import Model.Board as Board exposing (..)
+import Model.ColorChoice exposing (..)
 import Model.Game as Game exposing (Game)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
@@ -145,7 +146,7 @@ legalPlayChecks =
 
 type alias BoardData r =
     { r
-        | playerColor : Piece.ColorChoice
+        | playerColor : ColorChoice
         , board : Board.Board
         , boardSize : Board.BoardSize
     }

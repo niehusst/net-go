@@ -4,7 +4,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Model.Board as Board exposing (BoardSize)
-import Model.Piece as Piece exposing (ColorChoice)
+import Model.ColorChoice exposing (ColorChoice(..))
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.GameScore as GameScore
@@ -175,7 +175,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         pageModel =
-                            GamePlay.init Board.Small Piece.Black 0.0 model.navKey
+                            GamePlay.init Board.Small Black 0.0 model.navKey
                     in
                     ( GamePlayPage pageModel
                     , Cmd.none

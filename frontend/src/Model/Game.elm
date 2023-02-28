@@ -1,8 +1,8 @@
 module Model.Game exposing (..)
 
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
+import Model.ColorChoice exposing (ColorChoice)
 import Model.Move as Move exposing (Move(..))
-import Model.Piece exposing (ColorChoice)
 import Model.Score as Score exposing (Score)
 
 
