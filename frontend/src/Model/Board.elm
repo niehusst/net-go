@@ -2,7 +2,7 @@ module Model.Board exposing (..)
 
 import Array exposing (Array)
 import Model.ColorChoice exposing (ColorChoice, colorToPiece)
-import Model.Piece as Piece exposing (Piece(..))
+import Model.Piece as Piece exposing (Piece(..), pieceToInt)
 
 
 {-| Using a 1d array here instead of the
@@ -100,3 +100,10 @@ emptyBoard size =
             boardSizeToInt size
     in
     Array.repeat (intSize * intSize) None
+
+
+{-| Convert an entire Board to integer representation
+-}
+boardToIntBoard : Board -> Array Int
+boardToIntBoard board =
+    Array.map pieceToInt board
