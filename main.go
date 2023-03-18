@@ -17,7 +17,7 @@ func main() {
 	router := server.GetRouter()
 
 	srv := &http.Server{
-		Addr:    ":4000",
+		Addr:    ":8080",
 		Handler: router,
 	}
 
@@ -48,6 +48,4 @@ func main() {
 	}
 
 	log.Println("Server exiting")
-
-	//	router.Run(":4000")
 }
