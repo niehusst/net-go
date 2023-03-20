@@ -10,11 +10,21 @@ import (
 	"time"
 
 	"net-go/server/backend/server"
+	"net-go/server/backend/server/provider"
+	"net-go/server/backend/services"
 )
 
 func main() {
 	log.Println("Starting server...")
-	router := server.GetRouter()
+
+	// create service provider
+	serviceDeps := services.UserServiceDeps{
+		UserRepository: services.NewUserRepository(),
+	}
+	p := provider.Provider{
+		UserService: services.NewUserService(serviceDeps),
+	}
+	router := server.GetRouter(p)
 
 	srv := &http.Server{
 		Addr:    ":8080",

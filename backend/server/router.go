@@ -2,11 +2,13 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+	"net-go/server/backend/server/provider"
 	"net/http"
 )
 
-func GetRouter() *gin.Engine {
+func GetRouter(p provider.Provider) *gin.Engine {
 	router := gin.Default()
+	handler := NewRouteHandler(p)
 
 	router.RedirectTrailingSlash = true
 
@@ -16,9 +18,12 @@ func GetRouter() *gin.Engine {
 	router.Static("/static", "frontend/static")
 
 	// API request routes
-	//  router.GET("/", func(c *gin.Context) {
-	//    c.HTML(http.StatusOK, "index.html", gin.H{})
-	//  })
+
+	// auth
+	authGroup := router.Group("/api/accounts")
+	authGroup.POST("/signup", handler.Signup)
+	authGroup.POST("/signin", handler.Signin)
+	authGroup.POST("/signout", handler.Signout)
 
 	// serve the Elm app HTML for any other route; the
 	// app will handle its own routing internally
