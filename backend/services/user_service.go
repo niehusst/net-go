@@ -32,5 +32,5 @@ func NewUserService(d UserServiceDeps) IUserService {
 
 // Get retrieves a user based on their uuid
 func (s UserService) Get(ctx context.Context, uid uuid.UUID) (*model.User, error) {
-	return s.UserRepository.FindById(ctx, uid)
+	return s.UserRepository.FindByID(ctx, uid)
 }

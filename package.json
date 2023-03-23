@@ -5,7 +5,7 @@
     "start" : "npm run make ; go run main.go",
     "test": "npm run test-go ; npm run test-elm",
     "test-elm": "npx elm-test frontend/tests/**/*.elm",
-    "test-go": "go test",
+    "test-go": "go test -v ./...",
     "format": "npm run format-elm ; npm run format-go",
     "format-elm": "npx elm-format frontend/src/ --yes",
     "format-go": "go fmt .",

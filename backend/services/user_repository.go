@@ -11,7 +11,7 @@ import (
 
 // methods for interacting with the data layer
 type IUserRepository interface {
-	FindById(ctx context.Context, uid uuid.UUID) (*model.User, error)
+	FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error)
 }
 
 /* implementation */
@@ -23,7 +23,7 @@ func NewUserRepository( /*deps*/ ) IUserRepository {
 	return UserRepository{}
 }
 
-func (u UserRepository) FindById(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (u UserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
 	// stub
 	return nil, nil
 }

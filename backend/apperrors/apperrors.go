@@ -1,7 +1,6 @@
 package apperrors
 
 import (
-	"error"
 	"fmt"
 	"net/http"
 )
@@ -26,7 +25,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return e.message
+	return e.Message
 }
 
 // map from custom error types to standard http statuses
