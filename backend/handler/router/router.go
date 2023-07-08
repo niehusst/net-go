@@ -1,8 +1,8 @@
-package server
+package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"net-go/server/backend/server/provider"
+	"net-go/server/backend/handler/provider"
 	"net/http"
 )
 

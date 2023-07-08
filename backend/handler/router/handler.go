@@ -1,8 +1,8 @@
-package server
+package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"net-go/server/backend/server/provider"
+	"net-go/server/backend/handler/provider"
 	"net/http"
 )
 
@@ -16,12 +16,7 @@ func NewRouteHandler(p provider.Provider) RouteHandler {
 	}
 }
 
-/* routing functions */
-func (handler RouteHandler) Signup(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"dummy": "data",
-	})
-}
+/* routing definitions used by router.go */
 
 func (handler RouteHandler) Signin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{

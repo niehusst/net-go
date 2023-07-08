@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"net-go/server/backend/server"
-	"net-go/server/backend/server/provider"
+	"net-go/server/backend/handler"
+	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/services"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	p := provider.Provider{
 		UserService: services.NewUserService(serviceDeps),
 	}
-	router := server.GetRouter(p)
+	router := handler.GetRouter(p)
 
 	srv := &http.Server{
 		Addr:    ":8080",

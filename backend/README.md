@@ -15,7 +15,7 @@ if I don't find a good P2P solution.
 As per the Gin library setup instructions, Golang v1.13+
 is required to run this app.
 
-Run `go get .` when located within the project root
+Run `go get .` when located within the repo root
 to download all the Go module deps.
 
 You can run the server on localhost by running in the terminal (also from project root):
