@@ -6,16 +6,20 @@ import (
 	"net/http"
 )
 
-func GetRouter(p provider.Provider) *gin.Engine {
-	router := gin.Default()
+// given a gin.Engine pointer in Provider, set all the
+// route handling on that pointer.
+func SetRouter(p provider.Provider) {
+	router := p.R
 	handler := NewRouteHandler(p)
 
 	router.RedirectTrailingSlash = true
 
-	// load HTML files from glob pattern so gin can reference them
-	router.LoadHTMLGlob("frontend/templates/*")
-	// load the asset files
-	router.Static("/static", "frontend/static")
+	if gin.Mode() != gin.TestMode {
+		// load HTML files from glob pattern so gin can reference them
+		router.LoadHTMLGlob("frontend/templates/*")
+		// load the asset files
+		router.Static("/static", "frontend/static")
+	}
 
 	// API request routes
 
@@ -30,6 +34,4 @@ func GetRouter(p provider.Provider) *gin.Engine {
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
-
-	return router
 }

@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"log"
+	"net-go/server/backend/handler/provider"
+	"net-go/server/backend/handler/router"
+	"net-go/server/backend/services"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"net-go/server/backend/handler"
-	"net-go/server/backend/handler/provider"
-	"net-go/server/backend/services"
 )
 
 func main() {
@@ -22,13 +22,14 @@ func main() {
 		UserRepository: services.NewUserRepository(),
 	}
 	p := provider.Provider{
+		R:           gin.Default(),
 		UserService: services.NewUserService(serviceDeps),
 	}
-	router := handler.GetRouter(p)
+	router.SetRouter(p)
 
 	srv := &http.Server{
 		Addr:    ":8080",
-		Handler: router,
+		Handler: p.R,
 	}
 
 	// Initializing the server in a goroutine so that

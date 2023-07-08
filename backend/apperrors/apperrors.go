@@ -1,6 +1,7 @@
 package apperrors
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -44,6 +45,15 @@ func (e *Error) Status() int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+// Try cast error as Error and return status code
+func Status(err error) int {
+	var e *Error
+	if errors.As(err, &e) {
+		return e.Status()
+	}
+	return http.StatusInternalServerError
 }
 
 /*
