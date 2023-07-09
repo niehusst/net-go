@@ -5,7 +5,6 @@ import (
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/binding"
-	"net-go/server/backend/model"
 )
 
 // lowercase typename bcus this type is PRIVATE
@@ -21,12 +20,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	u := &model.User{
-		Username: req.Username,
-		Password: req.Password,
-	}
-
-	err := handler.p.UserService.Signup(c, u)
+	_, err := handler.p.UserService.Signup(c, req.Username, req.Password)
 
 	if err != nil {
 		log.Printf("Failed to sign up user: %v\n", err.Error())

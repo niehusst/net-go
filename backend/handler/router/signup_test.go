@@ -22,7 +22,13 @@ func TestSignup(t *testing.T) {
 	t.Run("username and password required", func(t *testing.T) {
 		// set our dummy mocks
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Signup", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("*model.User")).Return(nil)
+		mockUserService.
+			On(
+				"Signup",
+				mock.AnythingOfType("*gin.Context"),
+				mock.AnythingOfType("string"),
+				mock.AnythingOfType("string")).
+			Return(nil)
 
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
@@ -54,7 +60,13 @@ func TestSignup(t *testing.T) {
 	t.Run("password too short", func(t *testing.T) {
 		// set our dummy mocks
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Signup", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("*model.User")).Return(nil)
+		mockUserService.
+			On(
+				"Signup",
+				mock.AnythingOfType("*gin.Context"),
+				mock.AnythingOfType("string"),
+				mock.AnythingOfType("string")).
+			Return(nil)
 
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
@@ -87,7 +99,13 @@ func TestSignup(t *testing.T) {
 	t.Run("password too long", func(t *testing.T) {
 		// set our dummy mocks
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Signup", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("*model.User")).Return(nil)
+		mockUserService.
+			On(
+				"Signup",
+				mock.AnythingOfType("*gin.Context"),
+				mock.AnythingOfType("string"),
+				mock.AnythingOfType("string")).
+			Return(nil)
 
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
@@ -124,7 +142,13 @@ func TestSignup(t *testing.T) {
 		}
 
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Signup", mock.AnythingOfType("*gin.Context"), u).Return(apperrors.NewConflict("User Already Exists", u.Username))
+		mockUserService.
+			On(
+				"Signup",
+				mock.AnythingOfType("*gin.Context"),
+				u.Username,
+				mock.AnythingOfType("string"), // any match here since we cant match against hashed pw
+			).Return(nil, apperrors.NewConflict("User Already Exists", u.Username))
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
