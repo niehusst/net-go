@@ -3,7 +3,6 @@ package mocks
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"net-go/server/backend/model"
 )
@@ -14,9 +13,9 @@ type MockUserRepository struct {
 }
 
 // FindByID is mock of UserRepository FindByID
-func (m *MockUserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, id uint) (*model.User, error) {
 	// "call" testify mock w/ provided params
-	ret := m.Called(ctx, uid)
+	ret := m.Called(ctx, id)
 
 	// check if a return value was preset for position 0
 	var r0 *model.User
@@ -44,4 +43,9 @@ func (m *MockUserRepository) Create(ctx context.Context, user *model.User) error
 	}
 
 	return r0
+}
+
+func (m *MockUserRepository) MigrateAll() error {
+	// this will never need testing
+	return nil
 }

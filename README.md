@@ -6,6 +6,8 @@ This project is divided into a Go backend and an Elm frontend.
 Dev setup steps/requirements can be found in READMEs under
 the corresponding directories.
 
+You can launch the dev server by running `npm start`.
+
 ## Basic game architecture
 
 ![Game UML diagram](./assets/game_uml.jpeg)
@@ -14,3 +16,4 @@ the corresponding directories.
 
 * [Gin web framework](https://gin-gonic.com/)
 * [Elm language/platform/everything](https://elm-lang.org/)
+* [sqlite](https://www.sqlite.org/index.html)

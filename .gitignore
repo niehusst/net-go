@@ -29,3 +29,6 @@ repl-temp-*
 
 # node deps for elm
 node_modules
+
+# dont commit the db containging passwords etc
+netgo.gorm.db

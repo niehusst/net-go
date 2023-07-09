@@ -22,3 +22,10 @@ You can run the server on localhost by running in the terminal (also from projec
 ```
 go run main.go
 ```
+
+## Database
+
+I've decided to use a sqlite database since it's easy and open-source (creative commons, but whatever).
+I've gitignored the database file, since committing the user passwords table would be a bad idea.
+
+Migrations are currently set to be run on server startup. We'll see how scalable of a solution that is.

@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net-go/server/backend/apperrors"
@@ -15,13 +15,13 @@ import (
 
 func TestGet(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		uid, _ := uuid.NewRandom()
+		uid := uint(rand.Uint32())
 
 		mockUserResp := &model.User{
-			UID:      uid,
 			Username: "jim",
 			Password: "pretty_unsafe",
 		}
+		mockUserResp.ID = uid
 
 		mockUserRepository := new(mocks.MockUserRepository)
 		us := NewUserService(UserServiceDeps{
@@ -37,7 +37,7 @@ func TestGet(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		uid, _ := uuid.NewRandom()
+		uid := uint(rand.Uint32())
 
 		mockUserRepository := new(mocks.MockUserRepository)
 		us := NewUserService(UserServiceDeps{
@@ -55,7 +55,7 @@ func TestGet(t *testing.T) {
 
 func TestSignup(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		uid, _ := uuid.NewRandom()
+		uid := uint(rand.Uint32())
 
 		mockUser := &model.User{
 			Username: "tim",
@@ -73,7 +73,7 @@ func TestSignup(t *testing.T) {
 			On("Create", mock.AnythingOfType("*context.emptyCtx"), mock.AnythingOfType("*model.User")).
 			Run(func(args mock.Arguments) {
 				userArg := args.Get(1).(*model.User)
-				userArg.UID = uid
+				userArg.ID = uid
 			}).Return(nil)
 
 		ctx := context.TODO()
@@ -82,7 +82,7 @@ func TestSignup(t *testing.T) {
 		assert.NoError(t, err)
 
 		// verify user now has a UID assigned (by being passed through our mock repo)
-		assert.Equal(t, uid, actualUser.UID)
+		assert.Equal(t, uid, actualUser.ID)
 
 		mockUserRepository.AssertExpectations(t)
 	})

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"log"
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/handler/router"
@@ -19,16 +20,28 @@ func main() {
 
 	// create service provider
 	serviceDeps := services.UserServiceDeps{
-		UserRepository: services.NewUserRepository(),
+		UserRepository: services.NewUserRepository(
+			&services.UserRepoDeps{
+				DbString: "netgo.gorm.db",
+				Config:   &gorm.Config{},
+			},
+		),
 	}
 	p := provider.Provider{
 		R:           gin.Default(),
 		UserService: services.NewUserService(serviceDeps),
 	}
-	router.SetRouter(p)
 
+	// migrate db
+	if err := serviceDeps.UserRepository.MigrateAll(); err != nil {
+		log.Printf("Failed to auto migrate db: %v\n", err)
+		panic("Migration failure!")
+	}
+
+	// set routing and server config
+	router.SetRouter(p)
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8080", // TODO: change for prod?
 		Handler: p.R,
 	}
 

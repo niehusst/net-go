@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/model"
@@ -12,7 +11,7 @@ import (
 
 // methods the router handler layer interacts with
 type IUserService interface {
-	Get(ctx context.Context, uid uuid.UUID) (*model.User, error)
+	Get(ctx context.Context, id uint) (*model.User, error)
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
 }
 
@@ -33,9 +32,9 @@ func NewUserService(d UserServiceDeps) IUserService {
 	}
 }
 
-// Get retrieves a user based on their uuid
-func (s *UserService) Get(ctx context.Context, uid uuid.UUID) (*model.User, error) {
-	return s.UserRepository.FindByID(ctx, uid)
+// Get retrieves a user based on their id
+func (s *UserService) Get(ctx context.Context, id uint) (*model.User, error) {
+	return s.UserRepository.FindByID(ctx, id)
 }
 
 // create a new user in the db
