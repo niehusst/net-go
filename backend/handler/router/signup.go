@@ -10,7 +10,7 @@ import (
 // lowercase typename bcus this type is PRIVATE
 type signupReq struct {
 	Username string `json:"username" binding:"required,gte=1,lte=30"`
-	Password string `json:"password" binding:"required,gte=8,lte=30"` // TODO: this should be a hash! hash pswd on frontend before sending to backend for further salt+hash and then store in db
+	Password string `json:"password" binding:"required,gte=8,lte=30"`
 }
 
 func (handler RouteHandler) Signup(c *gin.Context) {

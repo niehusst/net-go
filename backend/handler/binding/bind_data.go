@@ -19,6 +19,7 @@ type invalidArgument struct {
 
 /*
  * Binds network request data to a request go struct.
+ * On bind failure, automatically sends a json response via gin.
  *
  * @param c - context that will deliver the request data
  * @param req - any request data struct
@@ -26,7 +27,7 @@ type invalidArgument struct {
  */
 func BindData(c *gin.Context, req interface{}) bool {
 	// attempt bind json data to struct
-	if err := c.ShouldBind(req); err != nil {
+	if err := c.ShouldBindJSON(req); err != nil {
 		// handle failure
 		log.Printf("Error binding data: %+v\n", err)
 
