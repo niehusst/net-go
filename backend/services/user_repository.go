@@ -17,6 +17,7 @@ type IUserRepository interface {
 	// db functionality abstractions
 	FindByID(ctx context.Context, id uint) (*model.User, error)
 	Create(ctx context.Context, u *model.User) error
+	FindByUsername(ctx context.Context, username string) (*model.User, error)
 }
 
 /* implementation */
@@ -45,6 +46,13 @@ func NewUserRepository(deps *UserRepoDeps) IUserRepository {
 func (u *UserRepository) FindByID(ctx context.Context, id uint) (*model.User, error) {
 	var user model.User
 	err := u.db.First(&user, id).Error
+
+	return &user, err
+}
+
+func (u *UserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+	var user model.User
+	err := u.db.First(&user, "username = ?", username).Error
 
 	return &user, err
 }

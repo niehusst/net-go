@@ -16,14 +16,7 @@ func NewRouteHandler(p provider.Provider) RouteHandler {
 	}
 }
 
-/* routing definitions used by router.go */
-
-func (handler RouteHandler) Signin(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"dummy": "data",
-	})
-}
-
+// TODO: delete me
 func (handler RouteHandler) Signout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"dummy": "data",

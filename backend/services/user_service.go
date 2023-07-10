@@ -13,6 +13,7 @@ import (
 type IUserService interface {
 	Get(ctx context.Context, id uint) (*model.User, error)
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
+	Signin(ctx context.Context, username string, password string) (*model.User, error)
 }
 
 /* implementation */
@@ -51,8 +52,31 @@ func (s *UserService) Signup(ctx context.Context, username string, password stri
 		Password: hashedPassword,
 	}
 	if err := s.UserRepository.Create(ctx, u); err != nil {
-		return nil, err
+		log.Printf("User signup creation error: %v\n", err)
+		return nil, apperrors.NewConflict("Username", username)
 	}
 
 	return u, nil
+}
+
+// fetch user from db, if present
+func (s *UserService) Signin(ctx context.Context, username string, password string) (*model.User, error) {
+	// fetch user from db w/ username
+	user, err := s.UserRepository.FindByUsername(ctx, username)
+	if err != nil {
+		log.Printf("Error fetching user: %v\n", err)
+		return user, apperrors.NewNotFound("User", username)
+	}
+
+	matching, err := comparePasswords(user.Password, password)
+	if err != nil {
+		log.Printf("Error comparing passwords: %v\n", err)
+	}
+	if !matching {
+		// wrong password
+		return user, apperrors.NewNotFound("User", username)
+	}
+
+	// successful signin
+	return user, nil
 }

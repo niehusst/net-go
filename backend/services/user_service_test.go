@@ -32,7 +32,7 @@ func TestGet(t *testing.T) {
 		u, err := us.Get(context.TODO(), uid)
 
 		assert.NoError(t, err)
-		assert.Equal(t, u, mockUserResp)
+		assert.Equal(t, mockUserResp, u)
 		mockUserRepository.AssertExpectations(t)
 	})
 
@@ -87,7 +87,7 @@ func TestSignup(t *testing.T) {
 		mockUserRepository.AssertExpectations(t)
 	})
 
-	t.Run("Error", func(t *testing.T) {
+	t.Run("DB create error", func(t *testing.T) {
 		mockUser := &model.User{
 			Username: "tim",
 			Password: "sercrtn",
@@ -98,7 +98,7 @@ func TestSignup(t *testing.T) {
 			UserRepository: mockUserRepository,
 		})
 
-		mockErr := apperrors.NewConflict("username", mockUser.Username)
+		mockErr := apperrors.NewConflict("Username", mockUser.Username)
 		mockUserRepository.
 			On("Create", mock.AnythingOfType("*context.emptyCtx"), mock.AnythingOfType("*model.User")).
 			Return(mockErr)
@@ -107,7 +107,91 @@ func TestSignup(t *testing.T) {
 		_, err := userService.Signup(ctx, mockUser.Username, mockUser.Password)
 
 		// validate error type
-		assert.Equal(t, err.Error(), mockErr.Error())
+		assert.Equal(t, mockErr.Error(), err.Error())
+
+		mockUserRepository.AssertExpectations(t)
+	})
+}
+
+func TestSignin(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		uid := uint(rand.Uint32())
+
+		rawPassword := "password"
+		mockUser := &model.User{
+			Username: "tim",
+			Password: "87bf38a508832455cd6aea07a1f57e787b30c90f716212a483cca7d7f414d596.4b299672c289b4e05ecf9e8bb96e870c1615807fcbc446d84f9fb73c8f82f8a3",
+		}
+		mockUser.ID = uid
+
+		mockUserRepository := new(mocks.MockUserRepository)
+		userService := NewUserService(UserServiceDeps{
+			UserRepository: mockUserRepository,
+		})
+
+		// We can use Run method to modify the user when the Create method is called.
+		// We can then chain on a Return method to return no error.
+		mockUserRepository.
+			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			Return(mockUser, nil)
+
+		ctx := context.TODO()
+		actualUser, err := userService.Signin(ctx, mockUser.Username, rawPassword)
+
+		assert.NoError(t, err)
+
+		assert.Equal(t, uid, actualUser.ID)
+
+		mockUserRepository.AssertExpectations(t)
+	})
+
+	t.Run("DB username not found error", func(t *testing.T) {
+		mockUser := &model.User{
+			Username: "tim",
+			Password: "sercrtn",
+		}
+
+		mockUserRepository := new(mocks.MockUserRepository)
+		userService := NewUserService(UserServiceDeps{
+			UserRepository: mockUserRepository,
+		})
+
+		mockErr := apperrors.NewNotFound("User", mockUser.Username)
+		mockUserRepository.
+			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			Return(nil, mockErr)
+
+		ctx := context.TODO()
+		_, err := userService.Signin(ctx, mockUser.Username, mockUser.Password)
+
+		// validate error type
+		assert.Equal(t, mockErr.Error(), err.Error())
+
+		mockUserRepository.AssertExpectations(t)
+	})
+
+	t.Run("password mismatch error", func(t *testing.T) {
+		mockUser := &model.User{
+			Username: "tim",
+			Password: "sercrtn.salt",
+		}
+
+		mockUserRepository := new(mocks.MockUserRepository)
+		userService := NewUserService(UserServiceDeps{
+			UserRepository: mockUserRepository,
+		})
+
+		mockErr := apperrors.NewNotFound("User", mockUser.Username)
+		mockUserRepository.
+			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			Return(mockUser, nil)
+
+		ctx := context.TODO()
+		// expect mock password to mismatch when hashed version is compared to plaintext version
+		_, err := userService.Signin(ctx, mockUser.Username, "incorrect_password")
+
+		// validate error type
+		assert.Equal(t, mockErr.Error(), err.Error())
 
 		mockUserRepository.AssertExpectations(t)
 	})

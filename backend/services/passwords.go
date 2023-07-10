@@ -37,11 +37,11 @@ func comparePasswords(storedPassword string, suppliedPassword string) (bool, err
 	// decode the random salt from stored pw
 	salt, err := hex.DecodeString(pwsalt[1])
 	if err != nil {
-		return false, fmt.Errorf("Password verification failed")
+		return false, fmt.Errorf("Password verification failed: %v", err)
 	}
 
 	// hash supplied pw using salt obtained from stored pw
 	saltHash, err := scrypt.Key([]byte(suppliedPassword), salt, 32768, 8, 1, 32)
 
-	return hex.EncodeToString(saltHash) == pwsalt[0], nil
+	return hex.EncodeToString(saltHash) == pwsalt[0], err
 }

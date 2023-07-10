@@ -17,7 +17,7 @@ import (
 	"net-go/server/backend/services/mocks"
 )
 
-func TestSignupIntegration(t *testing.T) {
+func TestSigninIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("username and password required", func(t *testing.T) {
@@ -25,7 +25,7 @@ func TestSignupIntegration(t *testing.T) {
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
 			On(
-				"Signup",
+				"Signin",
 				mock.AnythingOfType("*gin.Context"),
 				mock.AnythingOfType("string"),
 				mock.AnythingOfType("string")).
@@ -48,7 +48,7 @@ func TestSignupIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// create reader using NewBuffer
-		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signup", bytes.NewBuffer(reqBody))
+		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signin", bytes.NewBuffer(reqBody))
 		assert.NoError(t, err)
 
 		request.Header.Set("Content-Type", "application/json")
@@ -56,14 +56,14 @@ func TestSignupIntegration(t *testing.T) {
 		router.ServeHTTP(rr, request)
 
 		assert.Equal(t, 400, rr.Code)
-		mockUserService.AssertNotCalled(t, "Signup")
+		mockUserService.AssertNotCalled(t, "Signin")
 	})
 	t.Run("password too short", func(t *testing.T) {
 		// set our dummy mocks
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
 			On(
-				"Signup",
+				"Signin",
 				mock.AnythingOfType("*gin.Context"),
 				mock.AnythingOfType("string"),
 				mock.AnythingOfType("string")).
@@ -87,7 +87,7 @@ func TestSignupIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// create reader using NewBuffer
-		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signup", bytes.NewBuffer(reqBody))
+		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signin", bytes.NewBuffer(reqBody))
 		assert.NoError(t, err)
 
 		request.Header.Set("Content-Type", "application/json")
@@ -95,14 +95,14 @@ func TestSignupIntegration(t *testing.T) {
 		router.ServeHTTP(rr, request)
 
 		assert.Equal(t, 400, rr.Code)
-		mockUserService.AssertNotCalled(t, "Signup")
+		mockUserService.AssertNotCalled(t, "Signin")
 	})
 	t.Run("password too long", func(t *testing.T) {
 		// set our dummy mocks
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
 			On(
-				"Signup",
+				"Signin",
 				mock.AnythingOfType("*gin.Context"),
 				mock.AnythingOfType("string"),
 				mock.AnythingOfType("string")).
@@ -126,7 +126,7 @@ func TestSignupIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// create reader using NewBuffer
-		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signup", bytes.NewBuffer(reqBody))
+		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signin", bytes.NewBuffer(reqBody))
 		assert.NoError(t, err)
 
 		request.Header.Set("Content-Type", "application/json")
@@ -134,7 +134,7 @@ func TestSignupIntegration(t *testing.T) {
 		router.ServeHTTP(rr, request)
 
 		assert.Equal(t, 400, rr.Code)
-		mockUserService.AssertNotCalled(t, "Signup")
+		mockUserService.AssertNotCalled(t, "Signin")
 	})
 	t.Run("Error calling UserService", func(t *testing.T) {
 		u := &model.User{
@@ -145,7 +145,7 @@ func TestSignupIntegration(t *testing.T) {
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
 			On(
-				"Signup",
+				"Signin",
 				mock.AnythingOfType("*gin.Context"),
 				u.Username,
 				mock.AnythingOfType("string"), // any match here since we cant match against hashed pw
@@ -169,7 +169,7 @@ func TestSignupIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// use bytes.NewBuffer to create a reader
-		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signup", bytes.NewBuffer(reqBody))
+		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signin", bytes.NewBuffer(reqBody))
 		assert.NoError(t, err)
 
 		request.Header.Set("Content-Type", "application/json")
@@ -191,7 +191,7 @@ func TestSignupIntegration(t *testing.T) {
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
 			On(
-				"Signup",
+				"Signin",
 				mock.AnythingOfType("*gin.Context"),
 				u.Username,
 				u.Password,
@@ -215,7 +215,7 @@ func TestSignupIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// use bytes.NewBuffer to create a reader
-		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signup", bytes.NewBuffer(reqBody))
+		request, err := http.NewRequest(http.MethodPost, "/api/accounts/signin", bytes.NewBuffer(reqBody))
 		assert.NoError(t, err)
 
 		request.Header.Set("Content-Type", "application/json")
@@ -224,11 +224,11 @@ func TestSignupIntegration(t *testing.T) {
 
 		// verify response
 		respBody, err := json.Marshal(gin.H{
-			"ok": true,
+			"uid": uid,
 		})
 		assert.NoError(t, err)
 
-		assert.Equal(t, 201, rr.Code)
+		assert.Equal(t, 200, rr.Code)
 		assert.Equal(t, respBody, rr.Body.Bytes())
 
 		mockUserService.AssertExpectations(t)

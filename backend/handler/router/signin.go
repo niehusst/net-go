@@ -8,23 +8,22 @@ import (
 	"net/http"
 )
 
-// lowercase typename bcus this type is PRIVATE
-type signupReq struct {
+type signinReq struct {
 	Username string `json:"username" binding:"required,gte=1,lte=30"`
 	Password string `json:"password" binding:"required,gte=8,lte=30"`
 }
 
-func (handler RouteHandler) Signup(c *gin.Context) {
+func (handler RouteHandler) Signin(c *gin.Context) {
 	// bind json to req struct
-	var req signupReq
+	var req signinReq
 	if ok := binding.BindData(c, &req); !ok {
-		return
+		return // BindData handles server response on fail
 	}
 
-	_, err := handler.p.UserService.Signup(c, req.Username, req.Password)
+	user, err := handler.p.UserService.Signin(c, req.Username, req.Password)
 
 	if err != nil {
-		log.Printf("Failed to sign up user: %v\n", err.Error())
+		log.Printf("Failed to signin user: %v\n", err)
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
 		})
@@ -33,7 +32,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 
 	// TODO: set auth cookie
 
-	c.JSON(http.StatusCreated, gin.H{
-		"ok": true,
+	c.JSON(http.StatusOK, gin.H{
+		"uid": user.ID, // TODO: stub
 	})
 }
