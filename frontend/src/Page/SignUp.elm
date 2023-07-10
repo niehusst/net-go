@@ -2,6 +2,7 @@ module Page.SignUp exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput)
 
 
 type alias Model =
@@ -20,7 +21,7 @@ type Msg
 -- VIEW --
 
 
-view : User -> Html msg
+view : Model -> Html Msg
 view model =
     div [ class "TODO css here" ]
         [ h1 [] [ text "Sign Up" ]
