@@ -34,4 +34,4 @@ node_modules
 netgo.gorm.db
 
 # i dont want js to be dominant project language on gh... yeah i'm like that
-frontend/static/js/elm.js
+elm.js
