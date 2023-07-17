@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Model.Board as Board exposing (BoardSize)
 import Model.Piece as Piece exposing (ColorChoice)
+import Page
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.GameScore as GameScore
@@ -13,13 +14,14 @@ import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
 import Route exposing (Route)
+import Session exposing (Session)
 import Url exposing (Url)
 
 
 type alias Model =
     { page : Page
     , route : Route
-    , navKey : Nav.Key
+    , session : Session
     }
 
 
@@ -48,11 +50,12 @@ type Msg
 -- VIEW --
 
 
+{-| Wrap the current page with header + footer content
+-}
 view : Model -> Document Msg
 view model =
-    -- TODO: add header/footer wrapper
-    { title = "net-go"
-    , body = [ viewCurrentPage model ]
+    { title = viewTabTitle model.page
+    , body = Page.viewHeader model.session :: viewCurrentPage model :: [ Page.viewFooter ]
     }
 
 
@@ -82,6 +85,35 @@ viewCurrentPage model =
             SignUp.view pageModel
                 |> Html.map SignUpPageMsg
 
+        SignInPage pageModel ->
+            SignIn.view pageModel
+                |> Html.map SignInPageMsg
+
+
+viewTabTitle : Page -> String
+viewTabTitle page =
+    case page of
+        NotFoundPage ->
+            "Not found"
+
+        HomePage _ ->
+            "Home"
+
+        GameCreatePage _ ->
+            "Create Game"
+
+        GamePlayPage _ ->
+            "Game"
+
+        GameScorePage _ ->
+            "Score"
+
+        SignUpPage _ ->
+            "Sign Up"
+
+        SignInPage _ ->
+            "Sign In"
+
 
 
 -- UPDATE --
@@ -102,7 +134,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Nav.pushUrl model.navKey (Url.toString url)
+                    , Nav.pushUrl (Session.navKey model.session) (Url.toString url)
                     )
 
                 Browser.External url ->
@@ -166,11 +198,12 @@ update msg model =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
+    -- TODO: create real session value, not default unauthed
     let
         model =
             { page = NotFoundPage
             , route = Route.parseUrl url
-            , navKey = navKey
+            , session = Session.init navKey
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -206,7 +239,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small Piece.Black model.navKey
+                            GamePlay.init Board.Small Piece.Black (Session.navKey model.session)
                     in
                     ( GamePlayPage pageModel
                     , Cmd.map GamePlayPageMsg pageCmds
@@ -235,7 +268,7 @@ initCurrentPage ( model, existingCmds ) =
                         ( pageModel, pageCmds ) =
                             SignIn.init
                     in
-                    ( SignUpPage pageModel
+                    ( SignInPage pageModel
                     , Cmd.map SignInPageMsg pageCmds
                     )
     in
