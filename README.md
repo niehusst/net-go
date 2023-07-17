@@ -17,3 +17,7 @@ You can launch the dev server by running `npm start`.
 * [Gin web framework](https://gin-gonic.com/)
 * [Elm language/platform/everything](https://elm-lang.org/)
 * [sqlite](https://www.sqlite.org/index.html)
+
+## Acknowledgements
+
+* [rtfeldman](https://github.com/rtfeldman/) for their project [elm-spa-example](https://github.com/rtfeldman/elm-spa-example), from which I stole many ideas

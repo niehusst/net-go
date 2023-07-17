@@ -10,6 +10,7 @@ import Page.GamePlay as GamePlay
 import Page.GameScore as GameScore
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.SignIn as SignIn
 import Page.SignUp as SignUp
 import Route exposing (Route)
 import Url exposing (Url)
@@ -29,6 +30,7 @@ type Page
     | GamePlayPage GamePlay.Model
     | GameScorePage GameScore.Model
     | SignUpPage SignUp.Model
+    | SignInPage SignIn.Model
 
 
 type Msg
@@ -39,6 +41,7 @@ type Msg
     | GamePlayPageMsg GamePlay.Msg
     | GameScorePageMsg GameScore.Msg
     | SignUpPageMsg SignUp.Msg
+    | SignInPageMsg SignIn.Msg
 
 
 
@@ -192,11 +195,11 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GameCreate ->
                     let
-                        pageModel =
+                        ( pageModel, pageCmds ) =
                             GameCreate.init
                     in
                     ( GameCreatePage pageModel
-                    , Cmd.none
+                    , Cmd.map GameCreatePageMsg pageCmds
                     )
 
                 Route.GamePlay ->
@@ -211,11 +214,11 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GameScore ->
                     let
-                        pageModel =
+                        ( pageModel, pageCmds ) =
                             GameScore.init
                     in
                     ( GameScorePage pageModel
-                    , Cmd.none
+                    , Cmd.map GameScorePageMsg pageCmds
                     )
 
                 Route.SignUp ->
@@ -225,6 +228,15 @@ initCurrentPage ( model, existingCmds ) =
                     in
                     ( SignUpPage pageModel
                     , Cmd.map SignUpPageMsg pageCmds
+                    )
+
+                Route.SignIn ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SignIn.init
+                    in
+                    ( SignUpPage pageModel
+                    , Cmd.map SignInPageMsg pageCmds
                     )
     in
     ( { model | page = currentPage }
