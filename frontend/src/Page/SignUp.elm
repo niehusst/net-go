@@ -3,13 +3,12 @@ module Page.SignUp exposing (Model, Msg, init, update, view)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
-import Sha256 exposing (sha256)
 
 
 type alias Model =
@@ -78,6 +77,7 @@ viewBody model =
 
 viewBanner : Http.Error -> Html Msg
 viewBanner error =
+    -- TODO: replace with header banner shared code (Page.elm)
     let
         errString =
             stringForAuthError error
@@ -88,7 +88,7 @@ viewBanner error =
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form []
+    Html.form [ onSubmit SendHttpSignupReq ]
         [ div []
             [ text "Username"
             , input
@@ -117,7 +117,7 @@ viewForm model =
                 []
             ]
         , div []
-            [ button [ type_ "submit", onClick SendHttpSignupReq ]
+            [ button [ type_ "submit" ]
                 [ text "Create Account" ]
             ]
         ]
@@ -157,13 +157,9 @@ signupEncoder reqData =
 
 sendSignupReq : SignupRequestData r -> Cmd Msg
 sendSignupReq reqData =
-    let
-        hashedReqData =
-            { reqData | password = sha256 reqData.password }
-    in
     Http.post
-        { url = "/api/signup"
-        , body = Http.jsonBody (signupEncoder hashedReqData)
+        { url = "/api/accounts/signup"
+        , body = Http.jsonBody (signupEncoder reqData)
         , expect =
             signupDecoder
                 |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSignupResp)

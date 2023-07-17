@@ -9,7 +9,6 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
-import Sha256 exposing (sha256)
 
 
 type alias Model =
@@ -146,13 +145,9 @@ signinEncoder reqData =
 
 sendSigninReq : SigninRequestData r -> Cmd Msg
 sendSigninReq reqData =
-    let
-        hashedReqData =
-            { reqData | password = sha256 reqData.password }
-    in
     Http.post
-        { url = "/api/signin"
-        , body = Http.jsonBody (signinEncoder hashedReqData)
+        { url = "/api/accounts/signin"
+        , body = Http.jsonBody (signinEncoder reqData)
         , expect =
             signinDecoder
                 |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSigninResp)
