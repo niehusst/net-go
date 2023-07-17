@@ -11,6 +11,7 @@ type Route
     | GameCreate
     | GamePlay
     | GameScore
+    | SignUp
 
 
 matchRoute : Parser (Route -> a) a
@@ -58,3 +59,6 @@ routeToString route =
         GameScore ->
             -- TODO: add game code
             "/game/score"
+
+        SignUp ->
+            "/signup"

@@ -266,8 +266,15 @@ playMove move game =
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Nav.Key -> Model
+init : BoardSize -> ColorChoice -> Nav.Key -> ( Model, Cmd Msg )
 init boardSize colorChoice navKey =
+    ( initialModel boardSize colorChoice navKey
+    , Cmd.none
+    )
+
+
+initialModel : BoardSize -> ColorChoice -> Nav.Key -> Model
+initialModel boardSize colorChoice navKey =
     { game = newGame boardSize colorChoice
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing

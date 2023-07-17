@@ -10,6 +10,7 @@ import Page.GamePlay as GamePlay
 import Page.GameScore as GameScore
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.SignUp as SignUp
 import Route exposing (Route)
 import Url exposing (Url)
 
@@ -27,14 +28,17 @@ type Page
     | GameCreatePage GameCreate.Model
     | GamePlayPage GamePlay.Model
     | GameScorePage GameScore.Model
+    | SignUpPage SignUp.Model
 
 
 type Msg
     = LinkClicked UrlRequest
     | UrlChanged Url
     | HomePageMsg Home.Msg
+    | GameCreatePageMsg GameCreate.Msg
     | GamePlayPageMsg GamePlay.Msg
     | GameScorePageMsg GameScore.Msg
+    | SignUpPageMsg SignUp.Msg
 
 
 
@@ -43,6 +47,7 @@ type Msg
 
 view : Model -> Document Msg
 view model =
+    -- TODO: add header/footer wrapper
     { title = "net-go"
     , body = [ viewCurrentPage model ]
     }
@@ -60,6 +65,7 @@ viewCurrentPage model =
 
         GameCreatePage pageModel ->
             GameCreate.view pageModel
+                |> Html.map GameCreatePageMsg
 
         GamePlayPage pageModel ->
             GamePlay.view pageModel
@@ -68,6 +74,10 @@ viewCurrentPage model =
         GameScorePage pageModel ->
             GameScore.view pageModel
                 |> Html.map GameScorePageMsg
+
+        SignUpPage pageModel ->
+            SignUp.view pageModel
+                |> Html.map SignUpPageMsg
 
 
 
@@ -106,6 +116,15 @@ update msg model =
             , Cmd.map HomePageMsg updatedCmd
             )
 
+        ( GameCreatePageMsg submsg, GameCreatePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    GameCreate.update submsg pageModel
+            in
+            ( { model | page = GameCreatePage updatedPageModel }
+            , Cmd.map GameCreatePageMsg updatedCmd
+            )
+
         ( GamePlayPageMsg submsg, GamePlayPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
@@ -122,6 +141,15 @@ update msg model =
             in
             ( { model | page = GameScorePage updatedPageModel }
             , Cmd.map GameScorePageMsg updatedCmd
+            )
+
+        ( SignUpPageMsg submsg, SignUpPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    SignUp.update submsg pageModel
+            in
+            ( { model | page = SignUpPage updatedPageModel }
+            , Cmd.map SignUpPageMsg updatedCmd
             )
 
         ( _, _ ) ->
@@ -174,11 +202,11 @@ initCurrentPage ( model, existingCmds ) =
                 Route.GamePlay ->
                     let
                         -- TODO: give real values from form
-                        pageModel =
+                        ( pageModel, pageCmds ) =
                             GamePlay.init Board.Small Piece.Black model.navKey
                     in
                     ( GamePlayPage pageModel
-                    , Cmd.none
+                    , Cmd.map GamePlayPageMsg pageCmds
                     )
 
                 Route.GameScore ->
@@ -188,6 +216,15 @@ initCurrentPage ( model, existingCmds ) =
                     in
                     ( GameScorePage pageModel
                     , Cmd.none
+                    )
+
+                Route.SignUp ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SignUp.init
+                    in
+                    ( SignUpPage pageModel
+                    , Cmd.map SignUpPageMsg pageCmds
                     )
     in
     ( { model | page = currentPage }

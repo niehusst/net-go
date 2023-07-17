@@ -18,6 +18,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 	// bind json to req struct
 	var req signupReq
 	if ok := binding.BindData(c, &req); !ok {
+		// BindData failure already sends own c.JSON fail message
 		return
 	}
 
