@@ -1,5 +1,6 @@
-module Page.SignUp exposing (Model, Msg, init, update, view)
+module Page.SignUp exposing (Model, Msg(..), init, update, view)
 
+import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,6 +10,8 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
+import Route exposing (Route, pushUrl)
+import Session exposing (Session)
 
 
 type alias Model =
@@ -16,6 +19,7 @@ type alias Model =
     , password : String
     , confirmPassword : String
     , formResponse : WebData SignupResponseData
+    , session : Session
     }
 
 
@@ -25,6 +29,7 @@ type Msg
     | SaveConfirmPassword String
     | SendHttpSignupReq
     | ReceiveHttpSignupResp (WebData SignupResponseData)
+    | UpdateSession Session
 
 
 type alias SignupResponseData =
@@ -195,16 +200,21 @@ update msg model =
                 , sendSignupReq model
                 )
 
-        --        ReceiveHttpSignupResp (RemoteData.Success _) ->
-        --            -- TODO: save auth state somewhere
-        --            -- TODO: nav to home page or somethign
-        --            ( model
-        --            , Cmd.none
-        --            )
+        ReceiveHttpSignupResp (RemoteData.Success _) ->
+            -- TODO: save auth state somewhere; cookie?
+            ( model
+            , message (UpdateSession (Session.toLoggedIn model.session))
+            )
+
         ReceiveHttpSignupResp response ->
             -- fallthrough catch other RemoteData states
             ( { model | formResponse = response }
             , Cmd.none
+            )
+
+        UpdateSession session ->
+            ( { model | session = session }
+            , pushUrl Route.Home (Session.navKey session)
             )
 
 
@@ -212,17 +222,18 @@ update msg model =
 -- INIT --
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( initialModel session
     , Cmd.none
     )
 
 
-initialModel : Model
-initialModel =
+initialModel : Session -> Model
+initialModel session =
     { username = ""
     , password = ""
     , confirmPassword = ""
     , formResponse = RemoteData.NotAsked
+    , session = session
     }

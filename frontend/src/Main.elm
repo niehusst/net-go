@@ -119,8 +119,28 @@ viewTabTitle page =
 -- UPDATE --
 
 
+{-| Msg mapping to intercept any UpdateSession messages before
+passing them along to intended Page.
+This allows us to have "global mutable state" here in Main.
+-}
+interceptMsg : Msg -> Model -> Model
+interceptMsg msg model =
+    case msg of
+        SignUpPageMsg (SignUp.UpdateSession session) ->
+            { model | session = session }
+
+        _ ->
+            -- we dont need to intercept this message; no-op
+            model
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg rawModel =
+    let
+        -- only update the model; msg must be passed down to child
+        model =
+            interceptMsg msg rawModel
+    in
     case ( msg, model.page ) of
         ( UrlChanged url, _ ) ->
             let
@@ -198,7 +218,7 @@ update msg model =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
-    -- TODO: create real session value, not default unauthed
+    -- TODO: create real session value from cookie existence
     let
         model =
             { page = NotFoundPage
@@ -257,7 +277,7 @@ initCurrentPage ( model, existingCmds ) =
                 Route.SignUp ->
                     let
                         ( pageModel, pageCmds ) =
-                            SignUp.init
+                            SignUp.init model.session
                     in
                     ( SignUpPage pageModel
                     , Cmd.map SignUpPageMsg pageCmds
