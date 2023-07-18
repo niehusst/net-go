@@ -124,12 +124,8 @@ viewForm model =
 stringForAuthError : Http.Error -> String
 stringForAuthError error =
     case error of
-        Http.BadStatus errCode ->
-            if errCode == 400 then
-                "Failed to signin for that username and password. Note: passwords must be between 8 and 30 characters."
-
-            else
-                stringFromHttpError error
+        Http.BadStatus _ ->
+            "Failed to signin for that username and password."
 
         _ ->
             stringFromHttpError error
