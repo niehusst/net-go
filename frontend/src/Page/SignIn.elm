@@ -1,20 +1,24 @@
-module Page.SignIn exposing (Model, Msg, init, update, view)
+module Page.SignIn exposing (Model, Msg(..), init, update, view)
 
+import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
+import Route exposing (Route, pushUrl)
+import Session exposing (Session)
 
 
 type alias Model =
     { username : String
     , password : String
     , formResponse : WebData SigninResponseData
+    , session : Session
     }
 
 
@@ -23,6 +27,7 @@ type Msg
     | SavePassword String
     | SendHttpSigninReq
     | ReceiveHttpSigninResp (WebData SigninResponseData)
+    | UpdateSession Session
 
 
 type alias SigninResponseData =
@@ -75,6 +80,7 @@ viewBody model =
 
 viewBanner : Http.Error -> Html Msg
 viewBanner error =
+    -- TODO: replace with header banner shared code (Page.elm)
     let
         errString =
             stringForAuthError error
@@ -85,7 +91,7 @@ viewBanner error =
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form []
+    Html.form [ onSubmit SendHttpSigninReq ]
         [ div []
             [ text "Username"
             , input
@@ -105,8 +111,8 @@ viewForm model =
                 []
             ]
         , div []
-            [ button [ type_ "submit", onClick SendHttpSigninReq ]
-                [ text "Create Account" ]
+            [ button [ type_ "submit" ]
+                [ text "Sign in" ]
             ]
         ]
 
@@ -120,7 +126,7 @@ stringForAuthError error =
     case error of
         Http.BadStatus errCode ->
             if errCode == 400 then
-                "Failed to signup for that username and password. Note: passwords must be between 8 and 30 characters."
+                "Failed to signin for that username and password. Note: passwords must be between 8 and 30 characters."
 
             else
                 stringFromHttpError error
@@ -172,16 +178,21 @@ update msg model =
             , sendSigninReq model
             )
 
-        --        ReceiveHttpSigninResp (RemoteData.Success _) ->
-        --            -- TODO: save auth state somewhere
-        --            -- TODO: nav to home page or somethign
-        --            ( model
-        --            , Cmd.none
-        --            )
+        ReceiveHttpSigninResp (RemoteData.Success _) ->
+            -- TODO: save auth state somewhere; cookie?
+            ( model
+            , message (UpdateSession (Session.toLoggedIn model.session))
+            )
+
         ReceiveHttpSigninResp response ->
             -- fallthrough catch other RemoteData states
             ( { model | formResponse = response }
             , Cmd.none
+            )
+
+        UpdateSession session ->
+            ( { model | session = session }
+            , pushUrl Route.Home (Session.navKey session)
             )
 
 
@@ -189,16 +200,17 @@ update msg model =
 -- INIT --
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( initialModel session
     , Cmd.none
     )
 
 
-initialModel : Model
-initialModel =
+initialModel : Session -> Model
+initialModel session =
     { username = ""
     , password = ""
     , formResponse = RemoteData.NotAsked
+    , session = session
     }

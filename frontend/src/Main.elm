@@ -129,6 +129,9 @@ interceptMsg msg model =
         SignUpPageMsg (SignUp.UpdateSession session) ->
             { model | session = session }
 
+        SignInPageMsg (SignIn.UpdateSession session) ->
+            { model | session = session }
+
         _ ->
             -- we dont need to intercept this message; no-op
             model
@@ -205,6 +208,15 @@ update msg rawModel =
             in
             ( { model | page = SignUpPage updatedPageModel }
             , Cmd.map SignUpPageMsg updatedCmd
+            )
+
+        ( SignInPageMsg submsg, SignInPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    SignIn.update submsg pageModel
+            in
+            ( { model | page = SignInPage updatedPageModel }
+            , Cmd.map SignInPageMsg updatedCmd
             )
 
         ( _, _ ) ->
@@ -286,7 +298,7 @@ initCurrentPage ( model, existingCmds ) =
                 Route.SignIn ->
                     let
                         ( pageModel, pageCmds ) =
-                            SignIn.init
+                            SignIn.init model.session
                     in
                     ( SignInPage pageModel
                     , Cmd.map SignInPageMsg pageCmds
