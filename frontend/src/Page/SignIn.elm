@@ -1,4 +1,4 @@
-module Page.SignUp exposing (Model, Msg(..), init, update, view)
+module Page.SignIn exposing (Model, Msg(..), init, update, view)
 
 import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
@@ -17,8 +17,7 @@ import Session exposing (Session)
 type alias Model =
     { username : String
     , password : String
-    , confirmPassword : String
-    , formResponse : WebData SignupResponseData
+    , formResponse : WebData SigninResponseData
     , session : Session
     }
 
@@ -26,18 +25,17 @@ type alias Model =
 type Msg
     = SaveUsername String
     | SavePassword String
-    | SaveConfirmPassword String
-    | SendHttpSignupReq
-    | ReceiveHttpSignupResp (WebData SignupResponseData)
+    | SendHttpSigninReq
+    | ReceiveHttpSigninResp (WebData SigninResponseData)
     | UpdateSession Session
 
 
-type alias SignupResponseData =
-    { ok : Bool
+type alias SigninResponseData =
+    { uid : Int
     }
 
 
-type alias SignupRequestData r =
+type alias SigninRequestData r =
     { r
         | username : String
         , password : String
@@ -51,7 +49,7 @@ type alias SignupRequestData r =
 view : Model -> Html Msg
 view model =
     div [ class "TODO css here" ]
-        [ h1 [] [ text "Sign Up" ]
+        [ h1 [] [ text "Sign In" ]
         , viewBody model
         ]
 
@@ -71,7 +69,7 @@ viewBody model =
         RemoteData.Success msg ->
             -- this will likely never be shown
             div []
-                [ text "Signup Success!" ]
+                [ text "Signin Success!" ]
 
         RemoteData.Failure error ->
             div []
@@ -92,7 +90,7 @@ viewBanner error =
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form [ onSubmit SendHttpSignupReq ]
+    Html.form [ onSubmit SendHttpSigninReq ]
         [ div []
             [ text "Username"
             , input
@@ -112,17 +110,8 @@ viewForm model =
                 []
             ]
         , div []
-            [ text "Confirm Password"
-            , input
-                [ id "confirmpassword"
-                , type_ "password"
-                , onInput SaveConfirmPassword
-                ]
-                []
-            ]
-        , div []
             [ button [ type_ "submit" ]
-                [ text "Create Account" ]
+                [ text "Sign in" ]
             ]
         ]
 
@@ -135,34 +124,34 @@ stringForAuthError : Http.Error -> String
 stringForAuthError error =
     case error of
         Http.BadStatus _ ->
-            "Failed to signup for that username and password. Note: passwords must be between 8 and 30 characters."
+            "Failed to signin for that username and password."
 
         _ ->
             stringFromHttpError error
 
 
-signupDecoder : Decode.Decoder SignupResponseData
-signupDecoder =
-    Decode.succeed SignupResponseData
-        |> Json.Decode.Pipeline.required "ok" Decode.bool
+signinDecoder : Decode.Decoder SigninResponseData
+signinDecoder =
+    Decode.succeed SigninResponseData
+        |> Json.Decode.Pipeline.required "uid" Decode.int
 
 
-signupEncoder : SignupRequestData r -> Encode.Value
-signupEncoder reqData =
+signinEncoder : SigninRequestData r -> Encode.Value
+signinEncoder reqData =
     Encode.object
         [ ( "username", Encode.string reqData.username )
         , ( "password", Encode.string reqData.password )
         ]
 
 
-sendSignupReq : SignupRequestData r -> Cmd Msg
-sendSignupReq reqData =
+sendSigninReq : SigninRequestData r -> Cmd Msg
+sendSigninReq reqData =
     Http.post
-        { url = "/api/accounts/signup"
-        , body = Http.jsonBody (signupEncoder reqData)
+        { url = "/api/accounts/signin"
+        , body = Http.jsonBody (signinEncoder reqData)
         , expect =
-            signupDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSignupResp)
+            signinDecoder
+                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSigninResp)
         }
 
 
@@ -179,29 +168,18 @@ update msg model =
             , Cmd.none
             )
 
-        SaveConfirmPassword password ->
-            ( { model | confirmPassword = password }
-            , Cmd.none
+        SendHttpSigninReq ->
+            ( { model | formResponse = RemoteData.Loading }
+            , sendSigninReq model
             )
 
-        SendHttpSignupReq ->
-            if model.password /= model.confirmPassword then
-                ( { model | formResponse = RemoteData.Failure (Http.BadBody "Passwords don't match!") }
-                , Cmd.none
-                )
-
-            else
-                ( { model | formResponse = RemoteData.Loading }
-                , sendSignupReq model
-                )
-
-        ReceiveHttpSignupResp (RemoteData.Success _) ->
+        ReceiveHttpSigninResp (RemoteData.Success _) ->
             -- TODO: save auth state somewhere; cookie?
             ( model
             , message (UpdateSession (Session.toLoggedIn model.session))
             )
 
-        ReceiveHttpSignupResp response ->
+        ReceiveHttpSigninResp response ->
             -- fallthrough catch other RemoteData states
             ( { model | formResponse = response }
             , Cmd.none
@@ -228,7 +206,6 @@ initialModel : Session -> Model
 initialModel session =
     { username = ""
     , password = ""
-    , confirmPassword = ""
     , formResponse = RemoteData.NotAsked
     , session = session
     }

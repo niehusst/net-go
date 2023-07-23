@@ -11,6 +11,8 @@ type Route
     | GameCreate
     | GamePlay
     | GameScore
+    | SignUp
+    | SignIn
 
 
 matchRoute : Parser (Route -> a) a
@@ -18,8 +20,10 @@ matchRoute =
     oneOf
         [ map Home top
         , map GameCreate (s "game" </> s "create")
-        , map GamePlay (s "game") -- TODO: set game code
-        , map GameScore (s "game" </> s "score") -- TODO: set game code between
+        , map GamePlay (s "game") -- TODO: set game query param
+        , map GameScore (s "game" </> s "score") -- TODO: set game query param between (or after?)
+        , map SignUp (s "signup")
+        , map SignIn (s "signin")
         ]
 
 
@@ -52,9 +56,15 @@ routeToString route =
             "/game/create"
 
         GamePlay ->
-            -- TODO: add game code?
+            -- TODO: add game query param
             "/game"
 
         GameScore ->
-            -- TODO: add game code
+            -- TODO: add game query param
             "/game/score"
+
+        SignUp ->
+            "/signup"
+
+        SignIn ->
+            "/signin"

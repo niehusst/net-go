@@ -5,19 +5,23 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Model.Board as Board exposing (BoardSize)
 import Model.Piece as Piece exposing (ColorChoice)
+import Page
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.GameScore as GameScore
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.SignIn as SignIn
+import Page.SignUp as SignUp
 import Route exposing (Route)
+import Session exposing (Session)
 import Url exposing (Url)
 
 
 type alias Model =
     { page : Page
     , route : Route
-    , navKey : Nav.Key
+    , session : Session
     }
 
 
@@ -27,24 +31,31 @@ type Page
     | GameCreatePage GameCreate.Model
     | GamePlayPage GamePlay.Model
     | GameScorePage GameScore.Model
+    | SignUpPage SignUp.Model
+    | SignInPage SignIn.Model
 
 
 type Msg
     = LinkClicked UrlRequest
     | UrlChanged Url
     | HomePageMsg Home.Msg
+    | GameCreatePageMsg GameCreate.Msg
     | GamePlayPageMsg GamePlay.Msg
     | GameScorePageMsg GameScore.Msg
+    | SignUpPageMsg SignUp.Msg
+    | SignInPageMsg SignIn.Msg
 
 
 
 -- VIEW --
 
 
+{-| Wrap the current page with header + footer content
+-}
 view : Model -> Document Msg
 view model =
-    { title = "net-go"
-    , body = [ viewCurrentPage model ]
+    { title = viewTabTitle model.page
+    , body = Page.viewHeader model.session :: viewCurrentPage model :: [ Page.viewFooter ]
     }
 
 
@@ -60,6 +71,7 @@ viewCurrentPage model =
 
         GameCreatePage pageModel ->
             GameCreate.view pageModel
+                |> Html.map GameCreatePageMsg
 
         GamePlayPage pageModel ->
             GamePlay.view pageModel
@@ -69,13 +81,69 @@ viewCurrentPage model =
             GameScore.view pageModel
                 |> Html.map GameScorePageMsg
 
+        SignUpPage pageModel ->
+            SignUp.view pageModel
+                |> Html.map SignUpPageMsg
+
+        SignInPage pageModel ->
+            SignIn.view pageModel
+                |> Html.map SignInPageMsg
+
+
+viewTabTitle : Page -> String
+viewTabTitle page =
+    case page of
+        NotFoundPage ->
+            "Not found"
+
+        HomePage _ ->
+            "Home"
+
+        GameCreatePage _ ->
+            "Create Game"
+
+        GamePlayPage _ ->
+            "Game"
+
+        GameScorePage _ ->
+            "Score"
+
+        SignUpPage _ ->
+            "Sign Up"
+
+        SignInPage _ ->
+            "Sign In"
+
 
 
 -- UPDATE --
 
 
+{-| Msg mapping to intercept any UpdateSession messages before
+passing them along to intended Page.
+This allows us to have "global mutable state" here in Main.
+-}
+interceptMsg : Msg -> Model -> Model
+interceptMsg msg model =
+    case msg of
+        SignUpPageMsg (SignUp.UpdateSession session) ->
+            { model | session = session }
+
+        SignInPageMsg (SignIn.UpdateSession session) ->
+            { model | session = session }
+
+        _ ->
+            -- we dont need to intercept this message; no-op
+            model
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg rawModel =
+    let
+        -- only update the model; msg must be passed down to child
+        model =
+            interceptMsg msg rawModel
+    in
     case ( msg, model.page ) of
         ( UrlChanged url, _ ) ->
             let
@@ -89,7 +157,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Nav.pushUrl model.navKey (Url.toString url)
+                    , Nav.pushUrl (Session.navKey model.session) (Url.toString url)
                     )
 
                 Browser.External url ->
@@ -104,6 +172,15 @@ update msg model =
             in
             ( { model | page = HomePage updatedPageModel }
             , Cmd.map HomePageMsg updatedCmd
+            )
+
+        ( GameCreatePageMsg submsg, GameCreatePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    GameCreate.update submsg pageModel
+            in
+            ( { model | page = GameCreatePage updatedPageModel }
+            , Cmd.map GameCreatePageMsg updatedCmd
             )
 
         ( GamePlayPageMsg submsg, GamePlayPage pageModel ) ->
@@ -124,6 +201,24 @@ update msg model =
             , Cmd.map GameScorePageMsg updatedCmd
             )
 
+        ( SignUpPageMsg submsg, SignUpPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    SignUp.update submsg pageModel
+            in
+            ( { model | page = SignUpPage updatedPageModel }
+            , Cmd.map SignUpPageMsg updatedCmd
+            )
+
+        ( SignInPageMsg submsg, SignInPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    SignIn.update submsg pageModel
+            in
+            ( { model | page = SignInPage updatedPageModel }
+            , Cmd.map SignInPageMsg updatedCmd
+            )
+
         ( _, _ ) ->
             -- generic mismatch case handler
             ( model, Cmd.none )
@@ -135,11 +230,12 @@ update msg model =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
+    -- TODO: create real session value from cookie existence
     let
         model =
             { page = NotFoundPage
             , route = Route.parseUrl url
-            , navKey = navKey
+            , session = Session.init navKey
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -164,30 +260,48 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GameCreate ->
                     let
-                        pageModel =
+                        ( pageModel, pageCmds ) =
                             GameCreate.init
                     in
                     ( GameCreatePage pageModel
-                    , Cmd.none
+                    , Cmd.map GameCreatePageMsg pageCmds
                     )
 
                 Route.GamePlay ->
                     let
                         -- TODO: give real values from form
-                        pageModel =
-                            GamePlay.init Board.Small Piece.Black model.navKey
+                        ( pageModel, pageCmds ) =
+                            GamePlay.init Board.Small Piece.Black (Session.navKey model.session)
                     in
                     ( GamePlayPage pageModel
-                    , Cmd.none
+                    , Cmd.map GamePlayPageMsg pageCmds
                     )
 
                 Route.GameScore ->
                     let
-                        pageModel =
+                        ( pageModel, pageCmds ) =
                             GameScore.init
                     in
                     ( GameScorePage pageModel
-                    , Cmd.none
+                    , Cmd.map GameScorePageMsg pageCmds
+                    )
+
+                Route.SignUp ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SignUp.init model.session
+                    in
+                    ( SignUpPage pageModel
+                    , Cmd.map SignUpPageMsg pageCmds
+                    )
+
+                Route.SignIn ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            SignIn.init model.session
+                    in
+                    ( SignInPage pageModel
+                    , Cmd.map SignInPageMsg pageCmds
                     )
     in
     ( { model | page = currentPage }
