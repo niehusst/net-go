@@ -31,7 +31,7 @@ type Msg
 
 
 type alias SigninResponseData =
-    { ok : Bool
+    { uid : Int
     }
 
 
@@ -134,7 +134,7 @@ stringForAuthError error =
 signinDecoder : Decode.Decoder SigninResponseData
 signinDecoder =
     Decode.succeed SigninResponseData
-        |> Json.Decode.Pipeline.required "ok" Decode.bool
+        |> Json.Decode.Pipeline.required "uid" Decode.int
 
 
 signinEncoder : SigninRequestData r -> Encode.Value

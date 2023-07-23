@@ -60,6 +60,7 @@ func (s *UserService) Signup(ctx context.Context, username string, password stri
 }
 
 // fetch user from db, if present
+// always returns 404 err on any failure for secrecy
 func (s *UserService) Signin(ctx context.Context, username string, password string) (*model.User, error) {
 	// fetch user from db w/ username
 	user, err := s.UserRepository.FindByUsername(ctx, username)
