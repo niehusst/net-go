@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// backtick defines json and db key representations
+// backtick contains meta info about how model data should be stored in db
 type User struct {
 	gorm.Model
 	Username string `gorm:"uniqueIndex"`

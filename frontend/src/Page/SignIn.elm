@@ -80,7 +80,6 @@ viewBody model =
 
 viewBanner : Http.Error -> Html Msg
 viewBanner error =
-    -- TODO: replace with header banner shared code (Page.elm)
     let
         errString =
             stringForAuthError error
