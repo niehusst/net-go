@@ -1,4 +1,4 @@
-module Page.GameCreate exposing (Model, init, view)
+module Page.GameCreate exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (href)
@@ -12,6 +12,10 @@ type alias Model =
     , colorChoice : ColorChoice
     , komi : Float
     }
+
+
+type Msg
+    = PlaceHolder
 
 
 
@@ -43,12 +47,24 @@ viewGameSettings model =
 
 
 -- UPDATE --
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    ( model
+    , Cmd.none
+    )
+
+
+
 -- INIT --
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    initialModel
+    ( initialModel
+    , Cmd.none
+    )
 
 
 initialModel : Model

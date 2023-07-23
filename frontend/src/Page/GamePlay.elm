@@ -279,8 +279,15 @@ playMove move game =
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Float -> Nav.Key -> Model
+init : BoardSize -> ColorChoice -> Float -> Nav.Key -> ( Model, Cmd Msg )
 init boardSize colorChoice komi navKey =
+    ( initialModel boardSize colorChoice komi navKey
+    , Cmd.none
+    )
+
+
+initialModel : BoardSize -> ColorChoice -> Float -> Nav.Key -> Model
+initialModel boardSize colorChoice komi navKey =
     { game = newGame boardSize colorChoice komi
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing

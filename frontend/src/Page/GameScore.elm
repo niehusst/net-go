@@ -37,6 +37,13 @@ update msg model =
 -- INIT
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
+    ( initialModel
+    , Cmd.none
+    )
+
+
+initialModel : Model
+initialModel =
     {}
