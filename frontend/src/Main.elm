@@ -2,9 +2,9 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (..)
-import Model.Board as Board exposing (BoardSize)
-import Model.Piece as Piece exposing (ColorChoice)
+import Html exposing (Html)
+import Model.Board as Board
+import Model.ColorChoice as ColorChoice
 import Page
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
@@ -271,7 +271,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small Piece.Black (Session.navKey model.session)
+                            GamePlay.init Board.Small ColorChoice.Black 0.0 (Session.navKey model.session)
                     in
                     ( GamePlayPage pageModel
                     , Cmd.map GamePlayPageMsg pageCmds
