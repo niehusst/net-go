@@ -10,6 +10,7 @@ import Model.ColorChoice exposing (ColorChoice(..), colorToPiece)
 import Model.Game as Game exposing (..)
 import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
 import Model.Score as Score exposing (Score)
+import Random
 import Set exposing (Set)
 
 
@@ -27,11 +28,11 @@ type alias BoardData r =
 {-| Given a board that is ready for scoring, return a
 board with the dead stones removed from it.
 -}
-clearDeadStones : Game.Game -> Game.Game
-clearDeadStones game =
+clearDeadStones : Game.Game -> Int -> Game.Game
+clearDeadStones game seed =
     let
         deadStoneIndices =
-            getDeadStones game
+            getDeadStones game seed
 
         clearIndices : List Int -> Board.Board -> Board.Board
         clearIndices indices gameBoard =
@@ -66,13 +67,11 @@ clearDeadStones game =
 {-| Use probabalistic methods to determine which stones are likely to be dead.
 Returns the list of board positions where there are stones that are likely dead.
 -}
-getDeadStones : BoardData r -> List Int
-getDeadStones bData =
-    -- TODO: only run quick alg if board is above certain percent full? does quick alg break on incomplete boards? is quick alg even worth?
+getDeadStones : BoardData r -> Int -> List Int
+getDeadStones bData seed =
     let
-        -- TODO: get floating stones?
         boardControlScores =
-            getBoardControlProbability 100 bData
+            getBoardControlProbability 100 bData seed
 
         {- for each connected chunk of stones on board, check
            if they are dead on average. If so, add to list of dead stones
@@ -200,8 +199,8 @@ The more `iterations` run, the higher confidence this probablistic
 algorithm provides.
 
 -}
-getBoardControlProbability : Int -> BoardData r -> Array Float
-getBoardControlProbability iterations bData =
+getBoardControlProbability : Int -> BoardData r -> Int -> Array Float
+getBoardControlProbability iterations bData seed =
     let
         baseProbabilities =
             Array.repeat (boardSizeToInt bData.boardSize) 0.0
@@ -223,7 +222,7 @@ getBoardControlProbability iterations bData =
                                 Black
 
                         playedOutBoard =
-                            playUntilGameComplete startingColor boardData
+                            playUntilGameComplete startingColor boardData seed
                                 |> boardToIntBoard
                     in
                     List.foldl
@@ -252,7 +251,14 @@ getBoardControlProbability iterations bData =
         baseProbabilities
 
 
-playUntilGameComplete : ColorChoice -> BoardData r -> Board
-playUntilGameComplete startingColor boardData =
+playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
+playUntilGameComplete startingColor boardData seed =
     -- TODO: actual monte carlo shit
+    let
+        initialSeed =
+            Random.initialSeed seed
+
+        (randNum, newSeed) =
+            Random.step (Random.int 0 100) initialSeed
+    in
     Array.empty

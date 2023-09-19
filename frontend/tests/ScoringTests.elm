@@ -9,8 +9,11 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (Piece(..))
 import Model.Score as Score exposing (..)
+import Random
 import Test exposing (..)
 
+initialSeed =
+    Random.initialSeed 42069
 
 white =
     Piece.WhiteStone
@@ -158,7 +161,7 @@ suite =
                             "Draw"
 
                         actualScore =
-                            scoreGame { game | board = seki }
+                            scoreGame { game | board = seki } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -169,7 +172,7 @@ suite =
                             "B+3"
 
                         actualScore =
-                            scoreGame game
+                            scoreGame game initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -180,7 +183,7 @@ suite =
                             "B+2"
 
                         actualScore =
-                            scoreGame { game | board = life }
+                            scoreGame { game | board = life } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -191,7 +194,7 @@ suite =
                             "W+4"
 
                         actualScore =
-                            scoreGame { game | board = deadStones }
+                            scoreGame { game | board = deadStones } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -202,7 +205,7 @@ suite =
                             "W+7"
 
                         actualScore =
-                            scoreGame { game | board = falseLife }
+                            scoreGame { game | board = falseLife } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -213,7 +216,7 @@ suite =
                             "W+0.5"
 
                         actualScore =
-                            scoreGame { game | board = tie, score = initWithKomi 0.5 }
+                            scoreGame { game | board = tie, score = initWithKomi 0.5 } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -231,7 +234,7 @@ suite =
                             { initialScore | blackPoints = 12.0 }
 
                         actualScore =
-                            scoreGame { game | board = tie, score = captureScore }
+                            scoreGame { game | board = tie, score = captureScore } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -242,7 +245,7 @@ suite =
                             "Draw"
 
                         actualScore =
-                            scoreGame { game | board = tie }
+                            scoreGame { game | board = tie } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
@@ -256,7 +259,7 @@ suite =
                             { score | isForfeit = True }
 
                         actualScore =
-                            scoreGame { game | score = forfeitScore }
+                            scoreGame { game | score = forfeitScore } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal "Forfeit" actualScore
@@ -267,7 +270,7 @@ suite =
                             "Draw"
 
                         actualScore =
-                            scoreGame { game | board = incompleteGame }
+                            scoreGame { game | board = incompleteGame } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore

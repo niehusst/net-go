@@ -1,14 +1,20 @@
 module Page.GameScore exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
-
+import Random
+import Logic.Scoring exposing (scoreGame)
+import Model.Game as Game exposing (Game)
+import Model.Score as Score exposing (Score)
 
 type alias Model =
-    {}
+    { initialSeed : Int
+    , game : Game
+    , score : Score
+    }
 
 
 type Msg
-    = Todo
+    = NewRandomSeed Int
 
 
 
@@ -27,8 +33,9 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Todo ->
-            ( model
+        NewRandomSeed seed ->
+            -- TODO: run score game
+            ( { model | score = scoreGame model.game seed }
             , Cmd.none
             )
 
@@ -37,13 +44,16 @@ update msg model =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel
-    , Cmd.none
+init : Game -> ( Model, Cmd Msg )
+init initialGame =
+    ( initialModel initialGame
+    , Random.generate NewRandomSeed (Random.int 0 42069)
     )
 
 
-initialModel : Model
-initialModel =
-    {}
+initialModel : Game -> Model
+initialModel game =
+    { initialSeed = 0
+    , game = game
+    , score = game.score
+    }

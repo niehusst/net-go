@@ -30,8 +30,8 @@ type alias BoardData r =
 {-| Given a game, return the final Score for the game.
 Uses territory scoring to calculate the score.
 -}
-scoreGame : Game -> Score
-scoreGame game =
+scoreGame : Game -> Int -> Score
+scoreGame game seed =
     if game.score.isForfeit then
         -- no need to do complex scoring work for forfeit games
         game.score
@@ -41,7 +41,7 @@ scoreGame game =
             -- TODO: switch to area scoring for boards fewer than 1/3 full??? (check avg fullness of complete game)
             -- clear the dead stones from the board before counting territory
             gameToScore =
-                clearDeadStones game
+                clearDeadStones game seed
         in
         countAllPoints gameToScore gameToScore.score
 
