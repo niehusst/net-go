@@ -107,3 +107,19 @@ emptyBoard size =
 boardToIntBoard : Board -> Array Int
 boardToIntBoard board =
     Array.map pieceToInt board
+
+
+{-| Get list of empty board indices.
+-}
+getEmptySpaces : Board -> List Int
+getEmptySpaces board =
+    List.foldl
+        (\(index, piece) emptySpaces ->
+                case piece of
+                    Piece.None ->
+                        index :: emptySpaces
+                    _ ->
+                        emptySpaces
+                )
+        []
+        (Array.toIndexedList board)

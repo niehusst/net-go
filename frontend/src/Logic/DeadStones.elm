@@ -11,6 +11,7 @@ import Model.Game as Game exposing (..)
 import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
 import Model.Score as Score exposing (Score)
 import Random
+import ListExtra exposing (shuffle)
 import Set exposing (Set)
 
 
@@ -70,6 +71,7 @@ Returns the list of board positions where there are stones that are likely dead.
 getDeadStones : BoardData r -> Int -> List Int
 getDeadStones bData seed =
     let
+        -- perform 100 iterations of monte carlo alg
         boardControlScores =
             getBoardControlProbability 100 bData seed
 
@@ -251,14 +253,19 @@ getBoardControlProbability iterations bData seed =
         baseProbabilities
 
 
+{-| Makes random (legal) moves of alternating color until only eye-filling moves
+remain, at which point the eyes are filled with their surrounding color.
+Returns the final board position with every space filled.
+-}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seed =
+    {-
     -- TODO: actual monte carlo shit
-    let
-        initialSeed =
-            Random.initialSeed seed
 
-        (randNum, newSeed) =
-            Random.step (Random.int 0 100) initialSeed
-    in
+1. get list of empty spaces on board, then shuffle list
+2. pop off front of list until legal move can be made (skip own eyes)
+3. if move is made, switch color and recurse
+4. if cant make any moves (and couldnt make any for other color), fill all holes and return
+
+-}
     Array.empty

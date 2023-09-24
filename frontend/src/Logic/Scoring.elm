@@ -39,6 +39,7 @@ scoreGame game seed =
     else
         let
             -- TODO: switch to area scoring for boards fewer than 1/3 full??? (check avg fullness of complete game)
+            --   only do area scoring??? depends on what dead stone cleared board returns
             -- clear the dead stones from the board before counting territory
             gameToScore =
                 clearDeadStones game seed
