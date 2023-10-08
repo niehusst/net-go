@@ -240,40 +240,6 @@ goToScoring model =
     Route.pushUrl Route.GameScore model.navKey
 
 
-playMove : Move.Move -> Game.Game -> Game.Game
-playMove move game =
-    case move of
-        Move.Pass ->
-            setLastMove move game
-                |> addMoveToHistory move
-
-        Move.Play piece position ->
-            let
-                gameBoardWithMove =
-                    { game | board = setPieceAt position piece game.board }
-
-                ( boardWithoutCapturedPieces, scoredPoints ) =
-                    removeCapturedPieces gameBoardWithMove
-
-                updatedScore =
-                    let
-                        points =
-                            toFloat scoredPoints
-                    in
-                    case game.playerColor of
-                        ColorChoice.Black ->
-                            Score.increaseBlackPoints points game.score
-
-                        ColorChoice.White ->
-                            Score.increaseWhitePoints points game.score
-            in
-            { game
-                | lastMove = Just move
-                , board = boardWithoutCapturedPieces
-                , history = move :: game.history
-                , score = updatedScore
-            }
-
 
 
 -- INIT --

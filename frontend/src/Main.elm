@@ -279,6 +279,7 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GameScore ->
                     let
+                        -- TODO: give real game
                         ( pageModel, pageCmds ) =
                             GameScore.init
                     in

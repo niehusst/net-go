@@ -1,21 +1,62 @@
-module Logic.Rules exposing (removeCapturedPieces, validMove)
+module Logic.Rules exposing (removeCapturedPieces, validMove, positionIsFriendlyEye, playMove)
 
 import Array
 import Model.Board as Board exposing (..)
-import Model.ColorChoice exposing (..)
-import Model.Game as Game exposing (Game)
+import Model.ColorChoice as ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece)
+import Model.Game as Game exposing (Game, addMoveToHistory, setLastMove)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
+import Model.Score as Score
 import Set exposing (Set)
 
 
 type alias MoveCheck =
     Piece -> Int -> Game -> ( Bool, Maybe String )
 
+type alias BoardData r =
+    { r
+        | playerColor : ColorChoice
+        , board : Board.Board
+        , boardSize : Board.BoardSize
+    }
 
 okay =
     ( True, Nothing )
 
+{-| Validates `position` is an empty space on the `game` board
+and that it is surrounded on all sides by friendly stones
+or the wall (making it an eye).
+-}
+positionIsFriendlyEye : Int -> BoardData r -> Bool
+positionIsFriendlyEye position boardData =
+    let
+        friendly =
+            colorToPiece boardData.playerColor
+
+        positionIs : Piece.Piece -> Int -> BoardData r -> Bool
+        positionIs targetPiece pos bData =
+            case Board.getPieceAt pos bData.board of
+                Just piece ->
+                    piece == targetPiece
+                Nothing ->
+                    False
+
+        positionEmpty =
+            positionIs Piece.None position boardData
+
+        topFriendly =
+            positionIs friendly (Board.getPositionUpFrom position boardData.boardSize) boardData
+
+        bottomFriendly =
+            positionIs friendly (Board.getPositionDownFrom position boardData.boardSize) boardData
+
+        leftFriendly =
+            positionIs friendly (Board.getPositionLeftFrom position boardData.boardSize) boardData
+
+        rightFriendly =
+            positionIs friendly (Board.getPositionRightFrom position boardData.boardSize) boardData
+    in
+    topFriendly && rightFriendly && bottomFriendly && leftFriendly && positionEmpty
 
 {-| Determine whether a move to be applied to the board is legal.
 if yes -> (True, Nothing)
@@ -144,12 +185,6 @@ legalPlayChecks =
     ]
 
 
-type alias BoardData r =
-    { r
-        | playerColor : ColorChoice
-        , board : Board.Board
-        , boardSize : Board.BoardSize
-    }
 
 
 {-| Find all the captured pieces of color `color` and return
@@ -315,3 +350,39 @@ isSurroundedByEnemyOrWall boardData position state =
                 Nothing ->
                     -- wall
                     { state | surrounded = True }
+
+
+playMove : Move.Move -> Game.Game -> Game.Game
+playMove move game =
+    case move of
+        Move.Pass ->
+            setLastMove move game
+                |> addMoveToHistory move
+
+        Move.Play piece position ->
+            let
+                gameBoardWithMove =
+                    { game | board = setPieceAt position piece game.board }
+
+                ( boardWithoutCapturedPieces, scoredPoints ) =
+                    removeCapturedPieces gameBoardWithMove
+
+                updatedScore =
+                    let
+                        points =
+                            toFloat scoredPoints
+                    in
+                    case game.playerColor of
+                        ColorChoice.Black ->
+                            Score.increaseBlackPoints points game.score
+
+                        ColorChoice.White ->
+                            Score.increaseWhitePoints points game.score
+            in
+            { game
+                | lastMove = Just move
+                , board = boardWithoutCapturedPieces
+                , history = move :: game.history
+                , score = updatedScore
+            }
+

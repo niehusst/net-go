@@ -5,9 +5,11 @@ module Logic.DeadStones exposing (clearDeadStones)
 
 import Array exposing (Array)
 import Bitwise
+import Logic.Rules exposing (validMove, removeCapturedPieces, positionIsFriendlyEye, playMove)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice exposing (ColorChoice(..), colorToPiece)
 import Model.Game as Game exposing (..)
+import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
 import Model.Score as Score exposing (Score)
 import Random
@@ -258,7 +260,7 @@ remain, at which point the eyes are filled with their surrounding color.
 Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
-playUntilGameComplete startingColor boardData seed =
+playUntilGameComplete startingColor bData seedInt =
     {-
     -- TODO: actual monte carlo shit
 
@@ -268,4 +270,58 @@ playUntilGameComplete startingColor boardData seed =
 4. if cant make any moves (and couldnt make any for other color), fill all holes and return
 
 -}
-    Array.empty
+    let
+        -- TODO: this take a full Game struct?? need to keep track of prev move to prevent inf loop in ko fight
+        kernel : ColorChoice -> BoardData r -> Int -> Bool -> Board
+        kernel color boardData seed opponentCouldMove =
+            let
+                -- TODO: no noeed to refetch empty positions if recursing foor next elem of the open moves
+                emptyPositions =
+                    Board.getEmptySpaces boardData.board
+
+                -- TODO: should this also return a new seed so we dont get same shuffle eevery time?
+                shuffledPositions =
+                    shuffle seed emptyPositions
+
+                opponentColor =
+                    Model.ColorChoice.colorInverse color
+            in
+            case shuffledPositions of
+                [] ->
+                    if opponentCouldMove then
+                        -- the opponent was able to make a move last time, so maybe they will
+                        -- be able to again and make new openings for further play
+                        kernel opponentColor boardData seed False
+                    else
+                        -- neither color is able to make a legal move from the current board
+                        -- state. Game is complete; exit play
+                        boardData.board
+                position :: positionsTail ->
+                    let
+                        piece =
+                            colorToPiece color
+
+                        move =
+                            Move.Play piece position
+
+                        game =
+                            Game.newGame boardData.boardSize color 0
+
+                        (isLegal, _) =
+                            (validMove move game)
+
+                        botMoveValidity =
+                            isLegal && not (positionIsFriendlyEye position game)
+
+                    in
+                    if botMoveValidity then
+                        let
+                            gameWithMove =
+                                playMove move game
+                        in
+                        kernel opponentColor gameWithMove seed True
+                    else
+                        -- TODO: we werent able to make a move; need to recurse w/ same list of shuffled moves
+                        kernel
+    in
+    kernel startingColor bData seedInt True
