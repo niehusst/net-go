@@ -261,15 +261,7 @@ Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
-    {-
-    -- TODO: actual monte carlo shit
-
-1. get list of empty spaces on board, then shuffle list
-2. pop off front of list until legal move can be made (skip own eyes)
-3. if move is made, switch color and recurse
-4. if cant make any moves (and couldnt make any for other color), fill all holes and return
-
--}
+    -- TODO: recursion is inf, or just too deep for js (i.e. not tail recurse?); causing process crash OOM
     let
         initialGame =
            Game.newGame boardData.boardSize startingColor 0

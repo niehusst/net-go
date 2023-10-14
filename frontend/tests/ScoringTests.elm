@@ -12,8 +12,7 @@ import Model.Score as Score exposing (..)
 import Random
 import Test exposing (..)
 
-initialSeed =
-    Random.initialSeed 42069
+initialSeed = 42069
 
 white =
     Piece.WhiteStone
