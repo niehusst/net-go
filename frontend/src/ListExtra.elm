@@ -36,17 +36,13 @@ removeAt lst idx =
     List.reverse (kernel lst idx 0 [])
 
 
-shuffle : Int -> List a -> List a
-shuffle seedInt list =
+shuffle : Random.Seed -> List a -> ( List a, Random.Seed )
+shuffle initialSeed list =
     let
-        initialSeed =
-            Random.initialSeed seedInt
-
-
-        kernel : Random.Seed -> List a -> List a -> List a
+        kernel : Random.Seed -> List a -> List a -> ( List a, Random.Seed )
         kernel seed source result =
             if List.isEmpty source then
-                result
+                ( result, seed )
             else
                 let
                     indexGenerator =
@@ -67,6 +63,6 @@ shuffle seedInt list =
 
                         Nothing ->
                             -- should never get here, generated an index outside list
-                            result
+                            ( result, nextSeed )
     in
     kernel initialSeed list []

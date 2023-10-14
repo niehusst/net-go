@@ -260,7 +260,7 @@ remain, at which point the eyes are filled with their surrounding color.
 Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
-playUntilGameComplete startingColor bData seedInt =
+playUntilGameComplete startingColor boardData seedInt =
     {-
     -- TODO: actual monte carlo shit
 
@@ -271,57 +271,65 @@ playUntilGameComplete startingColor bData seedInt =
 
 -}
     let
-        -- TODO: this take a full Game struct?? need to keep track of prev move to prevent inf loop in ko fight
-        kernel : ColorChoice -> BoardData r -> Int -> Bool -> Board
-        kernel color boardData seed opponentCouldMove =
-            let
-                -- TODO: no noeed to refetch empty positions if recursing foor next elem of the open moves
-                emptyPositions =
-                    Board.getEmptySpaces boardData.board
+        initialGame =
+           Game.newGame boardData.boardSize startingColor 0
 
-                -- TODO: should this also return a new seed so we dont get same shuffle eevery time?
-                shuffledPositions =
-                    shuffle seed emptyPositions
+        initialSeed =
+            Random.initialSeed seedInt
 
-                opponentColor =
-                    Model.ColorChoice.colorInverse color
-            in
-            case shuffledPositions of
+        findValidPosition : List Int -> Game -> Maybe Move
+        findValidPosition positions game =
+            case positions of
                 [] ->
-                    if opponentCouldMove then
-                        -- the opponent was able to make a move last time, so maybe they will
-                        -- be able to again and make new openings for further play
-                        kernel opponentColor boardData seed False
-                    else
-                        -- neither color is able to make a legal move from the current board
-                        -- state. Game is complete; exit play
-                        boardData.board
+                    Nothing
                 position :: positionsTail ->
                     let
                         piece =
-                            colorToPiece color
+                            colorToPiece game.playerColor
 
                         move =
                             Move.Play piece position
-
-                        game =
-                            Game.newGame boardData.boardSize color 0
 
                         (isLegal, _) =
                             (validMove move game)
 
                         botMoveValidity =
                             isLegal && not (positionIsFriendlyEye position game)
-
                     in
                     if botMoveValidity then
-                        let
-                            gameWithMove =
-                                playMove move game
-                        in
-                        kernel opponentColor gameWithMove seed True
+                        Just move
                     else
-                        -- TODO: we werent able to make a move; need to recurse w/ same list of shuffled moves
-                        kernel
+                        findValidPosition positionsTail game
+
+
+        kernel : ColorChoice -> Game -> Random.Seed -> Bool -> Board
+        kernel color game seed opponentCouldMove =
+            let
+                emptyPositions =
+                    Board.getEmptySpaces game.board
+
+                ( shuffledPositions, nextSeed ) =
+                    shuffle seed emptyPositions
+
+                opponentColor =
+                    Model.ColorChoice.colorInverse color
+            in
+            case findValidPosition shuffledPositions game of
+                Nothing ->
+                    if opponentCouldMove then
+                        -- the opponent was able to make a move last time, so maybe they will
+                        -- be able to again and make new openings for further play
+                        kernel opponentColor game nextSeed False
+                    else
+                        -- neither color is able to make a legal move from the current board
+                        -- state. Game is complete; exit play
+                        game.board
+                Just move ->
+                    let
+                        -- TODO: is this going to switch color for us? Do we need color param?
+                        gameWithMove =
+                            playMove move game
+                    in
+                    kernel opponentColor gameWithMove nextSeed True
     in
-    kernel startingColor bData seedInt True
+    kernel startingColor initialGame initialSeed True
