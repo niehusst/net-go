@@ -29,9 +29,9 @@ removeAt lst idx =
                     result
                 x :: xs ->
                     if index == pos then
-                        kernel list index (pos + 1) result
+                        kernel xs index (pos + 1) result
                     else
-                        kernel list index (pos + 1) (x :: result)
+                        kernel xs index (pos + 1) (x :: result)
     in
     List.reverse (kernel lst idx 0 [])
 
@@ -41,22 +41,23 @@ shuffle initialSeed list =
     let
         kernel : Random.Seed -> List a -> List a -> ( List a, Random.Seed )
         kernel seed source result =
-            if List.isEmpty source then
-                ( result, seed )
-            else
-                let
-                    indexGenerator =
-                        Random.int 0 ((List.length source) - 1)
+            case source of
+                [] ->
+                    ( result, seed )
+                _ ->
+                    let
+                        indexGenerator =
+                            Random.int 0 ((List.length source) - 1)
 
-                    ( index, nextSeed ) =
-                        Random.step indexGenerator seed
+                        ( index, nextSeed ) =
+                            Random.step indexGenerator seed
 
-                    valAtIndex =
-                        getAt source index
+                        valAtIndex =
+                            getAt source index
 
-                    sourceWithoutIndex =
-                        removeAt source index
-                in
+                        sourceWithoutIndex =
+                            removeAt source index
+                    in
                     case valAtIndex of
                         Just val ->
                             kernel nextSeed sourceWithoutIndex (val :: result)
