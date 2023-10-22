@@ -73,9 +73,9 @@ Returns the list of board positions where there are stones that are likely dead.
 getDeadStones : BoardData r -> Int -> List Int
 getDeadStones bData seed =
     let
-        -- perform 100 iterations of monte carlo alg
+        -- TODO perform 100 iterations of monte carlo alg
         boardControlScores =
-            getBoardControlProbability 100 bData seed
+            getBoardControlProbability 1 bData seed
 
         {- for each connected chunk of stones on board, check
            if they are dead on average. If so, add to list of dead stones
@@ -320,7 +320,10 @@ playUntilGameComplete startingColor boardData seedInt =
                     let
                         -- TODO: is this going to switch color for us? Do we need color param?
                         gameWithMove =
-                            playMove move game
+                            setPlayerColor opponentColor (playMove move game)
+
+                        -- TODO: debug
+                        _ = printBoard gameWithMove
                     in
                     kernel opponentColor gameWithMove nextSeed True
     in

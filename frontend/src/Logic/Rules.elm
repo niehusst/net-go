@@ -39,7 +39,8 @@ positionIsFriendlyEye position boardData =
                 Just piece ->
                     piece == targetPiece
                 Nothing ->
-                    False
+                    -- out of bounds (walls) are friendly
+                    True
 
         positionEmpty =
             positionIs Piece.None position boardData

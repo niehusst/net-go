@@ -16,7 +16,14 @@ type alias Board =
 
 getPieceAt : Int -> Board -> Maybe Piece
 getPieceAt index board =
-    Array.get index board
+    if index < 0 then
+        {- prevent access to pieces via negative indexing
+        since we rely on negative index to indicate 2d array
+        out of bounds
+        -}
+        Nothing
+    else
+        Array.get index board
 
 
 setPieceAt : Int -> Piece -> Board -> Board

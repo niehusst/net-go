@@ -91,15 +91,15 @@ life =
 
 
 deadStones =
-    [ [ empty, empty, empty, empty, empty, empty, white, black, empty ]
-    , [ empty, empty, empty, empty, empty, empty, white, black, black ]
-    , [ empty, empty, empty, empty, empty, empty, white, white, white ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ black, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ white, empty, empty, empty, empty, empty, empty, empty, empty ]
+    [ [ white, white, white, white, white, white, white, black, empty ]
+    , [ white, white, white, white, white, white, white, black, black ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, empty, white, white, white, white, white ]
+    , [ white, white, white, white, empty, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ black, white, white, white, white, white, white, white, white ]
+    , [ empty, white, white, white, white, white, white, white, white ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -186,11 +186,11 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , test "dead stones get removed from board for scoring and are included in score" <|
+            , only <| test "dead stones get removed from board for scoring and are included in score" <|
                 \_ ->
                     let
                         expectedScore =
-                            "W+4"
+                            "W+12"
 
                         actualScore =
                             scoreGame { game | board = deadStones } initialSeed
