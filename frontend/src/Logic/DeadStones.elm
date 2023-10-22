@@ -210,8 +210,11 @@ algorithm provides.
 getBoardControlProbability : Int -> BoardData r -> Int -> Array Float
 getBoardControlProbability iterations bData seed =
     let
+        boardSizeInt =
+            boardSizeToInt bData.boardSize
+
         baseProbabilities =
-            Array.repeat (boardSizeToInt bData.boardSize) 0.0
+            Array.repeat (boardSizeInt * boardSizeInt) 0.0
 
         -- finish the game `iterations` times and map each position to a probability that
         -- it is controlled by a certain color
@@ -277,6 +280,9 @@ playUntilGameComplete startingColor boardData seedInt =
         findValidPosition positions game =
             case positions of
                 [] ->
+                    let
+                        _ = Debug.log "no valid positions found for" <| Model.ColorChoice.colorToString game.playerColor
+                    in
                     Nothing
 
                 position :: positionsTail ->
@@ -294,6 +300,9 @@ playUntilGameComplete startingColor boardData seedInt =
                             isLegal && not (positionIsFriendlyEye position game)
                     in
                     if botMoveValidity then
+                        let
+                            _ = Debug.log "found valid move at" position
+                        in
                         Just move
 
                     else
@@ -305,8 +314,12 @@ playUntilGameComplete startingColor boardData seedInt =
                 emptyPositions =
                     Board.getEmptySpaces game.board
 
+                _ = Debug.log "all empyt psotions" emptyPositions
+
                 ( shuffledPositions, nextSeed ) =
                     shuffle seed emptyPositions
+
+                _ = Debug.log "shuffled empty" shuffledPositions
 
                 opponentColor =
                     Model.ColorChoice.colorInverse game.playerColor
@@ -314,11 +327,17 @@ playUntilGameComplete startingColor boardData seedInt =
             case findValidPosition shuffledPositions game of
                 Nothing ->
                     if opponentCouldMove then
+                        let
+                            _ = Debug.log "player could not make move" <| Model.ColorChoice.colorToString game.playerColor
+                        in
                         -- the opponent was able to make a move last time, so maybe they will
                         -- be able to again and make new openings for further play
-                        kernel game nextSeed False
+                        kernel (setPlayerColor opponentColor game) nextSeed False
 
                     else
+                        let
+                            _ = Debug.log "neither player can move" ""
+                        in
                         -- neither color is able to make a legal move from the current board
                         -- state. Game is complete; exit play
                         game.board

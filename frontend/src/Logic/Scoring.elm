@@ -38,6 +38,7 @@ scoreGame game seed =
 
     else
         let
+            _ = Debug.log "board at end of game" ""
             _ =
                 Game.printBoard game
 
@@ -47,6 +48,7 @@ scoreGame game seed =
             gameToScore =
                 clearDeadStones game seed
 
+            _ = Debug.log "board after removing stones" ""
             _ =
                 Game.printBoard gameToScore
         in

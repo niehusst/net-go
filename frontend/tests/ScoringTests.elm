@@ -12,6 +12,7 @@ import Model.Score as Score exposing (..)
 import Random
 import Test exposing (..)
 
+-- TODO: use test fuzzing seed??
 initialSeed = 42069
 
 white =
