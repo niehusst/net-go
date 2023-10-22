@@ -5,6 +5,7 @@ module Logic.DeadStones exposing (clearDeadStones)
 
 import Array exposing (Array)
 import Bitwise
+import Debug
 import Logic.Rules exposing (validMove, removeCapturedPieces, positionIsFriendlyEye, playMove)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice exposing (ColorChoice(..), colorToPiece)
@@ -76,6 +77,8 @@ getDeadStones bData seed =
         -- TODO perform 100 iterations of monte carlo alg
         boardControlScores =
             getBoardControlProbability 1 bData seed
+
+        _ = Debug.log "\nboard control scores" boardControlScores
 
         {- for each connected chunk of stones on board, check
            if they are dead on average. If so, add to list of dead stones
@@ -261,10 +264,9 @@ Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
-    -- TODO: recursion is inf, or just too deep for js (i.e. not tail recurse?); causing process crash OOM
     let
         initialGame =
-           Game.newGame boardData.boardSize startingColor 0
+           setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
 
         initialSeed =
             Random.initialSeed seedInt
@@ -294,8 +296,8 @@ playUntilGameComplete startingColor boardData seedInt =
                         findValidPosition positionsTail game
 
 
-        kernel : ColorChoice -> Game -> Random.Seed -> Bool -> Board
-        kernel color game seed opponentCouldMove =
+        kernel : Game -> Random.Seed -> Bool -> Board
+        kernel game seed opponentCouldMove =
             let
                 emptyPositions =
                     Board.getEmptySpaces game.board
@@ -304,27 +306,26 @@ playUntilGameComplete startingColor boardData seedInt =
                     shuffle seed emptyPositions
 
                 opponentColor =
-                    Model.ColorChoice.colorInverse color
+                    Model.ColorChoice.colorInverse game.playerColor
             in
             case findValidPosition shuffledPositions game of
                 Nothing ->
                     if opponentCouldMove then
                         -- the opponent was able to make a move last time, so maybe they will
                         -- be able to again and make new openings for further play
-                        kernel opponentColor game nextSeed False
+                        kernel game nextSeed False
                     else
                         -- neither color is able to make a legal move from the current board
                         -- state. Game is complete; exit play
                         game.board
                 Just move ->
                     let
-                        -- TODO: is this going to switch color for us? Do we need color param?
                         gameWithMove =
                             setPlayerColor opponentColor (playMove move game)
 
                         -- TODO: debug
                         _ = printBoard gameWithMove
                     in
-                    kernel opponentColor gameWithMove nextSeed True
+                    kernel gameWithMove nextSeed True
     in
-    kernel startingColor initialGame initialSeed True
+    kernel initialGame initialSeed True
