@@ -6,7 +6,8 @@ module Logic.DeadStones exposing (clearDeadStones)
 import Array exposing (Array)
 import Bitwise
 import Debug
-import Logic.Rules exposing (validMove, removeCapturedPieces, positionIsFriendlyEye, playMove)
+import ListExtra exposing (shuffle)
+import Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPieces, validMove)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice exposing (ColorChoice(..), colorToPiece)
 import Model.Game as Game exposing (..)
@@ -14,7 +15,6 @@ import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
 import Model.Score as Score exposing (Score)
 import Random
-import ListExtra exposing (shuffle)
 import Set exposing (Set)
 
 
@@ -78,7 +78,8 @@ getDeadStones bData seed =
         boardControlScores =
             getBoardControlProbability 1 bData seed
 
-        _ = Debug.log "\nboard control scores" boardControlScores
+        _ =
+            Debug.log "\nboard control scores" boardControlScores
 
         {- for each connected chunk of stones on board, check
            if they are dead on average. If so, add to list of dead stones
@@ -264,9 +265,10 @@ Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
+    -- TODO: @next figure out why no moves are being made in monte-carlo sim? and why last black stone isnt captuerd
     let
         initialGame =
-           setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
+            setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
 
         initialSeed =
             Random.initialSeed seedInt
@@ -276,6 +278,7 @@ playUntilGameComplete startingColor boardData seedInt =
             case positions of
                 [] ->
                     Nothing
+
                 position :: positionsTail ->
                     let
                         piece =
@@ -284,17 +287,17 @@ playUntilGameComplete startingColor boardData seedInt =
                         move =
                             Move.Play piece position
 
-                        (isLegal, _) =
-                            (validMove move game)
+                        ( isLegal, _ ) =
+                            validMove move game
 
                         botMoveValidity =
                             isLegal && not (positionIsFriendlyEye position game)
                     in
                     if botMoveValidity then
                         Just move
+
                     else
                         findValidPosition positionsTail game
-
 
         kernel : Game -> Random.Seed -> Bool -> Board
         kernel game seed opponentCouldMove =
@@ -314,17 +317,20 @@ playUntilGameComplete startingColor boardData seedInt =
                         -- the opponent was able to make a move last time, so maybe they will
                         -- be able to again and make new openings for further play
                         kernel game nextSeed False
+
                     else
                         -- neither color is able to make a legal move from the current board
                         -- state. Game is complete; exit play
                         game.board
+
                 Just move ->
                     let
                         gameWithMove =
                             setPlayerColor opponentColor (playMove move game)
 
                         -- TODO: debug
-                        _ = printBoard gameWithMove
+                        _ =
+                            printBoard gameWithMove
                     in
                     kernel gameWithMove nextSeed True
     in

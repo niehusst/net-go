@@ -1,10 +1,11 @@
 module Page.GameScore exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
-import Random
 import Logic.Scoring exposing (scoreGame)
 import Model.Game as Game exposing (Game)
 import Model.Score as Score exposing (Score)
+import Random
+
 
 type alias Model =
     { initialSeed : Int

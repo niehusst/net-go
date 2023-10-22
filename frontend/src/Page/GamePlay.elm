@@ -241,7 +241,6 @@ goToScoring model =
 
 
 
-
 -- INIT --
 
 

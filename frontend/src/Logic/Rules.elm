@@ -1,4 +1,4 @@
-module Logic.Rules exposing (removeCapturedPieces, validMove, positionIsFriendlyEye, playMove)
+module Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPieces, validMove)
 
 import Array
 import Model.Board as Board exposing (..)
@@ -13,6 +13,7 @@ import Set exposing (Set)
 type alias MoveCheck =
     Piece -> Int -> Game -> ( Bool, Maybe String )
 
+
 type alias BoardData r =
     { r
         | playerColor : ColorChoice
@@ -20,8 +21,10 @@ type alias BoardData r =
         , boardSize : Board.BoardSize
     }
 
+
 okay =
     ( True, Nothing )
+
 
 {-| Validates `position` is an empty space on the `game` board
 and that it is surrounded on all sides by friendly stones
@@ -38,6 +41,7 @@ positionIsFriendlyEye position boardData =
             case Board.getPieceAt pos bData.board of
                 Just piece ->
                     piece == targetPiece
+
                 Nothing ->
                     -- out of bounds (walls) are friendly
                     True
@@ -58,6 +62,7 @@ positionIsFriendlyEye position boardData =
             positionIs friendly (Board.getPositionRightFrom position boardData.boardSize) boardData
     in
     topFriendly && rightFriendly && bottomFriendly && leftFriendly && positionEmpty
+
 
 {-| Determine whether a move to be applied to the board is legal.
 if yes -> (True, Nothing)
@@ -184,8 +189,6 @@ legalPlayChecks =
             _ ->
                 okay
     ]
-
-
 
 
 {-| Find all the captured pieces of color `color` and return
@@ -386,4 +389,3 @@ playMove move game =
                 , history = move :: game.history
                 , score = updatedScore
             }
-

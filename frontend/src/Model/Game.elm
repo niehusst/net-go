@@ -3,8 +3,8 @@ module Model.Game exposing (..)
 import Array
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
 import Model.ColorChoice exposing (ColorChoice)
-import Model.Piece exposing (Piece(..))
 import Model.Move as Move exposing (Move(..))
+import Model.Piece exposing (Piece(..))
 import Model.Score as Score exposing (Score)
 
 
@@ -74,8 +74,10 @@ printBoard game =
             case p of
                 Model.Piece.None ->
                     "_"
+
                 Model.Piece.BlackStone ->
                     "X"
+
                 Model.Piece.WhiteStone ->
                     "O"
 
@@ -83,9 +85,11 @@ printBoard game =
         kernel g board =
             if Array.isEmpty board then
                 let
-                    _ = Debug.log "<sep>" ""
+                    _ =
+                        Debug.log "<sep>" ""
                 in
                 g
+
             else
                 let
                     len =
@@ -97,8 +101,9 @@ printBoard game =
                     rest =
                         Array.slice len (Array.length board) board
 
-                    _ = Debug.log "" (Array.map (mapper) row)
+                    _ =
+                        Debug.log "" (Array.map mapper row)
                 in
-                    kernel g rest
+                kernel g rest
     in
     kernel game game.board

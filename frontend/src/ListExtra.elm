@@ -1,7 +1,8 @@
 module ListExtra exposing (..)
 
-import Random
 import Debug
+import Random
+
 
 getAt : List a -> Int -> Maybe a
 getAt lst idx =
@@ -11,13 +12,16 @@ getAt lst idx =
             case list of
                 [] ->
                     Nothing
+
                 x :: xs ->
                     if index == pos then
                         Just x
+
                     else
                         kernel xs index (pos + 1)
     in
     kernel lst idx 0
+
 
 removeAt : List a -> Int -> List a
 removeAt lst idx =
@@ -27,9 +31,11 @@ removeAt lst idx =
             case list of
                 [] ->
                     result
+
                 x :: xs ->
                     if index == pos then
                         kernel xs index (pos + 1) result
+
                     else
                         kernel xs index (pos + 1) (x :: result)
     in
@@ -44,10 +50,11 @@ shuffle initialSeed list =
             case source of
                 [] ->
                     ( result, seed )
+
                 _ ->
                     let
                         indexGenerator =
-                            Random.int 0 ((List.length source) - 1)
+                            Random.int 0 (List.length source - 1)
 
                         ( index, nextSeed ) =
                             Random.step indexGenerator seed

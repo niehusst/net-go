@@ -18,10 +18,11 @@ getPieceAt : Int -> Board -> Maybe Piece
 getPieceAt index board =
     if index < 0 then
         {- prevent access to pieces via negative indexing
-        since we rely on negative index to indicate 2d array
-        out of bounds
+           since we rely on negative index to indicate 2d array
+           out of bounds
         -}
         Nothing
+
     else
         Array.get index board
 
@@ -121,12 +122,13 @@ boardToIntBoard board =
 getEmptySpaces : Board -> List Int
 getEmptySpaces board =
     List.foldl
-        (\(index, piece) emptySpaces ->
-                case piece of
-                    Piece.None ->
-                        index :: emptySpaces
-                    _ ->
-                        emptySpaces
-                )
+        (\( index, piece ) emptySpaces ->
+            case piece of
+                Piece.None ->
+                    index :: emptySpaces
+
+                _ ->
+                    emptySpaces
+        )
         []
         (Array.toIndexedList board)
