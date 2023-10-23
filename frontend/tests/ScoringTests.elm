@@ -99,8 +99,8 @@ deadStones =
     , [ white, white, white, white, empty, white, white, white, white ]
     , [ white, white, white, white, white, white, white, white, white ]
     , [ white, white, white, white, white, white, white, white, white ]
-    , [ black, white, white, white, white, white, white, white, white ]
-    , [ empty, white, white, white, white, white, white, white, white ]
+    , [ black, white, white, white, black, black, black, black, black ]
+    , [ empty, white, white, white, black, empty, black, empty, white ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -187,11 +187,11 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , only <| test "dead stones get removed from board for scoring and are included in score" <|
+            , test "dead stones get removed from board for scoring and are included in score" <|
                 \_ ->
                     let
                         expectedScore =
-                            "W+12"
+                            "W+8"
 
                         actualScore =
                             scoreGame { game | board = deadStones } initialSeed

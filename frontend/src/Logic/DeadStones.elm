@@ -5,7 +5,6 @@ module Logic.DeadStones exposing (clearDeadStones)
 
 import Array exposing (Array)
 import Bitwise
-import Debug
 import ListExtra exposing (shuffle)
 import Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPieces, validMove)
 import Model.Board as Board exposing (..)
@@ -74,12 +73,15 @@ Returns the list of board positions where there are stones that are likely dead.
 getDeadStones : BoardData r -> Int -> List Int
 getDeadStones bData seed =
     let
-        -- TODO perform 100 iterations of monte carlo alg
+        -- perform 100 iterations of monte carlo alg
         boardControlScores =
-            getBoardControlProbability 1 bData seed
+            getBoardControlProbability 100 bData seed
 
-        _ =
-            Debug.log "\nboard control scores" boardControlScores
+        intSize =
+            (boardSizeToInt bData.boardSize)
+
+        boardLen =
+            intSize * intSize
 
         {- for each connected chunk of stones on board, check
            if they are dead on average. If so, add to list of dead stones
@@ -119,6 +121,7 @@ getDeadStones bData seed =
                                                 runSum + probability
 
                                             Nothing ->
+                                                -- should never happen; controlScores length != board length
                                                 runSum
                                     )
                                     0
@@ -127,8 +130,18 @@ getDeadStones bData seed =
                             averageControlScore =
                                 sumControlScore / toFloat (List.length connectedStones)
 
+                            chainColorInt =
+                                pieceToInt <|
+                                    case getPieceAt index boardData.board of
+                                        Just piece ->
+                                            piece
+                                        Nothing ->
+                                            None
+
+                            -- check if average control of chain area matches the stone color on board.
+                            -- if it doesnt, then that stone is usually captured by opponent
                             averageControlIsEnemy =
-                                ((colorToPiece >> pieceToInt) boardData.playerColor < 0) == (averageControlScore < 0)
+                                (chainColorInt < 0) /= (averageControlScore < 0) || averageControlScore == 0
 
                             updatedDeadStones =
                                 if averageControlIsEnemy then
@@ -143,10 +156,10 @@ getDeadStones bData seed =
                     else
                         kernel positionsTail controlScores boardData deadStoneIndeces seen
 
-        -- TODO: get dead nearby chains
+        -- TODO: get dead nearby chains? do need to do that?
     in
     kernel
-        (List.range 0 (boardSizeToInt bData.boardSize))
+        (List.range 0 boardLen)
         boardControlScores
         bData
         []
@@ -268,7 +281,6 @@ Returns the final board position with every space filled.
 -}
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
-    -- TODO: @next figure out why no moves are being made in monte-carlo sim? and why last black stone isnt captuerd
     let
         initialGame =
             setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
@@ -280,9 +292,6 @@ playUntilGameComplete startingColor boardData seedInt =
         findValidPosition positions game =
             case positions of
                 [] ->
-                    let
-                        _ = Debug.log "no valid positions found for" <| Model.ColorChoice.colorToString game.playerColor
-                    in
                     Nothing
 
                 position :: positionsTail ->
@@ -300,9 +309,6 @@ playUntilGameComplete startingColor boardData seedInt =
                             isLegal && not (positionIsFriendlyEye position game)
                     in
                     if botMoveValidity then
-                        let
-                            _ = Debug.log "found valid move at" position
-                        in
                         Just move
 
                     else
@@ -314,12 +320,8 @@ playUntilGameComplete startingColor boardData seedInt =
                 emptyPositions =
                     Board.getEmptySpaces game.board
 
-                _ = Debug.log "all empyt psotions" emptyPositions
-
                 ( shuffledPositions, nextSeed ) =
                     shuffle seed emptyPositions
-
-                _ = Debug.log "shuffled empty" shuffledPositions
 
                 opponentColor =
                     Model.ColorChoice.colorInverse game.playerColor
@@ -327,17 +329,11 @@ playUntilGameComplete startingColor boardData seedInt =
             case findValidPosition shuffledPositions game of
                 Nothing ->
                     if opponentCouldMove then
-                        let
-                            _ = Debug.log "player could not make move" <| Model.ColorChoice.colorToString game.playerColor
-                        in
                         -- the opponent was able to make a move last time, so maybe they will
                         -- be able to again and make new openings for further play
                         kernel (setPlayerColor opponentColor game) nextSeed False
 
                     else
-                        let
-                            _ = Debug.log "neither player can move" ""
-                        in
                         -- neither color is able to make a legal move from the current board
                         -- state. Game is complete; exit play
                         game.board
@@ -346,10 +342,6 @@ playUntilGameComplete startingColor boardData seedInt =
                     let
                         gameWithMove =
                             setPlayerColor opponentColor (playMove move game)
-
-                        -- TODO: debug
-                        _ =
-                            printBoard gameWithMove
                     in
                     kernel gameWithMove nextSeed True
     in
