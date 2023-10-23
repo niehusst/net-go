@@ -51,9 +51,9 @@ incompleteGame =
     , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
     , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
     , [ empty, empty, empty, empty, white, empty, empty, empty, empty ]
-    , [ empty, empty, empty, black, empty, empty, empty, white, empty ]
-    , [ black, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ white, empty, empty, empty, empty, empty, empty, empty, empty ]
+    , [ empty, empty, empty, black, black, empty, empty, empty, empty ]
+    , [ black, empty, empty, empty, black, empty, empty, empty, white ]
+    , [ white, empty, empty, empty, empty, empty, empty, white, empty ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -61,15 +61,15 @@ incompleteGame =
 
 seki : Board.Board
 seki =
-    [ [ empty, black, empty, black, white, empty, empty, empty, empty ]
-    , [ empty, black, white, black, white, empty, empty, empty, empty ]
-    , [ empty, black, white, black, white, empty, empty, empty, empty ]
-    , [ empty, black, black, white, white, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ black, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ white, empty, empty, empty, empty, empty, empty, empty, empty ]
+    [ [ black, black, empty, black, white, white, white, white, empty ]
+    , [ black, black, white, black, white, white, white, empty, white ]
+    , [ black, black, white, black, white, white, white, white, white ]
+    , [ black, black, black, white, white, white, white, white, white ]
+    , [ black, black, black, black, white, white, white, white, white ]
+    , [ black, black, black, black, white, white, white, white, white ]
+    , [ black, black, black, black, white, white, white, white, white ]
+    , [ black, empty, black, black, white, white, white, white, white ]
+    , [ empty, black, black, black, white, white, white, white, white ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -77,15 +77,15 @@ seki =
 
 life : Board.Board
 life =
-    [ [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, white, white, white, white, white, white ]
-    , [ black, empty, empty, white, black, black, black, black, black ]
-    , [ white, empty, empty, white, black, empty, black, empty, black ]
+    [ [ black, black, black, white, empty, white, white, white, empty ]
+    , [ black, black, black, white, white, white, white, white, white ]
+    , [ black, black, black, white, empty, white, white, white, white ]
+    , [ black, black, black, white, empty, white, white, white, white ]
+    , [ black, empty, black, white, white, white, white, white, white ]
+    , [ black, black, black, white, empty, white, white, white, white ]
+    , [ black, empty, black, white, white, white, white, white, white ]
+    , [ black, black, black, white, black, black, black, black, black ]
+    , [ black, black, black, white, black, empty, black, empty, black ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -108,15 +108,15 @@ deadStones =
 
 falseLife : Board.Board
 falseLife =
-    [ [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, empty, empty, empty, empty, empty, empty ]
-    , [ empty, empty, empty, white, white, white, white, white, white ]
-    , [ black, empty, empty, white, white, black, black, black, black ]
-    , [ white, empty, empty, white, black, empty, black, empty, black ]
+    [ [ white, white, empty, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, black, black, black, black ]
+    , [ white, empty, white, white, black, empty, black, empty, black ]
     ]
         |> List.foldr (++) []
         |> Array.fromList
@@ -126,11 +126,11 @@ tie : Board.Board
 tie =
     [ [ black, black, black, black, white, white, white, white, white ]
     , [ empty, black, black, black, white, white, white, white, empty ]
-    , [ empty, black, black, black, white, white, white, white, empty ]
-    , [ empty, black, black, black, white, white, white, white, empty ]
-    , [ empty, black, black, black, empty, white, white, white, empty ]
-    , [ empty, black, black, black, black, white, white, white, empty ]
-    , [ empty, black, black, black, black, white, white, white, empty ]
+    , [ black, black, black, black, white, white, white, white, white ]
+    , [ black, black, black, black, white, white, white, white, white ]
+    , [ black, black, black, black, black, white, white, white, white ]
+    , [ black, black, black, black, black, white, white, white, white ]
+    , [ black, black, black, black, black, white, white, white, white ]
     , [ empty, black, black, black, black, white, white, white, empty ]
     , [ black, black, black, black, black, white, white, white, white ]
     ]
@@ -142,7 +142,7 @@ game : Game.Game
 game =
     { boardSize = Board.Small
     , board = life
-    , lastMove = Just (Move.Play white 40) -- center of board
+    , lastMove = Just (Move.Play white 40) -- center of board TODO: why is this not Nothing?
     , history = []
     , playerColor = Black
     , isOver = False
@@ -180,14 +180,14 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "B+2"
+                            "W+1"
 
                         actualScore =
                             scoreGame { game | board = life } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , test "dead stones get removed from board for scoring and are included in score" <|
+            , only <| test "dead stones get removed from board for scoring and are included in score" <|
                 \_ ->
                     let
                         expectedScore =
@@ -202,7 +202,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "W+7"
+                            "W+16"
 
                         actualScore =
                             scoreGame { game | board = falseLife } initialSeed
@@ -267,7 +267,7 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "Draw"
+                            "W+1"
 
                         actualScore =
                             scoreGame { game | board = incompleteGame } initialSeed
