@@ -58,6 +58,20 @@ incompleteGame =
         |> List.foldr (++) []
         |> Array.fromList
 
+areaScoreGame : Board.Board
+areaScoreGame =
+    [ [ empty, empty, empty, empty, empty, empty, empty, black, empty ]
+    , [ empty, empty, black, empty, empty, empty, empty, black, white ]
+    , [ empty, empty, black, white, empty, empty, empty, empty, white ]
+    , [ empty, empty, black, white, empty, empty, empty, empty, empty ]
+    , [ empty, empty, black, white, empty, white, black, white, empty ]
+    , [ empty, empty, empty, white, white, white, empty, white, empty ]
+    , [ empty, empty, empty, white, black, white, empty, white, empty ]
+    , [ empty, empty, empty, empty, black, white, empty, white, white ]
+    , [ empty, empty, empty, empty, empty, white, empty, white, empty ]
+    ]
+        |> List.foldr (++) []
+        |> Array.fromList
 
 seki : Board.Board
 seki =
@@ -274,5 +288,17 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
+            , test "incomplete games get area scored correctly" <|
+                \_ ->
+                    let
+                        expectedScore =
+                            "W+11"
+
+                        actualScore =
+                            scoreGame { game | board = areaScoreGame } initialSeed
+                                |> scoreToString
+                    in
+                    Expect.equal expectedScore actualScore
+
             ]
         ]
