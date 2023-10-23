@@ -50,10 +50,10 @@ clearDeadStones game seed =
                 (\index score ->
                     case getPieceAt index game.board of
                         Just BlackStone ->
-                            { score | whitePoints = score.whitePoints + 1 }
+                            Score.increaseWhitePoints 1 score
 
                         Just WhiteStone ->
-                            { score | blackPoints = score.blackPoints + 1 }
+                            Score.increaseBlackPoints 1 score
 
                         _ ->
                             score

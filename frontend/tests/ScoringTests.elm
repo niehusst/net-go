@@ -201,7 +201,7 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , only <| test "dead stones get removed from board for scoring and are included in score" <|
+            , test "dead stones get removed from board for scoring and are included in score" <|
                 \_ ->
                     let
                         expectedScore =

@@ -40,9 +40,9 @@ scoreGame game seed =
         if Board.getPercentFilled game.board < 0.5 then
             -- perform area scoring on incomplete games to prevent
             -- long monte-carlo simulations
-            areaScore game game.score
+            areaScore game
         else
-            territoryScore game game.score seed
+            territoryScore game seed
 
 
 {-| Peform the area based method of scoring a game.
@@ -56,9 +56,11 @@ Does not take captured stones into account.
 
 Returns the updated score.
 -}
-areaScore : BoardData r -> Score -> Score
-areaScore boardData initialScore =
+areaScore : Game -> Score
+areaScore game =
     let
+        initialScore = game.score
+
         -- reset existing score; area score doesnt count capture points
         -- accrued during game-play
         clearedScore =
@@ -68,7 +70,7 @@ areaScore boardData initialScore =
             }
 
         scoreWithSurroundPoints =
-            countSurroundedTerritory boardData clearedScore
+            countSurroundedTerritory game clearedScore
 
         scoreWithPieceCounts =
             Array.foldr
@@ -84,7 +86,7 @@ areaScore boardData initialScore =
                             score
                 )
                 scoreWithSurroundPoints
-                boardData.board
+                game.board
     in
     scoreWithPieceCounts
 
@@ -96,15 +98,15 @@ number of surrounded spaces to that color's points.
 Returns the updated score with the points from surrouned
 spaces counted.
 -}
-territoryScore : Game -> Score -> Int -> Score
-territoryScore game initialScore seed =
+territoryScore : Game -> Int -> Score
+territoryScore game seed =
     let
         -- clear the dead stones from the board before counting territory
         -- to get cleaner results
         gameToScore =
             clearDeadStones game seed
     in
-    countSurroundedTerritory gameToScore initialScore
+    countSurroundedTerritory gameToScore gameToScore.score
 
 countSurroundedTerritory : BoardData r -> Score -> Score
 countSurroundedTerritory boardData initialScore =
