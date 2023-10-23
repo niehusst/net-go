@@ -213,6 +213,7 @@ suite =
                     in
                     Expect.equal expectedScore actualScore
             , test "false life removed from board" <|
+                -- TODO: @next why is this is running forevere?? would rather find settled game state than turn limit..
                 \_ ->
                     let
                         expectedScore =

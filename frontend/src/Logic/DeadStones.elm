@@ -282,6 +282,9 @@ Returns the final board position with every space filled.
 playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
     let
+        -- x2 turn count so that each color gets that many turns
+        maxTurns = 100 * 2
+
         initialGame =
             setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
 
@@ -314,9 +317,12 @@ playUntilGameComplete startingColor boardData seedInt =
                     else
                         findValidPosition positionsTail game
 
-        kernel : Game -> Random.Seed -> Bool -> Board
-        kernel game seed opponentCouldMove =
+        kernel : Game -> Random.Seed -> Bool -> Int -> Board
+        kernel game seed opponentCouldMove turnCount =
             let
+                updatedTurnCount =
+                    turnCount + 1
+
                 emptyPositions =
                     Board.getEmptySpaces game.board
 
@@ -326,23 +332,26 @@ playUntilGameComplete startingColor boardData seedInt =
                 opponentColor =
                     Model.ColorChoice.colorInverse game.playerColor
             in
-            case findValidPosition shuffledPositions game of
-                Nothing ->
-                    if opponentCouldMove then
-                        -- the opponent was able to make a move last time, so maybe they will
-                        -- be able to again and make new openings for further play
-                        kernel (setPlayerColor opponentColor game) nextSeed False
+            if turnCount > maxTurns then
+                game.board
+            else
+                case findValidPosition shuffledPositions game of
+                    Nothing ->
+                        if opponentCouldMove then
+                            -- the opponent was able to make a move last time, so maybe they will
+                            -- be able to again and make new openings for further play
+                            kernel (setPlayerColor opponentColor game) nextSeed False updatedTurnCount
 
-                    else
-                        -- neither color is able to make a legal move from the current board
-                        -- state. Game is complete; exit play
-                        game.board
+                        else
+                            -- neither color is able to make a legal move from the current board
+                            -- state. Game is complete; exit play
+                            game.board
 
-                Just move ->
-                    let
-                        gameWithMove =
-                            setPlayerColor opponentColor (playMove move game)
-                    in
-                    kernel gameWithMove nextSeed True
+                    Just move ->
+                        let
+                            gameWithMove =
+                                setPlayerColor opponentColor (playMove move game)
+                        in
+                        kernel gameWithMove nextSeed True updatedTurnCount
     in
-    kernel initialGame initialSeed True
+    kernel initialGame initialSeed True 0
