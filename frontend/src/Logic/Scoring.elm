@@ -37,24 +37,77 @@ scoreGame game seed =
         game.score
 
     else
-        let
-            -- TODO: switch to area scoring for boards fewer than 1/3 full??? (check avg fullness of complete game)
-            --   only do area scoring??? depends on what dead stone cleared board returns
-            -- clear the dead stones from the board before counting territory
-            gameToScore =
-                clearDeadStones game seed
-        in
-        countAllPoints gameToScore gameToScore.score
+        if Board.getPercentFilled game.board < 0.5 then
+            -- perform area scoring on incomplete games to prevent
+            -- long monte-carlo simulations
+            areaScore game game.score
+        else
+            territoryScore game game.score seed
 
 
-{-| For each group of empty spaces on `board`, check if it's
+{-| Peform the area based method of scoring a game.
+For each group of empty spaces on `board`, check if it's
+surrounded on all sides by 1 color. If so, attribute the
+number of surrounded spaces to that color's points.
+Then adds the count of each player's pieces still on the
+board to their score.
+
+Does not take captured stones into account.
+
+Returns the updated score.
+-}
+areaScore : BoardData r -> Score -> Score
+areaScore boardData initialScore =
+    let
+        -- reset existing score; area score doesnt count capture points
+        -- accrued during game-play
+        clearedScore =
+            { initialScore
+            | blackPoints = 0
+            , whitePoints = 0
+            }
+
+        scoreWithSurroundPoints =
+            countSurroundedTerritory boardData clearedScore
+
+        scoreWithPieceCounts =
+            Array.foldr
+                (\piece score ->
+                     case piece of
+                        Piece.BlackStone ->
+                            Score.increaseBlackPoints 1 score
+
+                        Piece.WhiteStone ->
+                            Score.increaseWhitePoints 1 score
+
+                        Piece.None ->
+                            score
+                )
+                scoreWithSurroundPoints
+                boardData.board
+    in
+    scoreWithPieceCounts
+
+
+{-| Peform the territory based method of scoring a game.
+For each group of empty spaces on `board`, check if it's
 surrounded on all sides by 1 color. If so, attribute the
 number of surrounded spaces to that color's points.
 Returns the updated score with the points from surrouned
 spaces counted.
 -}
-countAllPoints : BoardData r -> Score -> Score
-countAllPoints boardData initialScore =
+territoryScore : Game -> Score -> Int -> Score
+territoryScore game initialScore seed =
+    let
+        -- clear the dead stones from the board before counting territory
+        -- to get cleaner results
+        gameToScore =
+            clearDeadStones game seed
+    in
+    countSurroundedTerritory gameToScore initialScore
+
+countSurroundedTerritory : BoardData r -> Score -> Score
+countSurroundedTerritory boardData initialScore =
     let
         -- TODO: this is a lot of case nesting. break into smaller funcs or compress cases?
         kernel : List Int -> Set Int -> Score -> ( Set Int, Score )
@@ -89,12 +142,12 @@ countAllPoints boardData initialScore =
                                     case territoryColor of
                                         BlackTerritory ->
                                             ( combinedSeen
-                                            , { score | blackPoints = score.blackPoints + floatPoints }
+                                            , Score.increaseBlackPoints floatPoints score
                                             )
 
                                         WhiteTerritory ->
                                             ( combinedSeen
-                                            , { score | whitePoints = score.whitePoints + floatPoints }
+                                            , Score.increaseWhitePoints floatPoints score
                                             )
 
                                         ContestedTerritory ->

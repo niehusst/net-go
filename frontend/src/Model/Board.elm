@@ -132,3 +132,25 @@ getEmptySpaces board =
         )
         []
         (Array.toIndexedList board)
+
+{-| Percentage of the board that has stones on it.
+-}
+getPercentFilled : Board -> Float
+getPercentFilled board =
+    let
+        boardSize =
+            Array.length board
+
+        piecesOnBoard =
+            Array.foldr
+                (\piece runSum ->
+                    case piece of
+                        Piece.None ->
+                            runSum
+                        _ ->
+                            runSum + 1
+                )
+                0
+                board
+    in
+    piecesOnBoard / toFloat boardSize
