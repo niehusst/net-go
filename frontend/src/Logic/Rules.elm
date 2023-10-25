@@ -3,7 +3,7 @@ module Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPiec
 import Array
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece)
-import Model.Game as Game exposing (Game, addMoveToHistory, setLastMove)
+import Model.Game as Game exposing (Game, addMoveToHistory, getLastMove, setLastMove)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
@@ -149,7 +149,7 @@ legalPlayChecks =
             checkMessage =
                 "You can't repeat your last move"
         in
-        case game.lastMove of
+        case getLastMove game of
             Just (Move.Play _ prevPos) ->
                 if position == prevPos then
                     ( False, Just checkMessage )
@@ -384,8 +384,8 @@ playMove move game =
                             Score.increaseWhitePoints points game.score
             in
             { game
-                | lastMove = Just move
-                , board = boardWithoutCapturedPieces
-                , history = move :: game.history
+                | board = boardWithoutCapturedPieces
                 , score = updatedScore
             }
+                |> setLastMove move
+                |> addMoveToHistory move

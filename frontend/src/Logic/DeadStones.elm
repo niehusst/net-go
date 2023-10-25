@@ -78,7 +78,7 @@ getDeadStones bData seed =
             getBoardControlProbability 100 bData seed
 
         intSize =
-            (boardSizeToInt bData.boardSize)
+            boardSizeToInt bData.boardSize
 
         boardLen =
             intSize * intSize
@@ -135,6 +135,7 @@ getDeadStones bData seed =
                                     case getPieceAt index boardData.board of
                                         Just piece ->
                                             piece
+
                                         Nothing ->
                                             None
 
@@ -283,7 +284,8 @@ playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
 playUntilGameComplete startingColor boardData seedInt =
     let
         -- x2 turn count so that each color gets that many turns
-        maxTurns = 100 * 2
+        maxTurns =
+            100 * 2
 
         initialGame =
             setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
@@ -334,6 +336,7 @@ playUntilGameComplete startingColor boardData seedInt =
             in
             if turnCount > maxTurns then
                 game.board
+
             else
                 case findValidPosition shuffledPositions game of
                     Nothing ->

@@ -36,13 +36,13 @@ scoreGame game seed =
         -- no need to do complex scoring work for forfeit games
         game.score
 
+    else if Board.getPercentFilled game.board < 0.5 then
+        -- perform area scoring on incomplete games to prevent
+        -- long monte-carlo simulations
+        areaScore game
+
     else
-        if Board.getPercentFilled game.board < 0.5 then
-            -- perform area scoring on incomplete games to prevent
-            -- long monte-carlo simulations
-            areaScore game
-        else
-            territoryScore game seed
+        territoryScore game seed
 
 
 {-| Peform the area based method of scoring a game.
@@ -55,18 +55,20 @@ board to their score.
 Does not take captured stones into account.
 
 Returns the updated score.
+
 -}
 areaScore : Game -> Score
 areaScore game =
     let
-        initialScore = game.score
+        initialScore =
+            game.score
 
         -- reset existing score; area score doesnt count capture points
         -- accrued during game-play
         clearedScore =
             { initialScore
-            | blackPoints = 0
-            , whitePoints = 0
+                | blackPoints = 0
+                , whitePoints = 0
             }
 
         scoreWithSurroundPoints =
@@ -75,7 +77,7 @@ areaScore game =
         scoreWithPieceCounts =
             Array.foldr
                 (\piece score ->
-                     case piece of
+                    case piece of
                         Piece.BlackStone ->
                             Score.increaseBlackPoints 1 score
 
@@ -105,8 +107,13 @@ territoryScore game seed =
         -- to get cleaner results
         gameToScore =
             clearDeadStones game seed
+
+        _ = Debug.log "game w/o dead stones" ""
+
+        _ = printBoard gameToScore
     in
     countSurroundedTerritory gameToScore gameToScore.score
+
 
 countSurroundedTerritory : BoardData r -> Score -> Score
 countSurroundedTerritory boardData initialScore =

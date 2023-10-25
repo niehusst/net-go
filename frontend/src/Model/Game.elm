@@ -11,7 +11,8 @@ import Model.Score as Score exposing (Score)
 type alias Game =
     { boardSize : BoardSize
     , board : Board
-    , lastMove : Maybe Move
+    , lastMoveWhite : Maybe Move
+    , lastMoveBlack : Maybe Move
     , history : List Move
     , playerColor : ColorChoice
     , isOver : Bool
@@ -23,7 +24,8 @@ newGame : BoardSize -> ColorChoice -> Float -> Game
 newGame size color komi =
     { boardSize = size
     , board = emptyBoard size
-    , lastMove = Nothing
+    , lastMoveWhite = Nothing
+    , lastMoveBlack = Nothing
     , history = []
     , playerColor = color
     , isOver = False
@@ -53,7 +55,12 @@ setIsOver flag game =
 
 setLastMove : Move -> Game -> Game
 setLastMove move game =
-    { game | lastMove = Just move }
+    case game.playerColor of
+        Model.ColorChoice.White ->
+            { game | lastMoveWhite = Just move }
+
+        Model.ColorChoice.Black ->
+            { game | lastMoveBlack = Just move }
 
 
 {-| Note that because the moves are cons-ed
@@ -63,6 +70,16 @@ of how the moves were actually played.
 addMoveToHistory : Move -> Game -> Game
 addMoveToHistory move game =
     { game | history = move :: game.history }
+
+
+getLastMove : Game -> Maybe Move
+getLastMove game =
+    case game.playerColor of
+        Model.ColorChoice.White ->
+            game.lastMoveWhite
+
+        Model.ColorChoice.Black ->
+            game.lastMoveBlack
 
 
 {-| Debugging helper function for visualizing the board in tests

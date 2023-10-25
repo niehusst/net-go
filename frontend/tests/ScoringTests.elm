@@ -123,9 +123,9 @@ deadStones =
 falseLife : Board.Board
 falseLife =
     [ [ white, white, empty, white, white, white, white, white, white ]
-    , [ white, white, white, white, white, white, white, white, white ]
-    , [ white, white, white, white, white, white, white, white, white ]
-    , [ white, white, white, white, white, white, white, white, white ]
+    , [ white, white, white, white, white, white, empty, empty, white ]
+    , [ white, white, white, white, white, white, empty, empty, white ]
+    , [ white, white, white, white, white, white, empty, empty, white ]
     , [ white, white, white, white, white, white, white, white, white ]
     , [ white, white, white, white, white, white, white, white, white ]
     , [ white, white, white, white, white, white, white, white, white ]
@@ -156,7 +156,8 @@ game : Game.Game
 game =
     { boardSize = Board.Small
     , board = life
-    , lastMove = Just (Move.Play white 40) -- center of board TODO: why is this not Nothing?
+    , lastMoveBlack = Just (Move.Play black 40) -- center of board TODO: why is this not Nothing?
+    , lastMoveWhite = Nothing
     , history = []
     , playerColor = Black
     , isOver = False
@@ -213,11 +214,10 @@ suite =
                     in
                     Expect.equal expectedScore actualScore
             , test "false life removed from board" <|
-                -- TODO: @next why is this is running forevere?? would rather find settled game state than turn limit..
                 \_ ->
                     let
                         expectedScore =
-                            "W+16"
+                            "W+24"
 
                         actualScore =
                             scoreGame { game | board = falseLife } initialSeed

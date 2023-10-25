@@ -133,6 +133,7 @@ getEmptySpaces board =
         []
         (Array.toIndexedList board)
 
+
 {-| Percentage of the board that has stones on it.
 -}
 getPercentFilled : Board -> Float
@@ -147,6 +148,7 @@ getPercentFilled board =
                     case piece of
                         Piece.None ->
                             runSum
+
                         _ ->
                             runSum + 1
                 )

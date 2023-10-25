@@ -44,7 +44,8 @@ blackGame : Game
 blackGame =
     { boardSize = Board.Small
     , board = board
-    , lastMove = Just (Move.Play white 40) -- center of board
+    , lastMoveWhite = Just (Move.Play white 40) -- center of board
+    , lastMoveBlack = Just (Move.Play black 40)
     , history = []
     , playerColor = Black
     , isOver = False
@@ -56,7 +57,8 @@ whiteGame : Game
 whiteGame =
     { boardSize = Board.Small
     , board = board
-    , lastMove = Just (Move.Play white 40) -- center of board
+    , lastMoveWhite = Just (Move.Play white 40) -- center of board
+    , lastMoveBlack = Just (Move.Play black 40)
     , history = []
     , playerColor = White
     , isOver = False

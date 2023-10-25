@@ -30,7 +30,8 @@ suite =
                         model =
                             { boardSize = boardSize
                             , board = Array.repeat (intBoardSize ^ 2) Piece.None
-                            , lastMove = Nothing
+                            , lastMoveBlack = Nothing
+                            , lastMoveWhite = Nothing
                             , playerColor = Black
                             }
 

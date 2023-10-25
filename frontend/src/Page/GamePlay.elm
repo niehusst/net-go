@@ -196,12 +196,11 @@ update msg model =
 
         PlayPass ->
             let
-                -- check that player's last move was pass
-                -- and that the opponents last move was pass
+                -- check that both players' passed their turn w/o playing a piece
                 gameEnded =
-                    case ( model.game.lastMove, model.game.history ) of
-                        ( Just Move.Pass, move :: moves ) ->
-                            move == Move.Pass
+                    case ( model.game.lastMoveWhite, model.game.lastMoveBlack ) of
+                        ( Just Move.Pass, Just Move.Pass ) ->
+                            True
 
                         _ ->
                             False
