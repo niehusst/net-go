@@ -107,10 +107,6 @@ territoryScore game seed =
         -- to get cleaner results
         gameToScore =
             clearDeadStones game seed
-
-        _ = Debug.log "game w/o dead stones" ""
-
-        _ = printBoard gameToScore
     in
     countSurroundedTerritory gameToScore gameToScore.score
 

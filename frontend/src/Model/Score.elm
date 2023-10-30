@@ -22,20 +22,27 @@ scoreToString : Score -> String
 scoreToString score =
     let
         scoreDiff =
-            abs (score.blackPoints - (score.whitePoints + score.komi))
+            score.blackPoints - (score.whitePoints + score.komi)
+
+        blackVictory = scoreDiff > 0
+
+        whiteVictory = scoreDiff < 0
+
+        displayScore = abs scoreDiff
     in
-    if score.isForfeit then
-        -- TODO: indicate who won (by forfeit)
-        "Forfeit"
+    case (score.isForfeit, blackVictory, whiteVictory) of
+        (True, _, _) ->
+            -- TODO: be able to tell who forfeit
+            "Forfeit"
 
-    else if score.blackPoints > score.whitePoints then
-        "B+" ++ String.fromFloat scoreDiff
+        (False, True, False) ->
+            "B+" ++ String.fromFloat displayScore
 
-    else if score.blackPoints < score.whitePoints then
-        "W+" ++ String.fromFloat scoreDiff
+        (False, False, True) ->
+            "W+" ++ String.fromFloat displayScore
 
-    else
-        "Draw"
+        _ ->
+            "Draw"
 
 
 increaseWhitePoints : Float -> Score -> Score
