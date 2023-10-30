@@ -164,7 +164,6 @@ game =
     , score = Score.initWithKomi 0.0
     }
 
-
 suite : Test
 suite =
     describe "Scoring module"
@@ -184,10 +183,10 @@ suite =
                 \_ ->
                     let
                         expectedScore =
-                            "B+3"
+                            "B+4"
 
                         actualScore =
-                            scoreGame game initialSeed
+                            scoreGame { game | board = complexGame } initialSeed
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
