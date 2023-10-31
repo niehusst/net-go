@@ -232,6 +232,7 @@ getBoardControlProbability iterations bData seed =
 
         -- finish the game `iterations` times and map each position to a probability that
         -- it is controlled by a certain color
+        kernel : List Int -> BoardData r -> Array Float -> Array Float
         kernel rounds boardData controlScores =
             case rounds of
                 [] ->
@@ -249,29 +250,32 @@ getBoardControlProbability iterations bData seed =
                         playedOutBoard =
                             playUntilGameComplete startingColor boardData seed
                                 |> boardToIntBoard
+
+                        updatedControlScores =
+                            List.foldl
+                                (\index probabilities ->
+                                     let
+                                        probabilitiesValue =
+                                            Array.get index probabilities
+
+                                        boardValue =
+                                            Array.get index playedOutBoard
+                                     in
+                                     case ( probabilitiesValue, boardValue ) of
+                                        ( Just currProb, Just pieceInt ) ->
+                                            Array.set index (currProb + (toFloat pieceInt / toFloat iterations)) probabilities
+
+                                        _ ->
+                                            -- should never get here
+                                            probabilities
+                                )
+                                controlScores
+                                (List.range 0 (Array.length playedOutBoard))
                     in
-                    List.foldl
-                        (\index probabilities ->
-                            let
-                                probabilitiesValue =
-                                    Array.get index probabilities
-
-                                boardValue =
-                                    Array.get index playedOutBoard
-                            in
-                            case ( probabilitiesValue, boardValue ) of
-                                ( Just prob, Just pieceInt ) ->
-                                    Array.set index (prob + (toFloat pieceInt / toFloat iterations)) probabilities
-
-                                _ ->
-                                    -- should never get here
-                                    probabilities
-                        )
-                        controlScores
-                        (List.range 0 (Array.length playedOutBoard))
+                    kernel roundsTail boardData updatedControlScores
     in
     kernel
-        (List.range 0 iterations)
+        (List.range 0 (iterations - 1))
         bData
         baseProbabilities
 
