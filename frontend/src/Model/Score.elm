@@ -32,7 +32,7 @@ scoreToString score =
     in
     case (score.isForfeit, blackVictory, whiteVictory) of
         (True, _, _) ->
-            -- TODO: be able to tell who forfeit
+            -- TODO: tell who forfeit (add whiteForfeit and blackForfeit fields to Score?)
             "Forfeit"
 
         (False, True, False) ->

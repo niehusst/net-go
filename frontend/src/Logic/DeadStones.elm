@@ -222,8 +222,11 @@ algorithm provides.
 
 -}
 getBoardControlProbability : Int -> BoardData r -> Int -> Array Float
-getBoardControlProbability iterations bData seed =
+getBoardControlProbability iterations bData seedInt =
     let
+        initialSeed =
+            Random.initialSeed seedInt
+
         boardSizeInt =
             boardSizeToInt bData.boardSize
 
@@ -232,14 +235,15 @@ getBoardControlProbability iterations bData seed =
 
         -- finish the game `iterations` times and map each position to a probability that
         -- it is controlled by a certain color
-        kernel : List Int -> BoardData r -> Array Float -> Array Float
-        kernel rounds boardData controlScores =
+        kernel : List Int -> BoardData r -> Array Float -> Random.Seed -> Array Float
+        kernel rounds boardData controlScores seed =
             case rounds of
                 [] ->
                     controlScores
 
                 roundNum :: roundsTail ->
                     let
+                        -- alternate starting color based on round number
                         startingColor =
                             if Bitwise.and roundNum 1 == 1 then
                                 White
@@ -247,9 +251,11 @@ getBoardControlProbability iterations bData seed =
                             else
                                 Black
 
-                        playedOutBoard =
+                        ( playedOutBoard, updatedSeed ) =
                             playUntilGameComplete startingColor boardData seed
-                                |> boardToIntBoard
+
+                        intPlayedOutBoard =
+                                boardToIntBoard playedOutBoard
 
                         updatedControlScores =
                             List.foldl
@@ -259,10 +265,11 @@ getBoardControlProbability iterations bData seed =
                                             Array.get index probabilities
 
                                         boardValue =
-                                            Array.get index playedOutBoard
+                                            Array.get index intPlayedOutBoard
                                      in
                                      case ( probabilitiesValue, boardValue ) of
                                         ( Just currProb, Just pieceInt ) ->
+                                            -- pre-divide control values by iterations during summation to save a map
                                             Array.set index (currProb + (toFloat pieceInt / toFloat iterations)) probabilities
 
                                         _ ->
@@ -270,22 +277,25 @@ getBoardControlProbability iterations bData seed =
                                             probabilities
                                 )
                                 controlScores
-                                (List.range 0 (Array.length playedOutBoard))
+                                (List.range 0 (Array.length intPlayedOutBoard))
                     in
-                    kernel roundsTail boardData updatedControlScores
+                    kernel roundsTail boardData updatedControlScores updatedSeed
     in
     kernel
         (List.range 0 (iterations - 1))
         bData
         baseProbabilities
+        initialSeed
 
 
 {-| Makes random (legal) moves of alternating color until only eye-filling moves
 remain, at which point the eyes are filled with their surrounding color.
 Returns the final board position with every space filled.
+Also returns the stepped value of the random seed that was used, so as
+to avoid repeat results when recursively calling this function.
 -}
-playUntilGameComplete : ColorChoice -> BoardData r -> Int -> Board
-playUntilGameComplete startingColor boardData seedInt =
+playUntilGameComplete : ColorChoice -> BoardData r -> Random.Seed -> ( Board, Random.Seed )
+playUntilGameComplete startingColor boardData initialSeed =
     let
         -- x2 turn count so that each color gets that many turns
         maxTurns =
@@ -293,9 +303,6 @@ playUntilGameComplete startingColor boardData seedInt =
 
         initialGame =
             setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
-
-        initialSeed =
-            Random.initialSeed seedInt
 
         findValidPosition : List Int -> Game -> Maybe Move
         findValidPosition positions game =
@@ -323,7 +330,7 @@ playUntilGameComplete startingColor boardData seedInt =
                     else
                         findValidPosition positionsTail game
 
-        kernel : Game -> Random.Seed -> Bool -> Int -> Board
+        kernel : Game -> Random.Seed -> Bool -> Int -> ( Board, Random.Seed )
         kernel game seed opponentCouldMove turnCount =
             let
                 updatedTurnCount =
@@ -339,7 +346,7 @@ playUntilGameComplete startingColor boardData seedInt =
                     Model.ColorChoice.colorInverse game.playerColor
             in
             if turnCount > maxTurns then
-                game.board
+                (game.board, nextSeed)
 
             else
                 case findValidPosition shuffledPositions game of
@@ -352,7 +359,7 @@ playUntilGameComplete startingColor boardData seedInt =
                         else
                             -- neither color is able to make a legal move from the current board
                             -- state. Game is complete; exit play
-                            game.board
+                            (game.board, nextSeed)
 
                     Just move ->
                         let
