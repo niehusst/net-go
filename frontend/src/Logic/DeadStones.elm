@@ -254,8 +254,14 @@ getBoardControlProbability iterations bData seedInt =
                         ( playedOutBoard, updatedSeed ) =
                             playUntilGameComplete startingColor boardData seed
 
+                        -- fill eyes on played out board so they get counted toward
+                        -- correct player control scores (we expect the played-out board
+                        -- to be basically full (excluding seki) asside from eyes anyway)
+                        filledBoard =
+                            fillEyes { boardData | board = playedOutBoard }
+
                         intPlayedOutBoard =
-                                boardToIntBoard playedOutBoard
+                                boardToIntBoard filledBoard
 
                         updatedControlScores =
                             List.foldl
@@ -287,6 +293,81 @@ getBoardControlProbability iterations bData seedInt =
         baseProbabilities
         initialSeed
 
+
+{-| Fill every eye in `boardData.board` with a piece of a matching color.
+This is a helper function to ensure that board control is properly attributed
+even when counting empty spaces that are eyes.
+-}
+fillEyes : BoardData r -> Board
+fillEyes boardData =
+    let
+        b = boardData.board
+    in
+    Array.indexedMap
+        (\index piece ->
+            case piece of
+                Piece.None ->
+                    -- potential eye to fill w/ piece matching surrounding color
+                    pieceSurroundingEyeAtIndex index boardData
+                _ ->
+                    piece
+        )
+        boardData.board
+
+{-| Get the Piece matching those surrounding the eye at `index`.
+If there is no single color of piece surrounding the eye at `index`,
+Piece.None is returned.
+-}
+pieceSurroundingEyeAtIndex : Int -> BoardData r -> Piece
+pieceSurroundingEyeAtIndex index boardData =
+    case (Board.getPieceAt index boardData.board) of
+        Just Piece.None ->
+            -- index is a potential eye!
+            let
+                neighbors =
+                    [ Board.getPieceAt (Board.getPositionUpFrom index boardData.boardSize) boardData.board
+                    , Board.getPieceAt (Board.getPositionDownFrom index boardData.boardSize) boardData.board
+                    , Board.getPieceAt (Board.getPositionLeftFrom index boardData.boardSize) boardData.board
+                    , Board.getPieceAt (Board.getPositionRightFrom index boardData.boardSize) boardData.board
+                    ]
+
+                -- neighbors must all be same piece, or wall (Nothing), to be an eye
+                maybeControlPiece =
+                    List.foldl
+                        (\maybePiece acc ->
+                             case (maybePiece, acc) of
+                                 (Nothing, _) ->
+                                    -- wall, that's ok
+                                    acc
+                                 (Just neighborPiece, Just controlPiece) ->
+                                    -- make sure new neighbors match existing ones
+                                    if neighborPiece /= controlPiece then
+                                        -- None as the controlling piece type if not an eye
+                                        Just Piece.None
+                                    else
+                                        acc
+
+                                 (Just neighborPiece, Nothing) ->
+                                    -- set neighbor as the candidate surrounding piece
+                                    Just neighborPiece
+                        )
+                        Nothing
+                        neighbors
+            in
+            case maybeControlPiece of
+                Nothing ->
+                    Piece.None
+
+                Just piece ->
+                    piece
+
+        Just piece ->
+            -- wasnt actually an eye; break out
+            piece
+
+        Nothing ->
+            -- should never check out-of-bounds as eye
+            Piece.None
 
 {-| Makes random (legal) moves of alternating color until only eye-filling moves
 remain, at which point the eyes are filled with their surrounding color.
