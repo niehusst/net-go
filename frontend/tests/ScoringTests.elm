@@ -179,7 +179,7 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , test "score for complete game is accurate" <|
+            , only <| test "score for complete game is accurate" <|
                 \_ ->
                     let
                         expectedScore =

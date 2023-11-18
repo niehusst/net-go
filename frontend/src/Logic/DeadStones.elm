@@ -77,6 +77,8 @@ getDeadStones bData seed =
         boardControlScores =
             getBoardControlProbability 100 bData seed
 
+        _ = Debug.log "control" boardControlScores
+
         intSize =
             boardSizeToInt bData.boardSize
 
@@ -142,7 +144,7 @@ getDeadStones bData seed =
                             -- check if average control of chain area matches the stone color on board.
                             -- if it doesnt, then that stone is usually captured by opponent
                             averageControlIsEnemy =
-                                (chainColorInt < 0) /= (averageControlScore < 0) || averageControlScore == 0
+                                (chainColorInt < 0) /= (averageControlScore < 0) && averageControlScore /= 0
 
                             updatedDeadStones =
                                 if averageControlIsEnemy then
