@@ -107,8 +107,6 @@ territoryScore game seed =
         -- to get cleaner results
         gameToScore =
             clearDeadStones game seed
-
-        _ = printBoard gameToScore
     in
     countSurroundedTerritory gameToScore gameToScore.score
 

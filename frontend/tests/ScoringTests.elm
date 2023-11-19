@@ -156,7 +156,7 @@ game : Game.Game
 game =
     { boardSize = Board.Small
     , board = life
-    , lastMoveBlack = Just (Move.Play black 40) -- center of board TODO: why is this not Nothing?
+    , lastMoveBlack = Just (Move.Play black 40) -- center of board
     , lastMoveWhite = Nothing
     , history = []
     , playerColor = Black
@@ -179,11 +179,11 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            , only <| test "score for complete game is accurate" <|
+            , test "score for complete game is accurate" <|
                 \_ ->
                     let
                         expectedScore =
-                            "B+4"
+                            "B+11"
 
                         actualScore =
                             scoreGame { game | board = complexGame } initialSeed

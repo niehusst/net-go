@@ -77,8 +77,6 @@ getDeadStones bData seed =
         boardControlScores =
             getBoardControlProbability 100 bData seed
 
-        _ = Debug.log "control" boardControlScores
-
         intSize =
             boardSizeToInt bData.boardSize
 
