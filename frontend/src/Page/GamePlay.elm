@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Logic.Rules exposing (..)
+import Logic.Scoring exposing (scoreGame)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (..)
 import Model.Game as Game exposing (..)
@@ -15,27 +16,46 @@ import Model.Score as Score
 import Route
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
+import Random
 
 
 type Msg
     = PlayPiece Int
     | PlayPass
+    | CalculateGameScore Int
+    | BeginScoringGame
 
+
+type PlayState
+    = Playing
+    | CalculatingScore
+    | FinalScore Score.Score
 
 type alias Model =
     { game : Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
-    , navKey : Nav.Key
+    , initialSeed : Int
+    , playState : PlayState
     }
 
 
 
 -- VIEW --
 
-
 view : Model -> Html Msg
 view model =
+    case model.playState of
+        Playing ->
+            gamePlayView model
+        CalculatingScore ->
+            "TODO loading wheel"
+
+        FinalScore score ->
+            "score"
+
+gamePlayView : Model -> Html Msg
+gamePlayView model =
     div []
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
@@ -213,7 +233,7 @@ update msg model =
 
                 command =
                     if gameEnded then
-                        goToScoring model
+                        BeginScoringGame
 
                     else
                         endTurn model
@@ -226,6 +246,20 @@ update msg model =
             , command
             )
 
+        CalculateGameScore seed ->
+            ( { model
+              | score = scoreGame model.game seed
+              }
+            , Cmd.none
+            )
+
+        BeginScoringGame ->
+            ( { model
+              | playState = CalculatingScore
+              }
+            , Random.generate CalculateGameScore (Random.int 0 42069)
+            )
+
 
 endTurn : Model -> Cmd Msg
 endTurn model =
@@ -233,27 +267,22 @@ endTurn model =
     Cmd.none
 
 
-goToScoring : Model -> Cmd Msg
-goToScoring model =
-    -- TODO: notify other player of game end before navigation
-    Route.pushUrl Route.GameScore model.navKey
-
 
 
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Float -> Nav.Key -> ( Model, Cmd Msg )
-init boardSize colorChoice komi navKey =
-    ( initialModel boardSize colorChoice komi navKey
+init : BoardSize -> ColorChoice -> Float -> ( Model, Cmd Msg )
+init boardSize colorChoice komi =
+    ( initialModel boardSize colorChoice komi
     , Cmd.none
     )
 
 
-initialModel : BoardSize -> ColorChoice -> Float -> Nav.Key -> Model
-initialModel boardSize colorChoice komi navKey =
+initialModel : BoardSize -> ColorChoice -> Float -> Model
+initialModel boardSize colorChoice komi =
     { game = newGame boardSize colorChoice komi
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
-    , navKey = navKey
+    , playState = Playing
     }

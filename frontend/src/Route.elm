@@ -10,7 +10,6 @@ type Route
     | Home
     | GameCreate
     | GamePlay
-    | GameScore
     | SignUp
     | SignIn
 
@@ -21,7 +20,6 @@ matchRoute =
         [ map Home top
         , map GameCreate (s "game" </> s "create")
         , map GamePlay (s "game") -- TODO: set game query param
-        , map GameScore (s "game" </> s "score") -- TODO: set game query param between (or after?)
         , map SignUp (s "signup")
         , map SignIn (s "signin")
         ]
@@ -58,10 +56,6 @@ routeToString route =
         GamePlay ->
             -- TODO: add game query param
             "/game"
-
-        GameScore ->
-            -- TODO: add game query param
-            "/game/score"
 
         SignUp ->
             "/signup"
