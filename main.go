@@ -17,7 +17,7 @@ import (
 
 func main() {
 	port := ":8080" // TODO: change for prod?
-	log.Println("Starting server...\nListening at port  %s", port)
+	log.Println("Starting server...\nListening at port", port)
 
 	// create service provider
 	serviceDeps := services.UserServiceDeps{
