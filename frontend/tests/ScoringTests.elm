@@ -270,13 +270,13 @@ suite =
                             Score.initWithKomi 0.0
 
                         forfeitScore =
-                            { score | isForfeit = True }
+                            { score | blackForfeit = True }
 
                         actualScore =
                             scoreGame { game | score = forfeitScore } initialSeed
                                 |> scoreToString
                     in
-                    Expect.equal "Forfeit" actualScore
+                    Expect.equal "W [Black Forfeit]" actualScore
             , test "very incomplete game gets scored" <|
                 \_ ->
                     let
