@@ -3,7 +3,7 @@ module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 import Array
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
 import Logic.Rules exposing (..)
 import Logic.Scoring exposing (scoreGame)
@@ -13,23 +13,23 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
+import Random
 import Route
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
-import Random
 
 
 type Msg
     = PlayPiece Int
     | PlayPass
     | CalculateGameScore Int
-    | BeginScoringGame
 
 
 type PlayState
     = Playing
     | CalculatingScore
     | FinalScore Score.Score
+
 
 type alias Model =
     { game : Game
@@ -43,16 +43,34 @@ type alias Model =
 
 -- VIEW --
 
+
 view : Model -> Html Msg
 view model =
     case model.playState of
         Playing ->
             gamePlayView model
+
         CalculatingScore ->
-            "TODO loading wheel"
+            loadingView
 
         FinalScore score ->
-            "score"
+            scoreView score
+
+
+loadingView : Html Msg
+loadingView =
+    div []
+        [ img [ src "static/resources/loading-wheel.svg" ] [] ]
+
+
+scoreView : Score.Score -> Html Msg
+scoreView score =
+    div []
+        [ h3 [] [ text "Final Score:" ]
+        , h1 [] [ text <| Score.scoreToString score ]
+        , text ("Komi was: " ++ String.fromFloat score.komi)
+        ]
+
 
 gamePlayView : Model -> Html Msg
 gamePlayView model =
@@ -231,12 +249,18 @@ update msg model =
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse model.game.playerColor)
 
-                command =
+                ( updatedModel, command ) =
                     if gameEnded then
-                        BeginScoringGame
+                        ( { model
+                            | playState = CalculatingScore
+                          }
+                        , Random.generate CalculateGameScore (Random.int 0 42069)
+                        )
 
                     else
-                        endTurn model
+                        ( model
+                        , endTurn model
+                        )
             in
             ( { model
                 | activeTurn = not model.activeTurn
@@ -247,17 +271,11 @@ update msg model =
             )
 
         CalculateGameScore seed ->
+            -- TODO: show the score somehow when done calculating
             ( { model
-              | score = scoreGame model.game seed
+                | playState = FinalScore (scoreGame model.game seed)
               }
             , Cmd.none
-            )
-
-        BeginScoringGame ->
-            ( { model
-              | playState = CalculatingScore
-              }
-            , Random.generate CalculateGameScore (Random.int 0 42069)
             )
 
 
@@ -265,7 +283,6 @@ endTurn : Model -> Cmd Msg
 endTurn model =
     -- TODO: placeholder turn swap w/o networking
     Cmd.none
-
 
 
 
@@ -285,4 +302,5 @@ initialModel boardSize colorChoice komi =
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
     , playState = Playing
+    , initialSeed = 0
     }

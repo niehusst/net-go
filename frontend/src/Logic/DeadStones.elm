@@ -261,19 +261,19 @@ getBoardControlProbability iterations bData seedInt =
                             fillEyes { boardData | board = playedOutBoard }
 
                         intPlayedOutBoard =
-                                boardToIntBoard filledBoard
+                            boardToIntBoard filledBoard
 
                         updatedControlScores =
                             List.foldl
                                 (\index probabilities ->
-                                     let
+                                    let
                                         probabilitiesValue =
                                             Array.get index probabilities
 
                                         boardValue =
                                             Array.get index intPlayedOutBoard
-                                     in
-                                     case ( probabilitiesValue, boardValue ) of
+                                    in
+                                    case ( probabilitiesValue, boardValue ) of
                                         ( Just currProb, Just pieceInt ) ->
                                             -- pre-divide control values by iterations during summation to save a map
                                             Array.set index (currProb + (toFloat pieceInt / toFloat iterations)) probabilities
@@ -301,7 +301,8 @@ even when counting empty spaces that are eyes.
 fillEyes : BoardData r -> Board
 fillEyes boardData =
     let
-        b = boardData.board
+        b =
+            boardData.board
     in
     Array.indexedMap
         (\index piece ->
@@ -309,10 +310,12 @@ fillEyes boardData =
                 Piece.None ->
                     -- potential eye to fill w/ piece matching surrounding color
                     pieceSurroundingEyeAtIndex index boardData
+
                 _ ->
                     piece
         )
         boardData.board
+
 
 {-| Get the Piece matching those surrounding the eye at `index`.
 If there is no single color of piece surrounding the eye at `index`,
@@ -320,7 +323,7 @@ Piece.None is returned.
 -}
 pieceSurroundingEyeAtIndex : Int -> BoardData r -> Piece
 pieceSurroundingEyeAtIndex index boardData =
-    case (Board.getPieceAt index boardData.board) of
+    case Board.getPieceAt index boardData.board of
         Just Piece.None ->
             -- index is a potential eye!
             let
@@ -335,19 +338,21 @@ pieceSurroundingEyeAtIndex index boardData =
                 maybeControlPiece =
                     List.foldl
                         (\maybePiece acc ->
-                             case (maybePiece, acc) of
-                                 (Nothing, _) ->
+                            case ( maybePiece, acc ) of
+                                ( Nothing, _ ) ->
                                     -- wall, that's ok
                                     acc
-                                 (Just neighborPiece, Just controlPiece) ->
+
+                                ( Just neighborPiece, Just controlPiece ) ->
                                     -- make sure new neighbors match existing ones
                                     if neighborPiece /= controlPiece then
                                         -- None as the controlling piece type if not an eye
                                         Just Piece.None
+
                                     else
                                         acc
 
-                                 (Just neighborPiece, Nothing) ->
+                                ( Just neighborPiece, Nothing ) ->
                                     -- set neighbor as the candidate surrounding piece
                                     Just neighborPiece
                         )
@@ -368,6 +373,7 @@ pieceSurroundingEyeAtIndex index boardData =
         Nothing ->
             -- should never check out-of-bounds as eye
             Piece.None
+
 
 {-| Makes random (legal) moves of alternating color until only eye-filling moves
 remain, at which point the eyes are filled with their surrounding color.
@@ -427,7 +433,7 @@ playUntilGameComplete startingColor boardData initialSeed =
                     Model.ColorChoice.colorInverse game.playerColor
             in
             if turnCount > maxTurns then
-                (game.board, nextSeed)
+                ( game.board, nextSeed )
 
             else
                 case findValidPosition shuffledPositions game of
@@ -440,7 +446,7 @@ playUntilGameComplete startingColor boardData initialSeed =
                         else
                             -- neither color is able to make a legal move from the current board
                             -- state. Game is complete; exit play
-                            (game.board, nextSeed)
+                            ( game.board, nextSeed )
 
                     Just move ->
                         let

@@ -44,6 +44,7 @@ type Msg
     | SignInPageMsg SignIn.Msg
 
 
+
 -- VIEW --
 
 
@@ -252,7 +253,7 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small ColorChoice.Black 0.0 (Session.navKey model.session)
+                            GamePlay.init Board.Small ColorChoice.Black 0.0
                     in
                     ( GamePlayPage pageModel
                     , Cmd.map GamePlayPageMsg pageCmds

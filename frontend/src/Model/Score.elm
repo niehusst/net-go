@@ -24,21 +24,24 @@ scoreToString score =
         scoreDiff =
             score.blackPoints - (score.whitePoints + score.komi)
 
-        blackVictory = scoreDiff > 0
+        blackVictory =
+            scoreDiff > 0
 
-        whiteVictory = scoreDiff < 0
+        whiteVictory =
+            scoreDiff < 0
 
-        displayScore = abs scoreDiff
+        displayScore =
+            abs scoreDiff
     in
-    case (score.isForfeit, blackVictory, whiteVictory) of
-        (True, _, _) ->
+    case ( score.isForfeit, blackVictory, whiteVictory ) of
+        ( True, _, _ ) ->
             -- TODO: tell who forfeit (add whiteForfeit and blackForfeit fields to Score?)
             "Forfeit"
 
-        (False, True, False) ->
+        ( False, True, False ) ->
             "B+" ++ String.fromFloat displayScore
 
-        (False, False, True) ->
+        ( False, False, True ) ->
             "W+" ++ String.fromFloat displayScore
 
         _ ->

@@ -2,7 +2,7 @@ module Page exposing (viewFooter, viewHeader)
 
 -- yoinked from https://github.com/rtfeldman/elm-spa-example/blob/master/src/Page.elm
 
-import Html exposing (Html, a, button, div, footer, i, img, li, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, footer, i, li, nav, p, span, text, ul)
 import Html.Attributes exposing (class, classList, href, style)
 import Html.Events exposing (onClick)
 import Route exposing (Route, routeToString)
