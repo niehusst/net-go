@@ -6,7 +6,7 @@ import Model.Board as Board exposing (..)
 import Model.ColorChoice exposing (ColorChoice(..), colorToPiece)
 import Model.Game as Game exposing (..)
 import Model.Piece as Piece exposing (Piece(..), intToPiece, pieceToInt)
-import Model.Score as Score exposing (Score)
+import Model.Score as Score exposing (Score, isForfeit)
 import Set exposing (Set)
 
 
@@ -32,7 +32,7 @@ Uses territory scoring to calculate the score.
 -}
 scoreGame : Game -> Int -> Score
 scoreGame game seed =
-    if game.score.isForfeit then
+    if isForfeit game.score then
         -- no need to do complex scoring work for forfeit games
         game.score
 

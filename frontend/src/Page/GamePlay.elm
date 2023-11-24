@@ -66,7 +66,6 @@ loadingView =
 
 scoreView : Score.Score -> Html Msg
 scoreView score =
-    -- TODO: add button to go home or something
     div []
         [ h3 [] [ text "Final Score:" ]
         , h1 [] [ text <| Score.scoreToString score ]
