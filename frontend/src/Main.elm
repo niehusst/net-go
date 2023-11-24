@@ -2,13 +2,13 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (..)
-import Model.Board as Board exposing (BoardSize)
-import Model.Piece as Piece exposing (ColorChoice)
+import Html exposing (Html)
+import Model.Board as Board
+import Model.ColorChoice as ColorChoice
+import Model.Game as Game
 import Page
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
-import Page.GameScore as GameScore
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
@@ -30,7 +30,6 @@ type Page
     | HomePage Home.Model
     | GameCreatePage GameCreate.Model
     | GamePlayPage GamePlay.Model
-    | GameScorePage GameScore.Model
     | SignUpPage SignUp.Model
     | SignInPage SignIn.Model
 
@@ -41,7 +40,6 @@ type Msg
     | HomePageMsg Home.Msg
     | GameCreatePageMsg GameCreate.Msg
     | GamePlayPageMsg GamePlay.Msg
-    | GameScorePageMsg GameScore.Msg
     | SignUpPageMsg SignUp.Msg
     | SignInPageMsg SignIn.Msg
 
@@ -77,10 +75,6 @@ viewCurrentPage model =
             GamePlay.view pageModel
                 |> Html.map GamePlayPageMsg
 
-        GameScorePage pageModel ->
-            GameScore.view pageModel
-                |> Html.map GameScorePageMsg
-
         SignUpPage pageModel ->
             SignUp.view pageModel
                 |> Html.map SignUpPageMsg
@@ -105,9 +99,6 @@ viewTabTitle page =
         GamePlayPage _ ->
             "Game"
 
-        GameScorePage _ ->
-            "Score"
-
         SignUpPage _ ->
             "Sign Up"
 
@@ -121,7 +112,7 @@ viewTabTitle page =
 
 {-| Msg mapping to intercept any UpdateSession messages before
 passing them along to intended Page.
-This allows us to have "global mutable state" here in Main.
+This allows us to share specific data, or pass data between pages.
 -}
 interceptMsg : Msg -> Model -> Model
 interceptMsg msg model =
@@ -190,15 +181,6 @@ update msg rawModel =
             in
             ( { model | page = GamePlayPage updatedPageModel }
             , Cmd.map GamePlayPageMsg updatedCmd
-            )
-
-        ( GameScorePageMsg submsg, GameScorePage pageModel ) ->
-            let
-                ( updatedPageModel, updatedCmd ) =
-                    GameScore.update submsg pageModel
-            in
-            ( { model | page = GameScorePage updatedPageModel }
-            , Cmd.map GameScorePageMsg updatedCmd
             )
 
         ( SignUpPageMsg submsg, SignUpPage pageModel ) ->
@@ -271,19 +253,10 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         -- TODO: give real values from form
                         ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small Piece.Black (Session.navKey model.session)
+                            GamePlay.init Board.Small ColorChoice.Black 0.0
                     in
                     ( GamePlayPage pageModel
                     , Cmd.map GamePlayPageMsg pageCmds
-                    )
-
-                Route.GameScore ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            GameScore.init
-                    in
-                    ( GameScorePage pageModel
-                    , Cmd.map GameScorePageMsg pageCmds
                     )
 
                 Route.SignUp ->

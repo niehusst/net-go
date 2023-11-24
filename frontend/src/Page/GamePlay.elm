@@ -3,14 +3,18 @@ module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 import Array
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
-import Logic exposing (..)
+import Logic.Rules exposing (..)
+import Logic.Scoring exposing (scoreGame)
 import Model.Board as Board exposing (..)
+import Model.ColorChoice as ColorChoice exposing (..)
 import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
-import Route
+import Model.Score as Score
+import Random
+import Route exposing (routeToString)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -18,13 +22,21 @@ import Svg.Attributes as SAtts
 type Msg
     = PlayPiece Int
     | PlayPass
+    | CalculateGameScore Int
+
+
+type PlayState
+    = Playing
+    | CalculatingScore
+    | FinalScore Score.Score
 
 
 type alias Model =
     { game : Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
-    , navKey : Nav.Key
+    , initialSeed : Int
+    , playState : PlayState
     }
 
 
@@ -34,6 +46,52 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
+    case model.playState of
+        Playing ->
+            gamePlayView model
+
+        CalculatingScore ->
+            -- TODO: this view is never showing...
+            loadingView
+
+        FinalScore score ->
+            scoreView score model.game.playerColor
+
+
+loadingView : Html Msg
+loadingView =
+    div []
+        [ img [ src "static/resources/loading-wheel.svg" ] [] ]
+
+
+scoreView : Score.Score -> ColorChoice -> Html Msg
+scoreView score playerColor =
+    let
+        resultSummaryText =
+            case Score.winningColor score of
+                Just victor ->
+                    if victor == playerColor then
+                        "You Won!"
+
+                    else
+                        "You Lost."
+
+                Nothing ->
+                    ""
+    in
+    div []
+        [ h3 [] [ text "Final Score:" ]
+        , h1 [] [ text <| Score.scoreToString score ]
+        , p [] [ text ("Komi was: " ++ String.fromFloat score.komi) ]
+        , h2 [] [ text resultSummaryText ]
+        , button []
+            [ a [ href (routeToString Route.Home) ] [ text "Return Home" ]
+            ]
+        ]
+
+
+gamePlayView : Model -> Html Msg
+gamePlayView model =
     div []
         [ h3 [] [ text "Goban state" ]
         , viewBuildBoard model
@@ -194,12 +252,11 @@ update msg model =
 
         PlayPass ->
             let
-                -- check that player's last move was pass
-                -- and that the opponents last move was pass
+                -- check that both players' passed their turn w/o playing a piece
                 gameEnded =
-                    case ( model.game.lastMove, model.game.history ) of
-                        ( Just Move.Pass, move :: moves ) ->
-                            move == Move.Pass
+                    case ( model.game.lastMoveWhite, model.game.lastMoveBlack ) of
+                        ( Just Move.Pass, Just Move.Pass ) ->
+                            True
 
                         _ ->
                             False
@@ -210,12 +267,18 @@ update msg model =
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse model.game.playerColor)
 
-                command =
+                ( updatedModel, command ) =
                     if gameEnded then
-                        goToScoring model
+                        ( { model
+                            | playState = CalculatingScore
+                          }
+                        , Random.generate CalculateGameScore (Random.int 0 42069)
+                        )
 
                     else
-                        endTurn model
+                        ( model
+                        , endTurn model
+                        )
             in
             ( { model
                 | activeTurn = not model.activeTurn
@@ -225,6 +288,14 @@ update msg model =
             , command
             )
 
+        CalculateGameScore seed ->
+            -- TODO: show the score somehow when done calculating
+            ( { model
+                | playState = FinalScore (scoreGame model.game seed)
+              }
+            , Cmd.none
+            )
+
 
 endTurn : Model -> Cmd Msg
 endTurn model =
@@ -232,51 +303,22 @@ endTurn model =
     Cmd.none
 
 
-goToScoring : Model -> Cmd Msg
-goToScoring model =
-    -- TODO: notify other player of game end before navigation
-    Route.pushUrl Route.GameScore model.navKey
-
-
-playMove : Move.Move -> Game.Game -> Game.Game
-playMove move game =
-    case move of
-        Move.Pass ->
-            setLastMove move game
-                |> addMoveToHistory move
-
-        Move.Play piece position ->
-            let
-                gameBoardWithMove =
-                    { game | board = setPieceAt position piece game.board }
-
-                ( boardWithoutCapturedPieces, scoredPoints ) =
-                    removeCapturedPieces gameBoardWithMove
-
-                -- TODO update your score once that exists
-            in
-            { game
-                | lastMove = Just move
-                , board = boardWithoutCapturedPieces
-                , history = move :: game.history
-            }
-
-
 
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Nav.Key -> ( Model, Cmd Msg )
-init boardSize colorChoice navKey =
-    ( initialModel boardSize colorChoice navKey
+init : BoardSize -> ColorChoice -> Float -> ( Model, Cmd Msg )
+init boardSize colorChoice komi =
+    ( initialModel boardSize colorChoice komi
     , Cmd.none
     )
 
 
-initialModel : BoardSize -> ColorChoice -> Nav.Key -> Model
-initialModel boardSize colorChoice navKey =
-    { game = newGame boardSize colorChoice
+initialModel : BoardSize -> ColorChoice -> Float -> Model
+initialModel boardSize colorChoice komi =
+    { game = newGame boardSize colorChoice komi
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
-    , navKey = navKey
+    , playState = Playing
+    , initialSeed = 0
     }
