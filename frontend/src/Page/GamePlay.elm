@@ -3,7 +3,7 @@ module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 import Array
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (class, src, style)
+import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
 import Logic.Rules exposing (..)
 import Logic.Scoring exposing (scoreGame)
@@ -14,7 +14,7 @@ import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
 import Random
-import Route
+import Route exposing (routeToString)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -55,7 +55,7 @@ view model =
             loadingView
 
         FinalScore score ->
-            scoreView score
+            scoreView score model.game.playerColor
 
 
 loadingView : Html Msg
@@ -64,12 +64,29 @@ loadingView =
         [ img [ src "static/resources/loading-wheel.svg" ] [] ]
 
 
-scoreView : Score.Score -> Html Msg
-scoreView score =
+scoreView : Score.Score -> ColorChoice -> Html Msg
+scoreView score playerColor =
+    let
+        resultSummaryText =
+            case Score.winningColor score of
+                Just victor ->
+                    if victor == playerColor then
+                        "You Won!"
+
+                    else
+                        "You Lost."
+
+                Nothing ->
+                    ""
+    in
     div []
         [ h3 [] [ text "Final Score:" ]
         , h1 [] [ text <| Score.scoreToString score ]
-        , text ("Komi was: " ++ String.fromFloat score.komi)
+        , p [] [ text ("Komi was: " ++ String.fromFloat score.komi) ]
+        , h2 [] [ text resultSummaryText ]
+        , button []
+            [ a [ href (routeToString Route.Home) ] [ text "Return Home" ]
+            ]
         ]
 
 
