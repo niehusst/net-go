@@ -51,6 +51,7 @@ view model =
             gamePlayView model
 
         CalculatingScore ->
+            -- TODO: this view is never showing...
             loadingView
 
         FinalScore score ->
@@ -65,6 +66,7 @@ loadingView =
 
 scoreView : Score.Score -> Html Msg
 scoreView score =
+    -- TODO: add button to go home or something
     div []
         [ h3 [] [ text "Final Score:" ]
         , h1 [] [ text <| Score.scoreToString score ]

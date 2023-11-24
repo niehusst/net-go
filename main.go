@@ -16,7 +16,8 @@ import (
 )
 
 func main() {
-	log.Println("Starting server...")
+	port := ":8080" // TODO: change for prod?
+	log.Println("Starting server...\nListening at port  %s", port)
 
 	// create service provider
 	serviceDeps := services.UserServiceDeps{
@@ -41,7 +42,7 @@ func main() {
 	// set routing and server config
 	router.SetRouter(p)
 	srv := &http.Server{
-		Addr:    ":8080", // TODO: change for prod?
+		Addr:    port,
 		Handler: p.R,
 	}
 
