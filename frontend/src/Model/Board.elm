@@ -97,6 +97,24 @@ boardSizeToInt size =
             9
 
 
+boardSizeToString : BoardSize -> String
+boardSizeToString size =
+    let
+        sizeStr = String.fromInt <| boardSizeToInt size
+
+        dims = "(" ++ sizeStr ++ "x" ++ sizeStr ++ ")"
+    in
+    case size of
+        Full ->
+            "Full-size " ++ dims
+
+        Medium ->
+            "Medium " ++ dims
+
+        Small ->
+            "Small " ++ dims
+
+
 {-| Create a 1 dimensional version of a 2D
 Goban of size `size`, with all the squares
 laid out in order.

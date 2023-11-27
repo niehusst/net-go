@@ -13,7 +13,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
-import Route exposing (Route)
+import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import Url exposing (Url)
 
@@ -22,8 +22,13 @@ type alias Model =
     { page : Page
     , route : Route
     , session : Session
+    , navKey : Nav.Key
+    , subpageData : SubpageData
     }
 
+type SubpageData
+    = None
+    | GameCreateForm GameCreate.FormData
 
 type Page
     = NotFoundPage
@@ -110,8 +115,9 @@ viewTabTitle page =
 -- UPDATE --
 
 
-{-| Msg mapping to intercept any UpdateSession messages before
-passing them along to intended Page.
+{-| Msg interception for any page messages before
+passing them along to intended Page, allowing us to save, or update
+shared data accordingly.
 This allows us to share specific data, or pass data between pages.
 -}
 interceptMsg : Msg -> Model -> Model
@@ -122,6 +128,9 @@ interceptMsg msg model =
 
         SignInPageMsg (SignIn.UpdateSession session) ->
             { model | session = session }
+
+        GameCreatePageMsg (GameCreate.SendFormDataToMain data) ->
+            { model | subpageData = GameCreateForm data  }
 
         _ ->
             -- we dont need to intercept this message; no-op
@@ -218,6 +227,8 @@ init _ url navKey =
             { page = NotFoundPage
             , route = Route.parseUrl url
             , session = Session.init navKey
+            , navKey = navKey
+            , subpageData = None
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -243,21 +254,28 @@ initCurrentPage ( model, existingCmds ) =
                 Route.GameCreate ->
                     let
                         ( pageModel, pageCmds ) =
-                            GameCreate.init
+                            GameCreate.init model.navKey
                     in
                     ( GameCreatePage pageModel
                     , Cmd.map GameCreatePageMsg pageCmds
                     )
 
                 Route.GamePlay ->
-                    let
-                        -- TODO: give real values from form
-                        ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small ColorChoice.Black 0.0
-                    in
-                    ( GamePlayPage pageModel
-                    , Cmd.map GamePlayPageMsg pageCmds
-                    )
+                    case model.subpageData of
+                        GameCreateForm formData ->
+                            let
+                                ( pageModel, pageCmds ) =
+                                    GamePlay.init formData.boardSize formData.colorChoice formData.komi
+                            in
+                                ( GamePlayPage pageModel
+                                , Cmd.map GamePlayPageMsg pageCmds
+                                )
+
+                        _ ->
+                            -- someone probably navigated directly to this route w/o submitting form; send home
+                            ( NotFoundPage
+                            , Route.pushUrl Route.Home model.navKey
+                            )
 
                 Route.SignUp ->
                     let
