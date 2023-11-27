@@ -23,12 +23,7 @@ type alias Model =
     , route : Route
     , session : Session
     , navKey : Nav.Key
-    , subpageData : SubpageData
     }
-
-type SubpageData
-    = None
-    | GameCreateForm GameCreate.FormData
 
 type Page
     = NotFoundPage
@@ -129,9 +124,6 @@ interceptMsg msg model =
         SignInPageMsg (SignIn.UpdateSession session) ->
             { model | session = session }
 
-        GameCreatePageMsg (GameCreate.SendFormDataToMain data) ->
-            { model | subpageData = GameCreateForm data  }
-
         _ ->
             -- we dont need to intercept this message; no-op
             model
@@ -228,7 +220,6 @@ init _ url navKey =
             , route = Route.parseUrl url
             , session = Session.init navKey
             , navKey = navKey
-            , subpageData = None
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -260,22 +251,15 @@ initCurrentPage ( model, existingCmds ) =
                     , Cmd.map GameCreatePageMsg pageCmds
                     )
 
-                Route.GamePlay ->
-                    case model.subpageData of
-                        GameCreateForm formData ->
-                            let
-                                ( pageModel, pageCmds ) =
-                                    GamePlay.init formData.boardSize formData.colorChoice formData.komi
-                            in
-                                ( GamePlayPage pageModel
-                                , Cmd.map GamePlayPageMsg pageCmds
-                                )
-
-                        _ ->
-                            -- someone probably navigated directly to this route w/o submitting form; send home
-                            ( NotFoundPage
-                            , Route.pushUrl Route.Home model.navKey
-                            )
+                Route.GamePlay gameId ->
+                    let
+                        -- TODO: put something in the url path so we can fetch game from backend
+                        ( pageModel, pageCmds ) =
+                            GamePlay.init gameId
+                    in
+                    ( GamePlayPage pageModel
+                    , Cmd.map GamePlayPageMsg pageCmds
+                    )
 
                 Route.SignUp ->
                     let

@@ -307,8 +307,8 @@ endTurn model =
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Float -> ( Model, Cmd Msg )
-init boardSize colorChoice komi =
+init : String -> ( Model, Cmd Msg )
+init gameId =
     ( initialModel boardSize colorChoice komi
     , Cmd.none
     )
@@ -316,6 +316,7 @@ init boardSize colorChoice komi =
 
 initialModel : BoardSize -> ColorChoice -> Float -> Model
 initialModel boardSize colorChoice komi =
+    -- TODO: dont use newGame; need to populate from backedn
     { game = newGame boardSize colorChoice komi
     , activeTurn = colorChoice == Black
     , invalidMoveAlert = Nothing
