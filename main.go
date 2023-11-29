@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log"
+	"net-go/server/backend/constants"
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/handler/router"
 	"net-go/server/backend/services"
@@ -18,6 +19,7 @@ import (
 func main() {
 	port := ":8080" // TODO: change for prod?
 	log.Println("Starting server...\nListening at port", port)
+	constants.LoadEnv()
 
 	// create service provider
 	serviceDeps := services.UserServiceDeps{

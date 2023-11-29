@@ -228,6 +228,9 @@ func TestSigninIntegration(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
+		// validate auth cookie was set
+		assert.Equal(t, true, false)
+
 		assert.Equal(t, 200, rr.Code)
 		assert.Equal(t, respBody, rr.Body.Bytes())
 
