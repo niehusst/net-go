@@ -32,7 +32,7 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 	}
 
 	// set auth cookie to preserve session
-	SetAuthCookieInResponse(*user, c)
+	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusOK, gin.H{
 		"ok": true,

@@ -33,7 +33,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	SetAuthCookieInResponse(*user, c)
+	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"ok": true,

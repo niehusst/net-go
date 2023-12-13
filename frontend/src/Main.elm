@@ -234,6 +234,10 @@ initCurrentPage ( model, existingCmds ) =
                 Route.NotFound ->
                     ( NotFoundPage, Cmd.none )
 
+                Route.Logout ->
+                    -- TODO: this shouldnt 404; need to make request to backend
+                    ( NotFoundPage, Cmd.none )
+
                 Route.Home ->
                     let
                         ( pageModel, pageCmds ) =

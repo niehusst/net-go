@@ -12,6 +12,7 @@ type Route
     | GamePlay
     | SignUp
     | SignIn
+    | Logout
 
 
 matchRoute : Parser (Route -> a) a
@@ -22,6 +23,7 @@ matchRoute =
         , map GamePlay (s "game") -- TODO: set game query param
         , map SignUp (s "signup")
         , map SignIn (s "signin")
+        , map Logout (s "logout")
         ]
 
 
@@ -62,3 +64,6 @@ routeToString route =
 
         SignIn ->
             "/signin"
+
+        Logout ->
+            "/logout"

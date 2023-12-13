@@ -7,15 +7,18 @@ import (
 	"strconv"
 )
 
+const authCookieKey = "ngo_auth"
+const authCookieSetKey = "ngo_auth_set"
+
 /**
  * Save an auth cookie to validate `user` to the gin context response.
  */
-func SetAuthCookieInResponse(user model.User, c *gin.Context) {
+func SetAuthCookiesInResponse(user model.User, c *gin.Context) {
 	// TODO: should implement sessions instead of putting pw hash in auth cookie
 	oneMonthSeconds := 2592000
 	// actual auth cookie
 	c.SetCookie(
-		"ngo_auth",
+		authCookieKey,
 		strconv.FormatUint(uint64(user.ID), 10)+"::"+user.Password,
 		oneMonthSeconds,
 		"/",
@@ -25,12 +28,44 @@ func SetAuthCookieInResponse(user model.User, c *gin.Context) {
 	)
 	// flag cookie for client side to check whether or not to make auth test requests
 	c.SetCookie(
-		"ngo_auth_set",
-		"yep",
+		authCookieSetKey,
+		"true",
 		oneMonthSeconds,
 		"/",
 		constants.GetDomain(),
 		false,
 		false, // httpOnly
 	)
+}
+
+func DeleteAuthCookiesInResponse(c *gin.Context) {
+	deleteNow := -1
+	// actual auth cookie
+	c.SetCookie(
+		authCookieKey,
+		"",
+		deleteNow,
+		"/",
+		constants.GetDomain(),
+		false,
+		true, // httpOnly
+	)
+	// flag cookie for client side to check whether or not to make auth test requests
+	c.SetCookie(
+		authCookieSetKey,
+		"",
+		deleteNow,
+		"/",
+		constants.GetDomain(),
+		false,
+		false, // httpOnly
+	)
+}
+
+/**
+ * returns an error if the auth cookie was not set.
+ */
+func GetAuthCookieFromResponse(c *gin.Context) (string, error) {
+	value, err := c.Cookie(authCookieKey)
+	return value, err
 }

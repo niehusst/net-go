@@ -29,9 +29,7 @@ viewMenu : Session -> List (Html msg)
 viewMenu session =
     case session of
         Session.LoggedIn _ ->
-            [ text "logged in" -- TODO: kill this
-
-            --, linkTo Route.Logout [ text "Sign out" ] -- TODO: really route?? or just make req?
+            [ linkTo Route.Logout [ text "Sign out" ]
             ]
 
         Session.LoggedOut _ ->
