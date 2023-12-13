@@ -210,14 +210,17 @@ update msg rawModel =
 -- INIT --
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
-    -- TODO: create real session value from cookie existence
+{-| Takes a boolean flag on init indicating whether the ngo_auth_set cookie is set.
+-}
+init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
     let
+        session = Session.fromCookie flags navKey
+
         model =
             { page = NotFoundPage
             , route = Route.parseUrl url
-            , session = Session.init navKey
+            , session = session
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -282,7 +285,7 @@ initCurrentPage ( model, existingCmds ) =
     )
 
 
-main : Program () Model Msg
+main : Program Bool Model Msg
 main =
     Browser.application
         { init = init
