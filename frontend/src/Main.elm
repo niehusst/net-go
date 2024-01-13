@@ -149,11 +149,12 @@ update msg rawModel =
 
         ( LogoutResponse (Ok _), _ ) ->
             ( { model
-              | route = Route.Home
-              , session = Session.toLoggedOut model.session
+                | route = Route.Home
+                , session = Session.toLoggedOut model.session
               }
             , Cmd.none
-            ) |> initCurrentPage
+            )
+                |> initCurrentPage
 
         ( LogoutResponse (Err _), _ ) ->
             -- TODO: make some global banner to display err in??
@@ -225,12 +226,13 @@ update msg rawModel =
 -- INIT --
 
 
-{-| Takes a boolean flag on init indicating whether the ngo_auth_set cookie is set.
+{-| Takes a boolean flag on init indicating whether the ngo\_auth\_set cookie is set.
 -}
 init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        session = Session.fromCookie flags navKey
+        session =
+            Session.fromCookie flags navKey
 
         model =
             { page = NotFoundPage

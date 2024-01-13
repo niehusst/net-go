@@ -1,4 +1,4 @@
-module Session exposing (Session(..), init, fromCookie, navKey, toLoggedIn, toLoggedOut)
+module Session exposing (Session(..), fromCookie, init, navKey, toLoggedIn, toLoggedOut)
 
 -- yoinked from https://github.com/rtfeldman/elm-spa-example/blob/master/src/Session.elm
 
@@ -24,12 +24,15 @@ init : Nav.Key -> Session
 init key =
     LoggedOut key
 
+
 fromCookie : Bool -> Nav.Key -> Session
 fromCookie isAuthed key =
     if isAuthed then
         LoggedIn key
+
     else
         LoggedOut key
+
 
 toLoggedIn : Session -> Session
 toLoggedIn session =
