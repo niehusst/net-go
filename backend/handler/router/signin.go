@@ -30,9 +30,10 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 		return
 	}
 
-	// TODO: set auth cookie
+	// set auth cookie to preserve session
+	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusOK, gin.H{
-		"uid": user.ID, // TODO: stub
+		"uid": user.ID,
 	})
 }

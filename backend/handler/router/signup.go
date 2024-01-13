@@ -22,17 +22,18 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	_, err := handler.p.UserService.Signup(c, req.Username, req.Password)
+	user, err := handler.p.UserService.Signup(c, req.Username, req.Password)
 
 	if err != nil {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
+			"ok":    false,
 			"error": err,
 		})
 		return
 	}
 
-	// TODO: set auth cookie
+	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"ok": true,

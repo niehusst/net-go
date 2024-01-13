@@ -1,4 +1,4 @@
-module Session exposing (Session(..), init, navKey, toLoggedIn, toLoggedOut)
+module Session exposing (Session(..), fromCookie, init, navKey, toLoggedIn, toLoggedOut)
 
 -- yoinked from https://github.com/rtfeldman/elm-spa-example/blob/master/src/Session.elm
 
@@ -22,8 +22,16 @@ navKey session =
 
 init : Nav.Key -> Session
 init key =
-    -- TODO: make capable of init both states (e.g. take input about existence of cookie?)
     LoggedOut key
+
+
+fromCookie : Bool -> Nav.Key -> Session
+fromCookie isAuthed key =
+    if isAuthed then
+        LoggedIn key
+
+    else
+        LoggedOut key
 
 
 toLoggedIn : Session -> Session

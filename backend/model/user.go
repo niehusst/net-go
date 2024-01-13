@@ -8,5 +8,5 @@ import (
 type User struct {
 	gorm.Model
 	Username string `gorm:"uniqueIndex"`
-	Password string
+	Password string // hashed password
 }

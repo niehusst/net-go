@@ -228,6 +228,7 @@ func TestSigninIntegration(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
+		// validate response data
 		assert.Equal(t, 200, rr.Code)
 		assert.Equal(t, respBody, rr.Body.Bytes())
 
