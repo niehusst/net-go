@@ -25,7 +25,6 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 	if err != nil {
 		log.Printf("Failed to signin user: %v\n", err)
 		c.JSON(apperrors.Status(err), gin.H{
-			"ok":    false,
 			"error": err,
 		})
 		return
@@ -35,6 +34,6 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusOK, gin.H{
-		"ok": true,
+		"uid": user.ID,
 	})
 }

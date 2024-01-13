@@ -1,8 +1,10 @@
 module Main exposing (main)
 
+import API.Accounts exposing (doLogout)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (Html)
+import Http
 import Model.Board as Board
 import Model.ColorChoice as ColorChoice
 import Model.Game as Game
@@ -37,6 +39,7 @@ type Page
 type Msg
     = LinkClicked UrlRequest
     | UrlChanged Url
+    | LogoutResponse (Result Http.Error ())
     | HomePageMsg Home.Msg
     | GameCreatePageMsg GameCreate.Msg
     | GamePlayPageMsg GamePlay.Msg
@@ -144,6 +147,18 @@ update msg rawModel =
             ( { model | route = newRoute }, Cmd.none )
                 |> initCurrentPage
 
+        ( LogoutResponse (Ok _), _ ) ->
+            ( { model
+              | route = Route.Home
+              , session = Session.toLoggedOut model.session
+              }
+            , Cmd.none
+            ) |> initCurrentPage
+
+        ( LogoutResponse (Err _), _ ) ->
+            -- TODO: make some global banner to display err in??
+            ( model, Cmd.none )
+
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
@@ -235,8 +250,13 @@ initCurrentPage ( model, existingCmds ) =
                     ( NotFoundPage, Cmd.none )
 
                 Route.Logout ->
-                    -- TODO: this shouldnt 404; need to make request to backend
-                    ( NotFoundPage, Cmd.none )
+                    let
+                        ( pageModel, pageCmds ) =
+                            Home.init
+                    in
+                    ( HomePage pageModel
+                    , doLogout LogoutResponse
+                    )
 
                 Route.Home ->
                     let
