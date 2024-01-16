@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-playground/validator/v10 v10.14.1
+	github.com/google/uuid v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/crypto v0.7.0

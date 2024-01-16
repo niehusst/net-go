@@ -183,10 +183,13 @@ func TestSigninIntegration(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		uid := uint(rand.Uint32())
 		u := &model.User{
-			Username: "bob",
-			Password: "password",
+			Username:     "bob",
+			Password:     "password",
+			SessionToken: "dummy",
 		}
 		u.ID = uid
+		u2 := *u
+		u2.SessionToken = "updatedToken"
 
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.

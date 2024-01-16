@@ -61,6 +61,17 @@ func (m *MockUserRepository) FindByUsername(ctx context.Context, username string
 	return r0, r1
 }
 
+func (m *MockUserRepository) Update(ctx context.Context, user *model.User) error {
+	ret := m.Called(ctx, user)
+
+	var r0 error = nil
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).(error)
+	}
+
+	return r0
+}
+
 func (m *MockUserRepository) MigrateAll() error {
 	// this will never need testing
 	return nil
