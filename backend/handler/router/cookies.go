@@ -14,12 +14,11 @@ const AuthCookieSetKey = "ngo_auth_set"
  * Save an auth cookie to validate `user` to the gin context response.
  */
 func SetAuthCookiesInResponse(user model.User, c *gin.Context) {
-	// TODO: should implement sessions instead of putting pw hash in auth cookie
 	oneMonthSeconds := 2592000
 	// actual auth cookie
 	c.SetCookie(
 		AuthCookieKey,
-		strconv.FormatUint(uint64(user.ID), 10)+"::"+user.Password,
+		strconv.FormatUint(uint64(user.ID), 10)+"::"+user.SessionToken,
 		oneMonthSeconds,
 		"/",
 		constants.GetDomain(),

@@ -18,6 +18,7 @@ type IUserRepository interface {
 	FindByID(ctx context.Context, id uint) (*model.User, error)
 	Create(ctx context.Context, u *model.User) error
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
+	Update(ctx context.Context, user *model.User) error
 }
 
 /* implementation */
@@ -59,6 +60,11 @@ func (u *UserRepository) FindByUsername(ctx context.Context, username string) (*
 
 func (u *UserRepository) Create(ctx context.Context, user *model.User) error {
 	err := u.db.Create(user).Error
+	return err
+}
+
+func (u *UserRepository) Update(ctx context.Context, user *model.User) error {
+	err := u.db.Save(user).Error
 	return err
 }
 
