@@ -21,10 +21,20 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 	}
 
 	user, err := handler.p.UserService.Signin(c, req.Username, req.Password)
-
 	if err != nil {
 		log.Printf("Failed to signin user: %v\n", err)
 		c.JSON(apperrors.Status(err), gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	// make sure we have an updated sess token
+	err = handler.p.UserService.UpdateSessionToken(c, user)
+	if err != nil {
+		log.Printf("Failed to sign up user: %v\n", err.Error())
+		c.JSON(apperrors.Status(err), gin.H{
+			"ok":    false,
 			"error": err,
 		})
 		return

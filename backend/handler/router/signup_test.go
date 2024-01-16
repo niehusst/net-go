@@ -196,6 +196,12 @@ func TestSignupIntegration(t *testing.T) {
 				u.Username,
 				u.Password,
 			).Return(u, nil)
+		mockUserService.
+			On(
+				"UpdateSessionToken",
+				mock.AnythingOfType("*gin.Context"),
+				u,
+			).Return(nil)
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()

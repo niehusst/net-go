@@ -183,13 +183,10 @@ func TestSigninIntegration(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		uid := uint(rand.Uint32())
 		u := &model.User{
-			Username:     "bob",
-			Password:     "password",
-			SessionToken: "dummy",
+			Username: "bob",
+			Password: "password",
 		}
 		u.ID = uid
-		u2 := *u
-		u2.SessionToken = "updatedToken"
 
 		mockUserService := new(mocks.MockUserService)
 		mockUserService.
@@ -199,6 +196,12 @@ func TestSigninIntegration(t *testing.T) {
 				u.Username,
 				u.Password,
 			).Return(u, nil)
+		mockUserService.
+			On(
+				"UpdateSessionToken",
+				mock.AnythingOfType("*gin.Context"),
+				u,
+			).Return(nil)
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
