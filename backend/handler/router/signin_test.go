@@ -196,6 +196,12 @@ func TestSigninIntegration(t *testing.T) {
 				u.Username,
 				u.Password,
 			).Return(u, nil)
+		mockUserService.
+			On(
+				"UpdateSessionToken",
+				mock.AnythingOfType("*gin.Context"),
+				u,
+			).Return(nil)
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
@@ -228,6 +234,7 @@ func TestSigninIntegration(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
+		// validate response data
 		assert.Equal(t, 200, rr.Code)
 		assert.Equal(t, respBody, rr.Body.Bytes())
 

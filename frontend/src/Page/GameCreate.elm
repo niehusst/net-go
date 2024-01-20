@@ -40,7 +40,6 @@ type Msg
     | StoreKomi String
     | CreateGame -- http req msgs for creating game in db
     | GameCreated (Result Http.Error FormData)
-    | SendFormDataToMain FormData
 
 
 
@@ -187,20 +186,15 @@ update msg model =
             )
 
         GameCreated (Ok formData) ->
+            -- TODO: use game id response from backend to route to new game
             ( model
-            , message (SendFormDataToMain formData)
+            , pushUrl (Route.GamePlay "ID-here") model.navKey
             )
 
         GameCreated (Err httpErr) ->
             -- TODO: display err message
             ( model
             , Cmd.none
-            )
-
-        SendFormDataToMain formData ->
-            -- now that Main.elm has the data to create the GamePlay page, nav there
-            ( model
-            , pushUrl Route.GamePlay model.navKey
             )
 
 

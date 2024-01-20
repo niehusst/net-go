@@ -21,7 +21,6 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 	}
 
 	user, err := handler.p.UserService.Signin(c, req.Username, req.Password)
-
 	if err != nil {
 		log.Printf("Failed to signin user: %v\n", err)
 		c.JSON(apperrors.Status(err), gin.H{
@@ -30,9 +29,21 @@ func (handler RouteHandler) Signin(c *gin.Context) {
 		return
 	}
 
-	// TODO: set auth cookie
+	// make sure we have an updated sess token
+	err = handler.p.UserService.UpdateSessionToken(c, user)
+	if err != nil {
+		log.Printf("Failed to sign up user: %v\n", err.Error())
+		c.JSON(apperrors.Status(err), gin.H{
+			"ok":    false,
+			"error": err,
+		})
+		return
+	}
+
+	// set auth cookie to preserve session
+	SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusOK, gin.H{
-		"uid": user.ID, // TODO: stub
+		"uid": user.ID,
 	})
 }

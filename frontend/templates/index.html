@@ -8,7 +8,12 @@
   <body>
     <script src="static/js/elm.js"></script>
     <script>
-      const app = Elm.Main.init();      
+      const authCookieSet = document.cookie
+                                  .split("; ")
+                                  .find((row) => row.startsWith("ngo_auth_set="))
+                                  ?.split("=")[1];
+      const app = Elm.Main.init({ flags: authCookieSet !== undefined });
     </script>
+    <noscript>This App requires JavaScript.</noscript>
   </body>
 </html>

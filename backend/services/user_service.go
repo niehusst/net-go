@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/model"
@@ -14,6 +15,7 @@ type IUserService interface {
 	Get(ctx context.Context, id uint) (*model.User, error)
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
 	Signin(ctx context.Context, username string, password string) (*model.User, error)
+	UpdateSessionToken(ctx context.Context, user *model.User) error
 }
 
 /* implementation */
@@ -80,4 +82,11 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 
 	// successful signin
 	return user, nil
+}
+
+func (s *UserService) UpdateSessionToken(ctx context.Context, user *model.User) error {
+	sessToken := uuid.New().String()
+	user.SessionToken = sessToken
+	err := s.UserRepository.Update(ctx, user)
+	return err
 }

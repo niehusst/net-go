@@ -27,7 +27,7 @@ func SetRouter(p provider.Provider) {
 	authGroup := router.Group("/api/accounts")
 	authGroup.POST("/signup", handler.Signup)
 	authGroup.POST("/signin", handler.Signin)
-	authGroup.POST("/signout", handler.Signout)
+	authGroup.GET("/signout", handler.Signout)
 
 	// serve the Elm app HTML for any other route; the
 	// app will handle its own routing internally
