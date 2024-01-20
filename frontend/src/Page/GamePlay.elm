@@ -310,7 +310,7 @@ endTurn model =
 init : String -> ( Model, Cmd Msg )
 init gameId =
     ( initialModel boardSize colorChoice komi
-    , Cmd.none
+    , Cmd.none -- TODO: fetch req
     )
 
 
