@@ -12,9 +12,7 @@ type Game struct {
 	LastMoveBlack *types.Move
 	History       []types.Move
 	IsOver        bool
-	Score         Score
-	BlackPlayerID uint
-	BlackPlayer   User `gorm:"foreignKey:BlackPlayerID"`
-	WhitePlayerID uint
-	WhitePlayer   User `gorm:"foreignKey:WhitePlayerID"`
+	Score         types.Score
+	BlackPlayer   User `gorm:"foreignKey:ID;"`
+	WhitePlayer   User `gorm:"foreignKey:ID;"`
 }
