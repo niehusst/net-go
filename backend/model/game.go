@@ -2,15 +2,15 @@ package model
 
 import (
 	"gorm.io/gorm"
+	"net-go/server/backend/model/types"
 )
 
 type Game struct {
 	gorm.Model
-	BoardSize     BoardSize
-	Board         Board
-	LastMoveWhite Move
-	LastMoveBlack Move
-	History       []Move
+	Board         types.Board
+	LastMoveWhite *types.Move
+	LastMoveBlack *types.Move
+	History       []types.Move
 	IsOver        bool
 	Score         Score
 	BlackPlayerID uint
