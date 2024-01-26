@@ -13,7 +13,7 @@ import (
 	"net-go/server/backend/services/mocks"
 )
 
-func TestGet(t *testing.T) {
+func TestUserServiceGet(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		uid := uint(rand.Uint32())
 
@@ -53,7 +53,7 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestSignup(t *testing.T) {
+func TestUserServiceSignup(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		uid := uint(rand.Uint32())
 
@@ -113,7 +113,7 @@ func TestSignup(t *testing.T) {
 	})
 }
 
-func TestSignin(t *testing.T) {
+func TestUserServiceSignin(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		uid := uint(rand.Uint32())
 

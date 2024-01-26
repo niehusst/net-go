@@ -22,21 +22,33 @@ func main() {
 	constants.LoadEnv()
 
 	// create service provider
-	serviceDeps := services.UserServiceDeps{
+	baseRepoDeps := services.BaseRepoDeps{
+		DbString: "netgo.gorm.db",
+		Config:   &gorm.Config{},
+	}
+	userDeps := services.UserServiceDeps{
 		UserRepository: services.NewUserRepository(
 			&services.UserRepoDeps{
-				DbString: "netgo.gorm.db",
-				Config:   &gorm.Config{},
+				BaseRepoDeps: baseRepoDeps,
+			},
+		),
+	}
+	gameDeps := services.GameServiceDeps{
+		GameRepository: services.NewGameRepository(
+			&services.GameRepoDeps{
+				BaseRepoDeps: baseRepoDeps,
 			},
 		),
 	}
 	p := provider.Provider{
 		R:           gin.Default(),
-		UserService: services.NewUserService(serviceDeps),
+		UserService: services.NewUserService(userDeps),
+		GameService: services.NewGameService(gameDeps),
 	}
 
+	// TODO: do this separately...?
 	// migrate db
-	if err := serviceDeps.UserRepository.MigrateAll(); err != nil {
+	if err := p.MigrateAll(); err != nil {
 		log.Printf("Failed to auto migrate db: %v\n", err)
 		panic("Migration failure!")
 	}
