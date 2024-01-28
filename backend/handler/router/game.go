@@ -8,6 +8,7 @@ import (
 	"net-go/server/backend/model"
 	"net-go/server/backend/model/types"
 	"net/http"
+	"strconv"
 )
 
 type gameUri struct {
@@ -38,11 +39,13 @@ func (handler RouteHandler) GetGame(c *gin.Context) {
 	game, err := handler.p.GameService.Get(c, uriParams.ID)
 	if err != nil {
 		log.Printf("Error fetching game with id %u: %v\n", uriParams.ID, err)
-		c.JSON(http.StatusNotFound, gin.H{}) // TODO:
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10)),
+		})
 	}
 
 	// return game in shape elm expects
-	var respGame elmGame
+	var respGame ElmGame
 	respGame.fromGame(game, user)
 	c.JSON(http.StatusOK, gin.H{
 		"game": respGame,
@@ -50,7 +53,7 @@ func (handler RouteHandler) GetGame(c *gin.Context) {
 }
 
 // this follows the Game record shape in Elm frontend
-type elmGame struct {
+type ElmGame struct {
 	BoardSize     types.BoardSize
 	Board         [][]types.Piece
 	LastMoveWhite *types.Move
@@ -67,7 +70,7 @@ type elmGame struct {
  *
  * authedUser - currently authed User who is causing the action
  */
-func (r elmGame) toGame(authedUser *model.User) model.Game {
+func (r ElmGame) toGame(authedUser *model.User) model.Game {
 	game := model.Game{
 		Board: types.Board{
 			Size: r.BoardSize,
@@ -90,7 +93,7 @@ func (r elmGame) toGame(authedUser *model.User) model.Game {
 }
 
 // populates fiels of receiver using the provided Game
-func (r *elmGame) fromGame(g model.Game, authedUser model.User) {
+func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 	r.BoardSize = g.Board.Size
 	r.Board = g.Board.Map
 	r.LastMoveWhite = g.LastMoveWhite
@@ -107,7 +110,7 @@ func (r *elmGame) fromGame(g model.Game, authedUser model.User) {
 
 // POST /
 func (handler RouteHandler) CreateGame(c *gin.Context) {
-	var req elmGame
+	var req ElmGame
 	if ok := binding.BindData(c, &req); !ok {
 		return
 	}

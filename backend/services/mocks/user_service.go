@@ -70,3 +70,8 @@ func (m MockUserService) UpdateSessionToken(ctx context.Context, user *model.Use
 
 	return r0
 }
+
+func (m MockUserService) MigrateAll() error {
+	// no need to test
+	return nil
+}

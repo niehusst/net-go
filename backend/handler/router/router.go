@@ -37,7 +37,7 @@ func SetRouter(p provider.Provider) {
 	gameGroup.POST("/", handler.CreateGame)
 
 	// serve the Elm app HTML for any other route; the
-	// app will handle its own routing internally
+	// Elm SPA will handle its own routing internally
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})

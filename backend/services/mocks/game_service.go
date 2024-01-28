@@ -49,3 +49,8 @@ func (m MockGameService) Update(ctx context.Context, game *model.Game) error {
 
 	return r0
 }
+
+func (m MockGameService) MigrateAll() error {
+	// no testing needed
+	return nil
+}
