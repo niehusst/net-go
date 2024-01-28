@@ -27,3 +27,25 @@ func (m MockGameService) Get(ctx context.Context, id uint) (*model.Game, error) 
 
 	return r0, r1
 }
+
+func (m MockGameService) Create(ctx context.Context, game *model.Game) error {
+	ret := m.Called(ctx, game)
+
+	var r0 error
+	if v0 := ret.Get(0); v0 != nil {
+		r0 = v0.(error)
+	}
+
+	return r0
+}
+
+func (m MockGameService) Update(ctx context.Context, game *model.Game) error {
+	ret := m.Called(ctx, game)
+
+	var r0 error
+	if v0 := ret.Get(0); v0 != nil {
+		r0 = v0.(error)
+	}
+
+	return r0
+}

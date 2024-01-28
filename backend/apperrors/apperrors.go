@@ -60,6 +60,7 @@ func Status(err error) int {
  * Error factories
  */
 
+// 401
 func NewAuthorization(reason string) *Error {
 	return &Error{
 		Type:    Authorization,

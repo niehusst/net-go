@@ -29,6 +29,13 @@ func SetRouter(p provider.Provider) {
 	authGroup.POST("/signin", handler.Signin)
 	authGroup.GET("/signout", handler.Signout)
 
+	// game play
+	// TODO: auth check middleware
+	gameGroup := router.Group("/api/games")
+	gameGroup.GET("/:id", handler.GetGame)
+	//gameGroup.POST("/:id", handler.UpdateGame)
+	gameGroup.POST("/", handler.CreateGame)
+
 	// serve the Elm app HTML for any other route; the
 	// app will handle its own routing internally
 	router.NoRoute(func(c *gin.Context) {
