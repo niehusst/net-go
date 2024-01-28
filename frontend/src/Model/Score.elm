@@ -4,8 +4,7 @@ import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
 
 
 type alias Score =
-    { blackForfeit : Bool
-    , whiteForfeit : Bool
+    { forfeitColor : Maybe ColorChoice
     , blackPoints : Float
     , whitePoints : Float
     , komi : Float
@@ -14,8 +13,7 @@ type alias Score =
 
 initWithKomi : Float -> Score
 initWithKomi komi =
-    { blackForfeit = False
-    , whiteForfeit = False
+    { forfeitColor = Nothing
     , blackPoints = 0.0
     , whitePoints = 0.0
     , komi = komi
@@ -39,28 +37,32 @@ scoreToString score =
         displayScore =
             abs scoreDiff
     in
-    if isForfeit score then
-        if score.blackForfeit then
+    case score.forfeitColor of
+        Just ColorChoice.Black ->
             "W [Black Forfeit]"
 
-        else
+        Just ColorChoice.White ->
             "B [White Forfeit]"
 
-    else
-        case winningColor score of
-            Just ColorChoice.Black ->
-                "B+" ++ String.fromFloat displayScore
+        Nothing ->
+            case winningColor score of
+                Just ColorChoice.Black ->
+                    "B+" ++ String.fromFloat displayScore
 
-            Just ColorChoice.White ->
-                "W+" ++ String.fromFloat displayScore
+                Just ColorChoice.White ->
+                    "W+" ++ String.fromFloat displayScore
 
-            Nothing ->
-                "Draw"
+                Nothing ->
+                    "Draw"
 
 
 isForfeit : Score -> Bool
 isForfeit score =
-    score.blackForfeit || score.whiteForfeit
+    case score.forfeitColor of
+        Just _ ->
+            True
+        Nothing ->
+            False
 
 
 {-| Returns Just the winning color, or Nothing on a draw.

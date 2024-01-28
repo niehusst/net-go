@@ -270,7 +270,7 @@ suite =
                             Score.initWithKomi 0.0
 
                         forfeitScore =
-                            { score | blackForfeit = True }
+                            { score | forfeitColor = ColorChoice.Black }
 
                         actualScore =
                             scoreGame { game | score = forfeitScore } initialSeed
