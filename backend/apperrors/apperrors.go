@@ -61,10 +61,10 @@ func Status(err error) int {
  */
 
 // 401
-func NewAuthorization(reason string) *Error {
+func NewUnauthorized() *Error {
 	return &Error{
 		Type:    Authorization,
-		Message: reason,
+		Message: "Unauthorized, please log in",
 	}
 }
 

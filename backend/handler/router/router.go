@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"net-go/server/backend/handler/middleware"
 	"net-go/server/backend/handler/provider"
 	"net/http"
 )
@@ -30,8 +31,8 @@ func SetRouter(p provider.Provider) {
 	authGroup.GET("/signout", handler.Signout)
 
 	// game play
-	// TODO: auth check middleware
 	gameGroup := router.Group("/api/games")
+	gameGroup.Use(middleware.AuthUser())
 	gameGroup.GET("/:id", handler.GetGame)
 	//gameGroup.POST("/:id", handler.UpdateGame)
 	gameGroup.POST("/", handler.CreateGame)

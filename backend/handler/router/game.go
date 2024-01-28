@@ -30,6 +30,16 @@ func parseUriParams(c *gin.Context) (*gameUri, error) {
 
 // GET /:id
 func (handler RouteHandler) GetGame(c *gin.Context) {
+	// make sure we got authed user
+	user, exists := c.Get("user")
+	if !exists {
+		log.Printf("Expected to have authed user from middleware, but found none\n")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": apperrors.NewUnauthorized(),
+		})
+		return
+	}
+
 	uriParams, err := parseUriParams(c)
 	if err != nil {
 		// JSON resp handled in helper func failure
@@ -110,6 +120,16 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 
 // POST /
 func (handler RouteHandler) CreateGame(c *gin.Context) {
+	// make sure we got authed user
+	user, exists := c.Get("user")
+	if !exists {
+		log.Printf("Expected to have authed user from middleware, but found none\n")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": apperrors.NewUnauthorized(),
+		})
+		return
+	}
+
 	var req ElmGame
 	if ok := binding.BindData(c, &req); !ok {
 		return
