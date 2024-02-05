@@ -1,4 +1,4 @@
-package router
+package endpoints
 
 import (
 	"github.com/gin-gonic/gin"
@@ -28,14 +28,23 @@ func parseUriParams(c *gin.Context) (*gameUri, error) {
 	return &uriParams, nil
 }
 
-// GET /:id
-func (handler RouteHandler) GetGame(c *gin.Context) {
-	// make sure we got authed user
-	user, exists := c.Get("user")
+func getUserFromCtx(c *gin.Context) (*model.User, error) {
+	untypedUser, exists := c.Get("user")
 	if !exists {
+		return nil, apperrors.NewUnauthorized()
+	}
+	user := untypedUser.(model.User)
+	return &user, nil
+}
+
+// GET /:id
+func (rhandler RouteHandler) GetGame(c *gin.Context) {
+	// make sure we got authed user
+	user, err := getUserFromCtx(c)
+	if err != nil {
 		log.Printf("Expected to have authed user from middleware, but found none\n")
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": apperrors.NewUnauthorized(),
+			"error": err,
 		})
 		return
 	}
@@ -46,7 +55,7 @@ func (handler RouteHandler) GetGame(c *gin.Context) {
 		return
 	}
 
-	game, err := handler.p.GameService.Get(c, uriParams.ID)
+	game, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
 	if err != nil {
 		log.Printf("Error fetching game with id %u: %v\n", uriParams.ID, err)
 		c.JSON(http.StatusNotFound, gin.H{
@@ -56,7 +65,7 @@ func (handler RouteHandler) GetGame(c *gin.Context) {
 
 	// return game in shape elm expects
 	var respGame ElmGame
-	respGame.fromGame(game, user)
+	respGame.fromGame(*game, *user)
 	c.JSON(http.StatusOK, gin.H{
 		"game": respGame,
 	})
@@ -119,13 +128,13 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 }
 
 // POST /
-func (handler RouteHandler) CreateGame(c *gin.Context) {
+func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	// make sure we got authed user
-	user, exists := c.Get("user")
-	if !exists {
+	user, err := getUserFromCtx(c)
+	if err != nil {
 		log.Printf("Expected to have authed user from middleware, but found none\n")
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": apperrors.NewUnauthorized(),
+			"error": err,
 		})
 		return
 	}
@@ -138,7 +147,7 @@ func (handler RouteHandler) CreateGame(c *gin.Context) {
 	// transform input into game model
 	game := req.toGame(user)
 
-	if err := handler.p.GameService.Create(c, &game); err != nil {
+	if err := rhandler.Provider.GameService.Create(c, &game); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
 		})

@@ -1,14 +1,15 @@
-package router
+package middleware
 
 import (
 	"github.com/gin-gonic/gin"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/cookies"
+	"net-go/server/backend/handler/router/endpoints"
 	"net/http"
 )
 
 // wrapped for typing
-func AuthUserMiddleware() gin.HandlerFunc {
+func AuthUser(handler endpoints.RouteHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// extract auth cookie
 		cookie, err := cookies.GetAuthCookieFromRequest(c)
@@ -33,7 +34,7 @@ func AuthUserMiddleware() gin.HandlerFunc {
 
 		// get/auth the user
 		// TODO: get access to userservice... and make async to avoid block?
-		user, err := userService.Get(c, userId)
+		user, err := handler.Provider.UserService.Get(c, uint(userId))
 		if err != nil || sessToken != user.SessionToken {
 			// del expired/bad auth cookie
 			cookies.DeleteAuthCookiesInResponse(c)

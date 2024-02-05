@@ -1,10 +1,11 @@
-package router
+package endpoints
 
 import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/binding"
+	"net-go/server/backend/handler/cookies"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ type signupReq struct {
 	Password string `json:"password" binding:"required,gte=8,lte=30"`
 }
 
-func (handler RouteHandler) Signup(c *gin.Context) {
+func (rhandler RouteHandler) Signup(c *gin.Context) {
 	// bind json to req struct
 	var req signupReq
 	if ok := binding.BindData(c, &req); !ok {
@@ -22,7 +23,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	user, err := handler.p.UserService.Signup(c, req.Username, req.Password)
+	user, err := rhandler.Provider.UserService.Signup(c, req.Username, req.Password)
 	if err != nil {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
 		// TODO: i probably shouldnt send the full err back to client
@@ -34,7 +35,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 	}
 
 	// make sure we have an updated sess token
-	err = handler.p.UserService.UpdateSessionToken(c, user)
+	err = rhandler.Provider.UserService.UpdateSessionToken(c, user)
 	if err != nil {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
@@ -44,7 +45,7 @@ func (handler RouteHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	SetAuthCookiesInResponse(*user, c)
+	cookies.SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"ok": true,
