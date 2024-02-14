@@ -33,7 +33,6 @@ func AuthUser(handler endpoints.RouteHandler) gin.HandlerFunc {
 		}
 
 		// get/auth the user
-		// TODO: get access to userservice... and make async to avoid block?
 		user, err := handler.Provider.UserService.Get(c, uint(userId))
 		if err != nil || sessToken != user.SessionToken {
 			// del expired/bad auth cookie
