@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/cookies"
 	"net-go/server/backend/handler/router/endpoints"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // wrapped for typing
@@ -15,8 +15,9 @@ func AuthUser(handler endpoints.RouteHandler) gin.HandlerFunc {
 		cookie, err := cookies.GetAuthCookieFromRequest(c)
 		if err != nil {
 			// abort continuation of request handling
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": apperrors.NewUnauthorized(),
+			unauthErr := apperrors.NewUnauthorized()
+			c.AbortWithStatusJSON(unauthErr.Status(), gin.H{
+				"error": unauthErr.Error(),
 			})
 			return
 		}
@@ -26,8 +27,9 @@ func AuthUser(handler endpoints.RouteHandler) gin.HandlerFunc {
 			// del expired/bad auth cookie
 			cookies.DeleteAuthCookiesInResponse(c)
 
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": apperrors.NewUnauthorized(),
+			unauthErr := apperrors.NewUnauthorized()
+			c.AbortWithStatusJSON(unauthErr.Status(), gin.H{
+				"error": unauthErr.Error(),
 			})
 			return
 		}
@@ -38,8 +40,9 @@ func AuthUser(handler endpoints.RouteHandler) gin.HandlerFunc {
 			// del expired/bad auth cookie
 			cookies.DeleteAuthCookiesInResponse(c)
 
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": apperrors.NewUnauthorized(),
+			unauthErr := apperrors.NewUnauthorized()
+			c.AbortWithStatusJSON(unauthErr.Status(), gin.H{
+				"error": unauthErr.Error(),
 			})
 			return
 		}

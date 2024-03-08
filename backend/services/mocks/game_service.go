@@ -11,7 +11,7 @@ type MockGameService struct {
 	mock.Mock
 }
 
-func (m MockGameService) Get(ctx context.Context, id uint) (*model.Game, error) {
+func (m *MockGameService) Get(ctx context.Context, id uint) (*model.Game, error) {
 	// fetch mocked return values
 	ret := m.Called(ctx, id)
 
@@ -28,7 +28,7 @@ func (m MockGameService) Get(ctx context.Context, id uint) (*model.Game, error) 
 	return r0, r1
 }
 
-func (m MockGameService) Create(ctx context.Context, game *model.Game) error {
+func (m *MockGameService) Create(ctx context.Context, game *model.Game) error {
 	ret := m.Called(ctx, game)
 
 	var r0 error
@@ -39,7 +39,7 @@ func (m MockGameService) Create(ctx context.Context, game *model.Game) error {
 	return r0
 }
 
-func (m MockGameService) Update(ctx context.Context, game *model.Game) error {
+func (m *MockGameService) Update(ctx context.Context, game *model.Game) error {
 	ret := m.Called(ctx, game)
 
 	var r0 error
@@ -50,7 +50,7 @@ func (m MockGameService) Update(ctx context.Context, game *model.Game) error {
 	return r0
 }
 
-func (m MockGameService) MigrateAll() error {
+func (m *MockGameService) MigrateAll() error {
 	// no testing needed
 	return nil
 }
