@@ -157,6 +157,15 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 		return
 	}
 
+	// update user db entry to add new game to their list of games
+	user.Games = append(user.Games, game)
+	if err := rhandler.Provider.UserService.Update(c, user); err != nil {
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"uid": game.ID,
 	})

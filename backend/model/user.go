@@ -10,5 +10,5 @@ type User struct {
 	Username     string `gorm:"uniqueIndex"`
 	Password     string // hashed password
 	SessionToken string
-	Games        []*Game `gorm:"foreignKey:ID;"` // pointer to prevent dependency loop
+	Games        []Game `gorm:"foreignKey:ID;"` // pointer to prevent dependency loop
 }

@@ -18,6 +18,7 @@ type IUserService interface {
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
 	Signin(ctx context.Context, username string, password string) (*model.User, error)
 	UpdateSessionToken(ctx context.Context, user *model.User) error
+	Update(ctx context.Context, user *model.User) error
 }
 
 /* implementation */
@@ -96,6 +97,10 @@ func (s *UserService) UpdateSessionToken(ctx context.Context, user *model.User) 
 	user.SessionToken = sessToken
 	err := s.userRepository.Update(ctx, user)
 	return err
+}
+
+func (s *UserService) Update(ctx context.Context, user *model.User) error {
+	return s.userRepository.Update(ctx, user)
 }
 
 func (s *UserService) MigrateAll() error {

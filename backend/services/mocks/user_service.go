@@ -70,6 +70,17 @@ func (m *MockUserService) UpdateSessionToken(ctx context.Context, user *model.Us
 	return r0
 }
 
+func (m *MockUserService) Update(ctx context.Context, user *model.User) error {
+	ret := m.Called(ctx, user)
+
+	var r0 error
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).(error)
+	}
+
+	return r0
+}
+
 func (m *MockUserService) MigrateAll() error {
 	// no need to test
 	return nil
