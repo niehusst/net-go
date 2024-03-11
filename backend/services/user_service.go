@@ -83,7 +83,7 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 	if err != nil {
 		log.Printf("Error comparing passwords: %v\n", err)
 	}
-	if !matching {
+	if !matching || err != nil {
 		// wrong password
 		return user, apperrors.NewNotFound("User", username)
 	}
@@ -95,12 +95,19 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 func (s *UserService) UpdateSessionToken(ctx context.Context, user *model.User) error {
 	sessToken := uuid.New().String()
 	user.SessionToken = sessToken
-	err := s.userRepository.Update(ctx, user)
-	return err
+	if err := s.userRepository.Update(ctx, user); err != nil {
+		log.Printf("Unable to update user: %v\n", err)
+		return apperrors.NewInternal()
+	}
+	return nil
 }
 
 func (s *UserService) Update(ctx context.Context, user *model.User) error {
-	return s.userRepository.Update(ctx, user)
+	if err := s.userRepository.Update(ctx, user); err != nil {
+		log.Printf("Unable to update user: %v\n", err)
+		return apperrors.NewInternal()
+	}
+	return nil
 }
 
 func (s *UserService) MigrateAll() error {

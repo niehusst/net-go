@@ -15,6 +15,10 @@ type gameUri struct {
 	ID uint `uri:"id" binding:"required"`
 }
 
+type createGameRequest struct {
+	Game ElmGame `json:"game"`
+}
+
 func parseUriParams(c *gin.Context) (*gameUri, error) {
 	// bind uri params
 	var uriParams gameUri
@@ -142,13 +146,14 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 		return
 	}
 
-	var req ElmGame
+	var req createGameRequest
 	if ok := binding.BindData(c, &req); !ok {
+		// bind failure resp handled in BindData
 		return
 	}
 
 	// transform input into game model
-	game := req.toGame(user)
+	game := req.Game.toGame(user)
 
 	if err := rhandler.Provider.GameService.Create(c, &game); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
