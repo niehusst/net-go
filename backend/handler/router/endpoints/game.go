@@ -20,8 +20,9 @@ func parseUriParams(c *gin.Context) (*gameUri, error) {
 	var uriParams gameUri
 	if err := c.ShouldBindUri(&uriParams); err != nil {
 		log.Printf("Failed to parse game URI params: %v\n", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": apperrors.NewBadRequest("Invalid URI parameter for game ID"),
+		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for game ID")
+		c.JSON(badReqErr.Status(), gin.H{
+			"error": badReqErr.Error(),
 		})
 		return nil, err
 	}
@@ -43,8 +44,8 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	user, err := getUserFromCtx(c)
 	if err != nil {
 		log.Printf("Expected to have authed user from middleware, but found none\n")
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err,
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -57,10 +58,12 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 
 	game, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
 	if err != nil {
-		log.Printf("Error fetching game with id %u: %v\n", uriParams.ID, err)
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10)),
+		log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
+		notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
+		c.JSON(notFoundErr.Status(), gin.H{
+			"error": notFoundErr.Error(),
 		})
+		return
 	}
 
 	// return game in shape elm expects
@@ -133,8 +136,8 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	user, err := getUserFromCtx(c)
 	if err != nil {
 		log.Printf("Expected to have authed user from middleware, but found none\n")
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err,
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -149,7 +152,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 
 	if err := rhandler.Provider.GameService.Create(c, &game); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

@@ -2,7 +2,6 @@ package mocks
 
 import (
 	"context"
-
 	"github.com/stretchr/testify/mock"
 	"net-go/server/backend/model"
 )

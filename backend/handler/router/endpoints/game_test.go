@@ -3,19 +3,40 @@ package endpoints
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net-go/server/backend/handler/provider"
-	"net-go/server/backend/handler/router"
 	"net-go/server/backend/model"
 	"net-go/server/backend/model/types"
 	"net-go/server/backend/services/mocks"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+func buildGameRouter(mockGameService *mocks.MockGameService, ctxUser *model.User) *gin.Engine {
+	router := gin.Default()
+
+	p := provider.Provider{
+		R:           router,
+		GameService: mockGameService,
+	}
+	rhandler := NewRouteHandler(p)
+	if ctxUser != nil {
+		router.Use(func(c *gin.Context) {
+			c.Set("user", *ctxUser)
+		})
+	}
+
+	// keep this in sync w/ route defintion in router.go
+	// (couldnt use SetRouter directly w/o import cycle)
+	router.GET("/api/games/:id", rhandler.GetGame)
+	return router
+}
 
 func TestGetGameIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -38,18 +59,13 @@ func TestGetGameIntegration(t *testing.T) {
 			On(
 				"Get",
 				mock.AnythingOfType("*gin.Context"),
-				123,
+				uint(123),
 			).
-			Return(game, nil)
+			Return(&game, nil)
 
 		// record responses
 		rr := httptest.NewRecorder()
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			GameService: mockGameService,
-		})
+		router := buildGameRouter(mockGameService, &user)
 
 		// do request
 		req, err := http.NewRequest(http.MethodGet, "/api/games/123", bytes.NewBuffer([]byte{}))
@@ -68,17 +84,44 @@ func TestGetGameIntegration(t *testing.T) {
 
 		mockGameService.AssertExpectations(t)
 	})
-	t.Run("incorrect URI", func(t *testing.T) {
+	t.Run("404 returned when game isn't found", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
 		mockGameService := new(mocks.MockGameService)
+		mockGameService.
+			On(
+				"Get",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(nil, errors.New("game not found"))
 
 		// record responses
 		rr := httptest.NewRecorder()
-		router := gin.Default()
+		router := buildGameRouter(mockGameService, &user)
 
-		SetRouter(provider.Provider{
-			R:           router,
-			GameService: mockGameService,
-		})
+		// do request
+		req, err := http.NewRequest(http.MethodGet, "/api/games/123", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 404, rr.Code)
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("incorrect URI fails as bad request", func(t *testing.T) {
+		mockGameService := new(mocks.MockGameService)
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, &user)
 
 		// do request
 		req, err := http.NewRequest(http.MethodGet, "/api/games/abc", bytes.NewBuffer([]byte{}))
@@ -87,6 +130,22 @@ func TestGetGameIntegration(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		assert.Equal(t, 400, rr.Code)
+		mockGameService.AssertNotCalled(t, "Get")
+	})
+	t.Run("request is rejected when user is not set by middleware", func(t *testing.T) {
+		mockGameService := new(mocks.MockGameService)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil)
+
+		// do request
+		req, err := http.NewRequest(http.MethodGet, "/api/games/abc", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		assert.Equal(t, 401, rr.Code)
 		mockGameService.AssertNotCalled(t, "Get")
 	})
 }

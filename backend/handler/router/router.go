@@ -12,7 +12,7 @@ import (
 // route handling on that pointer.
 func SetRouter(p provider.Provider) {
 	router := p.R
-	rhandler := endpoints.NewRouteHandler(p)
+	handler := endpoints.NewRouteHandler(p)
 
 	router.RedirectTrailingSlash = true
 
@@ -27,16 +27,16 @@ func SetRouter(p provider.Provider) {
 
 	// auth
 	authGroup := router.Group("/api/accounts")
-	authGroup.POST("/signup", rhandler.Signup)
-	authGroup.POST("/signin", rhandler.Signin)
-	authGroup.GET("/signout", rhandler.Signout)
+	authGroup.POST("/signup", handler.Signup)
+	authGroup.POST("/signin", handler.Signin)
+	authGroup.GET("/signout", handler.Signout)
 
 	// game play
 	gameGroup := router.Group("/api/games")
-	gameGroup.Use(middleware.AuthUser(rhandler))
-	gameGroup.GET("/:id", rhandler.GetGame)
-	//gameGroup.POST("/:id", rhandler.UpdateGame)
-	gameGroup.POST("/", rhandler.CreateGame)
+	gameGroup.Use(middleware.AuthUser(handler))
+	gameGroup.GET("/:id", handler.GetGame)
+	//gameGroup.POST("/:id", handler.UpdateGame)
+	gameGroup.POST("/", handler.CreateGame)
 
 	// serve the Elm app HTML for any other route; the
 	// Elm SPA will handle its own routing internally
