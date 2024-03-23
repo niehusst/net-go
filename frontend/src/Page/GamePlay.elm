@@ -1,7 +1,9 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
 import Array
+import API.Games exposing (getGame)
 import Browser.Navigation as Nav
+import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
@@ -14,6 +16,7 @@ import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
 import Random
+import RemoteData exposing (WebData)
 import Route exposing (routeToString)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
@@ -23,6 +26,8 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | CalculateGameScore Int
+    | FetchGame String -- gameId
+    | DataReceived (WebData Game)
 
 
 type PlayState
@@ -32,7 +37,7 @@ type PlayState
 
 
 type alias Model =
-    { game : Game
+    { game : WebData Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     , initialSeed : Int
@@ -46,16 +51,28 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
-    case model.playState of
-        Playing ->
-            gamePlayView model
+    case model.game of
+        RemoteData.NotAsked ->
+            -- TODO: this will never happen?
+            text ""
+        RemoteData.Loading ->
+            -- TODO: improve
+            text "Loading"
+        RemoteData.Failure error ->
+            -- TODO: imporove
+            text ("Error fetching game: " ++ stringFromHttpError error)
+        RemoteData.Success game ->
 
-        CalculatingScore ->
-            -- TODO: this view is never showing...
-            loadingView
+            case model.playState of
+                Playing ->
+                    gamePlayView game model.invalidMoveAlert model.activeTurn
 
-        FinalScore score ->
-            scoreView score model.game.playerColor
+                CalculatingScore ->
+                    -- TODO: this view is never showing... browser too busy?
+                    loadingView
+
+                FinalScore score ->
+                    scoreView score game.playerColor
 
 
 loadingView : Html Msg
@@ -90,15 +107,15 @@ scoreView score playerColor =
         ]
 
 
-gamePlayView : Model -> Html Msg
-gamePlayView model =
+gamePlayView : Game -> Maybe String -> Bool -> Html Msg
+gamePlayView game invalidMoveAlert activeTurn =
     div []
         [ h3 [] [ text "Goban state" ]
-        , viewBuildBoard model
-        , viewWaitForOpponent model.activeTurn
+        , viewBuildBoard game
+        , viewWaitForOpponent activeTurn
         , div []
             [ button [ onClick PlayPass ] [ text "Pass" ] ]
-        , viewAlert model.invalidMoveAlert
+        , viewAlert invalidMoveAlert
         ]
 
 
@@ -121,25 +138,25 @@ viewWaitForOpponent activeTurn =
         text "Wait for opponent to play..."
 
 
-viewBuildBoard : Model -> Html Msg
-viewBuildBoard model =
+viewBuildBoard : Game -> Html Msg
+viewBuildBoard game =
     let
         intSize =
-            boardSizeToInt model.game.boardSize
+            boardSizeToInt game.boardSize
 
         gridStyle =
             String.join " " (List.repeat intSize "auto")
     in
     div [ class "board", style "grid-template-columns" gridStyle ]
-        (viewGameBoard model)
+        (viewGameBoard game)
 
 
-viewGameBoard : Model -> List (Html Msg)
-viewGameBoard model =
+viewGameBoard : Game -> List (Html Msg)
+viewGameBoard game =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell model.game.boardSize model.game.playerColor)
-            model.game.board
+            (viewBuildCell game.boardSize game.playerColor)
+            game.board
         )
 
 
@@ -295,6 +312,18 @@ update msg model =
               }
             , Cmd.none
             )
+        FetchGame gameId ->
+            ( model
+            , getGame gameId
+            )
+        DataReceived webData ->
+            -- TODO: @next finish this
+            ( { model
+                | game = webData.game
+                ,
+              }
+            , Cmd.none
+            )
 
 
 endTurn : Model -> Cmd Msg
@@ -309,16 +338,15 @@ endTurn model =
 
 init : String -> ( Model, Cmd Msg )
 init gameId =
-    ( initialModel boardSize colorChoice komi
-    , Cmd.none -- TODO: fetch req
+    ( initialModel
+    , getGame gameId  -- TODO: fetch req
     )
 
 
-initialModel : BoardSize -> ColorChoice -> Float -> Model
-initialModel boardSize colorChoice komi =
-    -- TODO: dont use newGame; need to populate from backedn
-    { game = newGame boardSize colorChoice komi
-    , activeTurn = colorChoice == Black
+initialModel : Model
+initialModel =
+    { game = Nothing
+    , activeTurn = False -- colorChoice == Black
     , invalidMoveAlert = Nothing
     , playState = Playing
     , initialSeed = 0

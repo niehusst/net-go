@@ -281,7 +281,6 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.GamePlay gameId ->
                     let
-                        -- TODO: put something in the url path so we can fetch game from backend
                         ( pageModel, pageCmds ) =
                             GamePlay.init gameId
                     in
