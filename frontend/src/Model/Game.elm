@@ -2,7 +2,7 @@ module Model.Game exposing (..)
 
 import Array
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
-import Model.ColorChoice exposing (ColorChoice)
+import Model.ColorChoice exposing (ColorChoice(..))
 import Model.Move as Move exposing (Move(..))
 import Model.Piece exposing (Piece(..))
 import Model.Score as Score exposing (Score)
@@ -124,3 +124,33 @@ printBoard game =
                 kernel g rest
     in
     kernel game game.board
+
+
+{-| The last move made should be made by the opponent
+-}
+isActiveTurn : Game -> Bool
+isActiveTurn game =
+    let
+        lastMoveMade : List Move -> Maybe ColorChoice
+        lastMoveMade moveHistory =
+            case moveHistory of
+                [] ->
+                    Nothing
+                lastMove :: tail ->
+                    case lastMove of
+                        Pass ->
+                            lastMoveMade tail
+                        Play BlackStone _ ->
+                            Just Black
+                        Play WhiteStone _ ->
+                            Just White
+                        _ ->
+                            -- this should never happen
+                            Nothing
+
+    in
+    case lastMoveMade game.history of
+        Nothing ->
+            game.playerColor == Black
+        Just color ->
+            game.playerColor /= color

@@ -314,13 +314,13 @@ update msg model =
             )
         FetchGame gameId ->
             ( model
-            , getGame gameId
+            , getGame (DataReceived) gameId
             )
-        DataReceived webData ->
+        DataReceived webdata ->
             -- TODO: @next finish this
             ( { model
-                | game = webData.game
-                ,
+                | game = webdata.game
+                , activeTurn = Game.isActiveTurn webdata.game
               }
             , Cmd.none
             )

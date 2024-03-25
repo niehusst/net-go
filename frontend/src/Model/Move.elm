@@ -1,6 +1,6 @@
 module Model.Move exposing (..)
 
-import Model.Piece as Piece exposing (Piece)
+import Model.Piece exposing (Piece)
 
 
 {-| Either a pass, or playing a piece at
