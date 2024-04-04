@@ -53,7 +53,7 @@ view : Model -> Html Msg
 view model =
     case model.game of
         RemoteData.NotAsked ->
-            -- TODO: this will never happen?
+            -- TODO: this will never happen? share case w/ err
             text ""
         RemoteData.Loading ->
             -- TODO: improve
@@ -316,11 +316,18 @@ update msg model =
             ( model
             , getGame (DataReceived) gameId
             )
-        DataReceived webdata ->
-            -- TODO: @next finish this
+        DataReceived responseGame ->
+            let
+                activeTurn =
+                    case responseGame of
+                        RemoteData.Success game ->
+                            Game.isActiveTurn game
+                        _ ->
+                            False
+            in
             ( { model
-                | game = webdata.game
-                , activeTurn = Game.isActiveTurn webdata.game
+                | game = responseGame
+                , activeTurn = activeTurn
               }
             , Cmd.none
             )
@@ -339,13 +346,13 @@ endTurn model =
 init : String -> ( Model, Cmd Msg )
 init gameId =
     ( initialModel
-    , getGame gameId  -- TODO: fetch req
+    , getGame (DataReceived) gameId
     )
 
 
 initialModel : Model
 initialModel =
-    { game = Nothing
+    { game = RemoteData.Loading
     , activeTurn = False -- colorChoice == Black
     , invalidMoveAlert = Nothing
     , playState = Playing

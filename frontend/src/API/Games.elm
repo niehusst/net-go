@@ -2,7 +2,7 @@ module API.Games exposing (getGame)
 
 import Http
 import RemoteData
-
+import Model.Game exposing (gameDecoder)
 
 prefix =
     "/api/games"
@@ -12,11 +12,13 @@ prefix =
 gameId - ID of game to fetch
 msgType - the Msg type to trigger on completion via Cmd
 -}
-getGame : String -> (Result Http.Error () -> msg) -> Cmd msg
+getGame : String -> (RemoteData.WebData t -> msg) -> Cmd msg
 getGame gameId msgType =
     -- TODO: Webdata instead of Result
     -- TODO: json encoding for returned struct
     Http.get
         { url = prefix ++ "/" ++ gameId
-        , expect = Http.expectWhatever msgType
+        , expect =
+            gameDecoder
+                |> Http.expectJson (RemoteData.fromResult >> msgType)
         }
