@@ -1,10 +1,13 @@
 module Model.Game exposing (..)
 
 import Array
+import Json.Decode as Decode exposing (Decoder, int, list, string, nullable, bool)
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
-import Model.ColorChoice exposing (ColorChoice(..))
+import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
 import Model.Move as Move exposing (Move(..))
-import Model.Piece exposing (Piece(..))
+import Model.Piece as Piece exposing (Piece(..))
 import Model.Score as Score exposing (Score)
 
 
@@ -139,6 +142,7 @@ isActiveTurn game =
                 lastMove :: tail ->
                     case lastMove of
                         Pass ->
+                            -- TODO: recurse wont work since pass is a valid turn. have to add playercolor to pass
                             lastMoveMade tail
                         Play BlackStone _ ->
                             Just Black
@@ -154,3 +158,20 @@ isActiveTurn game =
             game.playerColor == Black
         Just color ->
             game.playerColor /= color
+
+
+--- JSON coding
+
+gameDecoder : Decoder Game
+gameDecoder =
+    Decode.succeed Game
+        |> required "boardSize" Board.boardSizeDecoder
+        |> required "board" Board.boardDecoder
+        |> required "lastMoveWhite" nullable Move.moveDecoder
+        |> required "lastMoveBlack" nullable Move.moveDecoder
+        |> required "history" list Move.moveDecoder
+        |> required "playerColor" ColorChoice.colorDecoder
+        |> required "isOver" bool
+        |> required "score" Score.scoreDecoder
+
+

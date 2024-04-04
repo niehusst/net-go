@@ -1,7 +1,9 @@
 module Model.Score exposing (Score, increaseBlackPoints, increaseWhitePoints, initWithKomi, isForfeit, scoreToString, winningColor)
 
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
-
+import Json.Decode as Decode exposing (Decoder, float, nullable)
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
 
 type alias Score =
     { forfeitColor : Maybe ColorChoice
@@ -98,3 +100,13 @@ increaseWhitePoints points score =
 increaseBlackPoints : Float -> Score -> Score
 increaseBlackPoints points score =
     { score | blackPoints = score.blackPoints + points }
+
+--- JSON
+
+scoreDecoder : Decoder Score
+scoreDecoder =
+    Decode.succeed Score
+        |> required "forfeitColor" nullable ColorChoice.colorDecoder
+        |> required "blackPoints" float
+        |> required "whitePoints" float
+        |> required "komi" float
