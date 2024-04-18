@@ -12,9 +12,8 @@ prefix =
 gameId - ID of game to fetch
 msgType - the Msg type to trigger on completion via Cmd
 -}
-getGame : String -> (RemoteData.WebData t -> msg) -> Cmd msg
+getGame : String -> (RemoteData.WebData Model.Game.Game -> msg) -> Cmd msg
 getGame gameId msgType =
-    -- TODO: Webdata instead of Result
     -- TODO: json encoding for returned struct
     Http.get
         { url = prefix ++ "/" ++ gameId

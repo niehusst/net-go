@@ -59,10 +59,10 @@ setIsOver flag game =
 setLastMove : Move -> Game -> Game
 setLastMove move game =
     case game.playerColor of
-        Model.ColorChoice.White ->
+        ColorChoice.White ->
             { game | lastMoveWhite = Just move }
 
-        Model.ColorChoice.Black ->
+        ColorChoice.Black ->
             { game | lastMoveBlack = Just move }
 
 
@@ -78,10 +78,10 @@ addMoveToHistory move game =
 getLastMove : Game -> Maybe Move
 getLastMove game =
     case game.playerColor of
-        Model.ColorChoice.White ->
+        ColorChoice.White ->
             game.lastMoveWhite
 
-        Model.ColorChoice.Black ->
+        ColorChoice.Black ->
             game.lastMoveBlack
 
 
@@ -92,13 +92,13 @@ printBoard game =
     let
         mapper p =
             case p of
-                Model.Piece.None ->
+                Piece.None ->
                     "_"
 
-                Model.Piece.BlackStone ->
+                Piece.BlackStone ->
                     "X"
 
-                Model.Piece.WhiteStone ->
+                Piece.WhiteStone ->
                     "O"
 
         kernel : Game -> Board -> Game
@@ -167,9 +167,9 @@ gameDecoder =
     Decode.succeed Game
         |> required "boardSize" Board.boardSizeDecoder
         |> required "board" Board.boardDecoder
-        |> required "lastMoveWhite" nullable Move.moveDecoder
-        |> required "lastMoveBlack" nullable Move.moveDecoder
-        |> required "history" list Move.moveDecoder
+        |> required "lastMoveWhite" (nullable Move.moveDecoder)
+        |> required "lastMoveBlack" (nullable Move.moveDecoder)
+        |> required "history" (list Move.moveDecoder)
         |> required "playerColor" ColorChoice.colorDecoder
         |> required "isOver" bool
         |> required "score" Score.scoreDecoder

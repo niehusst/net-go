@@ -314,7 +314,7 @@ update msg model =
             )
         FetchGame gameId ->
             ( model
-            , getGame (DataReceived) gameId
+            , getGame gameId (DataReceived)
             )
         DataReceived responseGame ->
             let
@@ -346,7 +346,7 @@ endTurn model =
 init : String -> ( Model, Cmd Msg )
 init gameId =
     ( initialModel
-    , getGame (DataReceived) gameId
+    , getGame gameId (DataReceived)
     )
 
 
