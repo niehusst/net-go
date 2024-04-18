@@ -141,9 +141,8 @@ isActiveTurn game =
                     Nothing
                 lastMove :: tail ->
                     case lastMove of
-                        Pass ->
-                            -- TODO: recurse wont work since pass is a valid turn. have to add playercolor to pass
-                            lastMoveMade tail
+                        Pass playerColor ->
+                            Just playerColor
                         Play BlackStone _ ->
                             Just Black
                         Play WhiteStone _ ->

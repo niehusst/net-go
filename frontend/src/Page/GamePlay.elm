@@ -272,14 +272,14 @@ update msg model =
                 -- check that both players' passed their turn w/o playing a piece
                 gameEnded =
                     case ( model.game.lastMoveWhite, model.game.lastMoveBlack ) of
-                        ( Just Move.Pass, Just Move.Pass ) ->
+                        ( Just (Move.Pass _), Just (Move.Pass _) ) ->
                             True
 
                         _ ->
                             False
 
                 updatedGame =
-                    playMove Move.Pass model.game
+                    playMove (Move.Pass model.game.playerColor) model.game
                         |> setIsOver gameEnded
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse model.game.playerColor)

@@ -86,7 +86,7 @@ validMove move gameState =
                             applyChecks checksTail piece position game
     in
     case move of
-        Move.Pass ->
+        Move.Pass _ ->
             okay
 
         Move.Play piece position ->
@@ -359,7 +359,7 @@ isSurroundedByEnemyOrWall boardData position state =
 playMove : Move.Move -> Game.Game -> Game.Game
 playMove move game =
     case move of
-        Move.Pass ->
+        Move.Pass _ ->
             setLastMove move game
                 |> addMoveToHistory move
 
