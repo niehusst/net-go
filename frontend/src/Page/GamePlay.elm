@@ -245,107 +245,121 @@ renderPiece piece =
 
 -- UPDATE --
 
+handlePlayPiece : Model -> Int -> (Model, Cmd Msg)
+handlePlayPiece model index =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+        Just game ->
+            let
+                move =
+                    Move.Play (colorToPiece game.playerColor) index
+
+                ( moveIsValid, errorMessage ) =
+                    validMove move game
+            in
+                if moveIsValid then
+                    -- TODO: how will I update game state locally when its trapped in immutable RemoteData?
+                    -- TODO: break up this update handler into smaller functions
+                    ( { model
+                          | remoteGameData =
+                             playMove move game
+                            -- TODO: remove color swap w/ networking
+                            |> setPlayerColor (colorInverse game.playerColor)
+                            |> RemoteData.Success
+                          , activeTurn = not model.activeTurn
+                          , invalidMoveAlert = Nothing
+                      }
+                    , endTurn model
+                    )
+
+                else
+                    ( { model | invalidMoveAlert = errorMessage }
+                    , Cmd.none
+                    )
+
+handlePlayPass : Model -> (Model, Cmd Msg)
+handlePlayPass model =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+        Just game ->
+            let
+                -- check that both players' passed their turn w/o playing a piece
+                gameEnded =
+                    case ( game.lastMoveWhite, game.lastMoveBlack ) of
+                        ( Just (Move.Pass _), Just (Move.Pass _) ) ->
+                            True
+
+                        _ ->
+                            False
+
+                updatedGame =
+                    playMove (Move.Pass game.playerColor) game
+                        |> setIsOver gameEnded
+                        -- TODO remove color swap w/ networking
+                        |> setPlayerColor (colorInverse game.playerColor)
+
+                ( updatedModel, command ) =
+                    if gameEnded then
+                        ( { model
+                              | playState = CalculatingScore
+                          }
+                        , Random.generate CalculateGameScore (Random.int 0 42069)
+                        )
+
+                    else
+                        ( model
+                        , endTurn model
+                        )
+            in
+                ( { model
+                      | activeTurn = not model.activeTurn
+                      , invalidMoveAlert = Nothing
+                      , remoteGameData = RemoteData.Success updatedGame
+                  }
+                , command
+                )
+
+handleCalculateGameScore : Model -> Int -> (Model, Cmd Msg)
+handleCalculateGameScore model seed =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+        Just game ->
+            -- TODO: show the score somehow when done calculating
+            ( { model
+                  | playState = FinalScore (scoreGame game seed)
+              }
+            , Cmd.none
+            )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PlayPiece index ->
-            case gameFromModel model of
-                Nothing ->
-                    -- game required to be loaded to handle this msg
-                    ( model
-                    , Cmd.none
-                    )
-                Just game ->
-                    let
-                        move =
-                            Move.Play (colorToPiece game.playerColor) index
-
-                        ( moveIsValid, errorMessage ) =
-                            validMove move game
-                    in
-                        if moveIsValid then
-                            -- TODO: how will I update game state locally when its trapped in immutable RemoteData?
-                            -- TODO: break up this update handler into smaller functions
-                            ( { model
-                                  | game =
-                                    playMove move model.remoteGameData
-                                  -- TODO: remove color swap w/ networking
-                                  |> setPlayerColor (colorInverse model.remoteGameData.playerColor)
-                                  , activeTurn = not model.activeTurn
-                                  , invalidMoveAlert = Nothing
-                              }
-                            , endTurn model
-                            )
-
-                        else
-                            ( { model | invalidMoveAlert = errorMessage }
-                            , Cmd.none
-                            )
+            handlePlayPiece model index
 
         PlayPass ->
-            case gameFromModel model of
-                Nothing ->
-                    -- game required to be loaded to handle this msg
-                    ( model
-                    , Cmd.none
-                    )
-                Just game ->
-                    let
-                        -- check that both players' passed their turn w/o playing a piece
-                        gameEnded =
-                            case ( model.remoteGameData.lastMoveWhite, model.remoteGameData.lastMoveBlack ) of
-                                ( Just (Move.Pass _), Just (Move.Pass _) ) ->
-                                    True
-
-                                _ ->
-                                    False
-
-                        updatedGame =
-                            playMove (Move.Pass model.remoteGameData.playerColor) model.remoteGameData
-                                |> setIsOver gameEnded
-                                -- TODO remove color swap w/ networking
-                                |> setPlayerColor (colorInverse model.remoteGameData.playerColor)
-
-                        ( updatedModel, command ) =
-                            if gameEnded then
-                                ( { model
-                                      | playState = CalculatingScore
-                                  }
-                                , Random.generate CalculateGameScore (Random.int 0 42069)
-                                )
-
-                            else
-                                ( model
-                                , endTurn model
-                                )
-                    in
-                        ( { model
-                              | activeTurn = not model.activeTurn
-                              , invalidMoveAlert = Nothing
-                              , game = updatedGame
-                          }
-                        , command
-                        )
+            handlePlayPass model
 
         CalculateGameScore seed ->
-            case gameFromModel model of
-                Nothing ->
-                    -- game required to be loaded to handle this msg
-                    ( model
-                    , Cmd.none
-                    )
-                Just game ->
-                    -- TODO: show the score somehow when done calculating
-                    ( { model
-                          | playState = FinalScore (scoreGame model.remoteGameData seed)
-                      }
-                    , Cmd.none
-                    )
+            handleCalculateGameScore model seed
+
         FetchGame gameId ->
             ( model
             , getGame gameId (DataReceived)
             )
+
         DataReceived responseGame ->
             let
                 activeTurn =
@@ -356,7 +370,7 @@ update msg model =
                             False
             in
             ( { model
-                | game = responseGame
+                | remoteGameData = responseGame
                 , activeTurn = activeTurn
               }
             , Cmd.none
