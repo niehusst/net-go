@@ -17,19 +17,14 @@ type Move
 
 moveDecoder : Decoder Move
 moveDecoder =
-    field "coord" (maybe int)
+    field "moveType" int
         |> Decode.andThen
-           (\maybeCoord ->
-                case maybeCoord of
-                    Just _ ->
-                        Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) coordDecoder
-                    Nothing ->
-                        -- TODO: unfuck
-                        Decode.succeed (Pass Model.Piece.WhiteStone)
+           (\moveType ->
+                case moveType of
+                    0 ->
+                        Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) int
+                    1 ->
+                        Decode.map Pass (field "piece" Model.Piece.pieceDecoder)
+                    _ ->
+                        Decode.fail ("No JSON decode mapping for MoveType " ++ (String.fromInt moveType))
            )
-
-coordDecoder : Decoder Int
-coordDecoder =
-    -- TODO: use real 2D->1D conversion (requires board size)
-    -- or maybe change go backend to match frontend format...
-    Decode.map2 (*) (field "x" int) (field "y" int)
