@@ -15,6 +15,10 @@ type Move
 
 --- JSON
 
+{-
+Match these coders to the corresponding backend model/types/move.go data structures
+-}
+
 moveDecoder : Decoder Move
 moveDecoder =
     field "moveType" int
@@ -28,3 +32,19 @@ moveDecoder =
                     _ ->
                         Decode.fail ("No JSON decode mapping for MoveType " ++ (String.fromInt moveType))
            )
+
+moveEncoder : Move -> Encode.Value
+moveEncoder move =
+    case move of
+        Pass piece ->
+            Encode.object
+                [ ("moveType", Encode.int 0)
+                , ("piece", Model.Piece.pieceEncoder piece)
+                , ("coord", Encode.int 0)
+                ]
+        Play piece position ->
+            Encode.object
+                [ ("moveType", Encode.int 1)
+                , ("piece", Model.Piece.pieceEncoder piece)
+                , ("coord", Encode.int position)
+                ]

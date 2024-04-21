@@ -204,6 +204,14 @@ boardSizeDecoder =
 
            )
 
+boardSizeEncoder : BoardSize -> Encode.Value
+boardSizeEncoder boardSize =
+    Encode.int (boardSizeToInt boardSize)
+
 boardDecoder : Decoder Board
 boardDecoder =
     array Piece.pieceDecoder
+
+boardEncoder : Board -> Encode.Value
+boardEncoder board =
+    Encode.array (Piece.pieceEncoder) board

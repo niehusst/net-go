@@ -1,4 +1,4 @@
-module Model.Piece exposing (Piece(..), intToPiece, pieceToInt, pieceDecoder)
+module Model.Piece exposing (Piece(..), intToPiece, pieceToInt, pieceDecoder, pieceEncoder)
 
 import Json.Decode as Decode exposing (Decoder, int)
 import Json.Encode as Encode
@@ -60,3 +60,7 @@ pieceDecoder =
                     _ ->
                         Decode.fail ("Piece number " ++ (String.fromInt number) ++ " is invalid")
            )
+
+pieceEncoder : Piece -> Encode.Value
+pieceEncoder piece =
+    Encode.int (pieceToInt piece)

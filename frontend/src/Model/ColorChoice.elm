@@ -1,4 +1,4 @@
-module Model.ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece, colorToString, colorDecoder)
+module Model.ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece, colorToString, colorDecoder, colorEncoder)
 
 import Model.Piece exposing (Piece(..))
 import Json.Decode as Decode exposing (Decoder, string)
@@ -57,3 +57,7 @@ colorDecoder =
                     _ ->
                         Decode.fail "Invalid color"
             )
+
+colorEncoder : ColorChoice -> Encode.Value
+colorEncoder color =
+    Encode.string (colorToString color)

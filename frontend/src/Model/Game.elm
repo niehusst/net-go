@@ -4,6 +4,7 @@ import Array
 import Json.Decode as Decode exposing (Decoder, int, list, string, nullable, bool)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
+import JsonExtra
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
 import Model.Move as Move exposing (Move(..))
@@ -176,3 +177,15 @@ gameDecoder =
         |> required "score" Score.scoreDecoder
 
 
+gameEncoder : Game -> Encode.Value
+gameEncoder game =
+    Encode.object
+        [ ("boardSize", Board.boardSizeEncoder game.boardSize)
+        , ("board", Board.boardEncoder game.board)
+        , ("lastMoveWhite", JsonExtra.encodeMaybe (Move.moveEncoder) game.lastMoveWhite)
+        , ("lastMoveBlack", JsonExtra.encodeMaybe (Move.moveEncoder) game.lastMoveBlack)
+        , ("history", Encode.list Move.moveEncoder game.history)
+        , ("playerColor", ColorChoice.colorEncoder game.playerColor)
+        , ("isOver", Encode.bool game.isOver)
+        , ("score", Score.scoreEncoder game.score)
+        ]

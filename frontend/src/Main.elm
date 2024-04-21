@@ -239,6 +239,7 @@ init flags url navKey =
             { page = NotFoundPage
             , route = Route.parseUrl url
             , session = session
+            , navKey = navKey
             }
     in
     initCurrentPage ( model, Cmd.none )
