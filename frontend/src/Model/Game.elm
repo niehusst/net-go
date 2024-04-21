@@ -141,8 +141,10 @@ isActiveTurn game =
                     Nothing
                 lastMove :: tail ->
                     case lastMove of
-                        Pass playerColor ->
-                            Just playerColor
+                        Pass WhiteStone ->
+                            Just White
+                        Pass BlackStone ->
+                            Just Black
                         Play BlackStone _ ->
                             Just Black
                         Play WhiteStone _ ->

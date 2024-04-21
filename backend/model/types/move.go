@@ -1,15 +1,18 @@
 package types
 
-type Coord struct {
-	x uint
-	y uint
-}
+type MoveType uint
+
+const (
+	Pass      = 0
+	PlayPiece = 1
+)
 
 type Move struct {
-	Piece *Piece // nil counts as Pass
-	Coord *Coord // nil when Piece is nil
+	MoveType MoveType
+	Piece    Piece
+	Coord    uint // 0 when MoveType is Pass
 }
 
 func (m Move) IsPass() bool {
-	return m.Piece == nil
+	return m.MoveType == Pass
 }

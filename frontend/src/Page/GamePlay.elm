@@ -301,7 +301,7 @@ handlePlayPass model =
                             False
 
                 updatedGame =
-                    playMove (Move.Pass game.playerColor) game
+                    playMove (Move.Pass (colorToPiece game.playerColor)) game
                         |> setIsOver gameEnded
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse game.playerColor)

@@ -1,15 +1,15 @@
 module Model.Move exposing (..)
 
-import Model.Piece exposing (Piece)
-import Model.ColorChoice exposing (ColorChoice(..))
+import Model.Piece exposing (Piece(..))
 import Json.Decode as Decode exposing (Decoder, int, string, maybe, field)
 import Json.Encode as Encode
 
 {-| Either a pass, or playing a piece at
 a particular position
+Pass includes the Piece so we can know which player passed.
 -}
 type Move
-    = Pass ColorChoice
+    = Pass Piece
     | Play Piece Int
 
 
@@ -25,7 +25,7 @@ moveDecoder =
                         Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) coordDecoder
                     Nothing ->
                         -- TODO: unfuck
-                        Decode.succeed (Pass Model.ColorChoice.White)
+                        Decode.succeed (Pass Model.Piece.WhiteStone)
            )
 
 coordDecoder : Decoder Int
