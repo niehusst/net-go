@@ -1,4 +1,4 @@
-module Model.ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece, colorToString, colorDecoder, colorEncoder)
+module Model.ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece, colorToString, stringToColor, colorDecoder, colorEncoder)
 
 import Model.Piece exposing (Piece(..))
 import Json.Decode as Decode exposing (Decoder, string)
@@ -39,6 +39,16 @@ colorToString color =
 
         Black ->
             "black"
+
+stringToColor : String -> Maybe ColorChoice
+stringToColor string =
+    case String.toLower string of
+        "black" ->
+            Just Black
+        "white" ->
+            Just White
+        _ ->
+            Nothing
 
 --- JSON
 

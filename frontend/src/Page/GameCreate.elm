@@ -1,18 +1,32 @@
 module Page.GameCreate exposing (Model, FormData, Msg(..), init, update, view)
 
+import API.Games exposing (createGame, CreateGameResponse)
 import Browser.Navigation as Nav
+import Error
 import Html exposing (..)
 import Html.Attributes exposing (href, value, selected, type_, step, min)
 import Html.Events exposing (onClick, onInput)
 import Http
 import CmdExtra exposing (message)
-import Model.Board exposing (BoardSize(..), boardSizeToString, boardSizeToInt)
-import Model.ColorChoice exposing (ColorChoice(..), colorToString)
+import Model.Game as Game exposing (Game)
+import Model.Board as Board exposing (BoardSize(..), boardSizeToString, boardSizeToInt, intToBoardSize)
+import Model.ColorChoice exposing (ColorChoice(..), colorToString, stringToColor)
+import Model.Score as Score
 import Route exposing (Route, pushUrl)
+import RemoteData
+
+type Msg
+    = StoreBoardSize String
+    | StoreColorChoice String
+    | StoreKomi String
+    | CreateGame -- http req msgs for creating game in db
+    | GameCreated (Result Http.Error CreateGameResponse)
+
 
 type alias Model =
     { formData : FormData
     , navKey : Nav.Key
+    , httpError : Maybe Http.Error
     }
 
 
@@ -34,13 +48,17 @@ setKomi : Float -> FormData -> FormData
 setKomi komi data =
     { data | komi = komi }
 
-type Msg
-    = StoreBoardSize String
-    | StoreColorChoice String
-    | StoreKomi String
-    | CreateGame -- http req msgs for creating game in db
-    | GameCreated (Result Http.Error FormData)
-
+formDataToGame : FormData -> Game
+formDataToGame formData =
+    { boardSize = formData.boardSize
+    , board = Board.emptyBoard formData.boardSize
+    , lastMoveWhite = Nothing
+    , lastMoveBlack = Nothing
+    , history = []
+    , playerColor = formData.colorChoice
+    , isOver = False
+    , score = Score.initWithKomi formData.komi
+    }
 
 
 -- VIEW --
@@ -51,6 +69,7 @@ view model =
     div []
         [ h2 [] [ text "Game Settings" ]
         , viewGameSettings model.formData
+        , Error.viewHttpError model.httpError
         ]
 
 
@@ -87,6 +106,7 @@ viewGameSettings data =
               , div []
                     [ label [] [ text "Board size" ]
                     , select [ onInput StoreBoardSize ]
+                        -- TODO: flexibility
                              [ option [ value (String.fromInt <| boardSizeToInt Full)
                                       , selected (data.boardSize == Full)
                                       ]
@@ -143,57 +163,46 @@ update msg model =
                 value = String.toInt sizeStr
             in
             case value of
-                Just candidateSize ->
-                    if candidateSize == boardSizeToInt Full then
-                        ( { model | formData = setSize Full model.formData }
-                        , Cmd.none
-                        )
-                    else if candidateSize == boardSizeToInt Medium then
-                        ( { model | formData = setSize Medium model.formData }
-                        , Cmd.none
-                        )
-                    else if candidateSize == boardSizeToInt Small then
-                        ( { model | formData = setSize Small model.formData }
-                        , Cmd.none
-                        )
-                    else
-                        ( model
-                        , Cmd.none
-                        )
+                Just candidateSizeInt ->
+                    let
+                        candidateSize = intToBoardSize candidateSizeInt
+                    in
+                    case candidateSize of
+                        Just boardSize ->
+                            ( { model | formData = setSize boardSize model.formData }
+                            , Cmd.none
+                            )
+                        Nothing ->
+                            ( model
+                            , Cmd.none
+                            )
                 Nothing ->
                     ( model
                     , Cmd.none
                     )
 
         StoreColorChoice colorStr ->
-            case colorStr of
-                "black" ->
-                    ( { model | formData = setColor Black model.formData }
-                    , Cmd.none
-                    )
-                "white" ->
-                    ( { model | formData = setColor White model.formData }
+            case stringToColor colorStr of
+                Just colorChoice ->
+                    ( { model | formData = setColor colorChoice model.formData }
                     , Cmd.none
                     )
 
-                _ ->
+                Nothing ->
                     ( model, Cmd.none )
 
         CreateGame ->
-            -- TODO: real networking to save game to db
-            ( model
-            , message (GameCreated (Result.Ok model.formData))
+            ( { model | httpError = Nothing }
+            , createGame (formDataToGame model.formData) (GameCreated)
             )
 
-        GameCreated (Ok formData) ->
-            -- TODO: use game id response from backend to route to new game
+        GameCreated (Ok createdResponse) ->
             ( model
-            , pushUrl (Route.GamePlay "ID-here") model.navKey
+            , pushUrl (Route.GamePlay createdResponse.uid) model.navKey
             )
 
         GameCreated (Err httpErr) ->
-            -- TODO: display err message
-            ( model
+            ( { model | httpError = Just httpErr }
             , Cmd.none
             )
 
@@ -215,4 +224,5 @@ initialModel navKey =
                  , komi = 5.5 -- current? Japanese regulation komi
                  }
     , navKey = navKey
+    , httpError = Nothing
     }
