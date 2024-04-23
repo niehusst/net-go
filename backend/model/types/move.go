@@ -3,8 +3,8 @@ package types
 type MoveType uint
 
 const (
-	Pass      = 0
-	PlayPiece = 1
+	Pass      MoveType = 0
+	PlayPiece MoveType = 1
 )
 
 type Move struct {
