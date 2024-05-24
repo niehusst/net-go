@@ -81,7 +81,7 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 // this follows the Game record shape in Elm frontend
 type ElmGame struct {
 	BoardSize     types.BoardSize
-	Board         [][]types.Piece
+	Board         []types.Piece
 	LastMoveWhite *types.Move
 	LastMoveBlack *types.Move
 	History       []types.Move
@@ -96,12 +96,15 @@ type ElmGame struct {
  *
  * authedUser - currently authed User who is causing the action
  */
-func (r ElmGame) toGame(authedUser *model.User) model.Game {
+func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
+	// convert 1d Elm game board Array to 2d array or gorm model
+	board, err := types.BoardFromArray(r.BoardSize, r.Board)
+	if err != nil {
+		return nil, err
+	}
+
 	game := model.Game{
-		Board: types.Board{
-			Size: r.BoardSize,
-			Map:  r.Board,
-		},
+		Board:         *board,
 		LastMoveWhite: r.LastMoveWhite,
 		LastMoveBlack: r.LastMoveBlack,
 		History:       r.History,
@@ -115,13 +118,29 @@ func (r ElmGame) toGame(authedUser *model.User) model.Game {
 		game.WhitePlayer = *authedUser
 	}
 
-	return game
+	return &game, nil
 }
 
 // populates fiels of receiver using the provided Game
-func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
-	r.BoardSize = g.Board.Size
-	r.Board = g.Board.Map
+func (r *ElmGame) fromGame(g model.Game, authedUser model.User) error {
+	boardSize, err := types.UintToBoardSize(g.Board.Size)
+	if err != nil {
+		return err
+	}
+	r.BoardSize = boardSize
+
+	board := make([]types.Piece, 0)
+	for _, row := range g.Board.Map {
+		for _, intPiece := range row {
+			piece, err := types.IntToPiece(intPiece)
+			if err != nil {
+				return err
+			}
+			board = append(board, piece)
+		}
+	}
+	r.Board = board
+
 	r.LastMoveWhite = g.LastMoveWhite
 	r.LastMoveBlack = g.LastMoveBlack
 	r.History = g.History
@@ -132,6 +151,7 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 	} else {
 		r.PlayerColor = types.Black
 	}
+	return nil
 }
 
 // POST /
@@ -153,9 +173,16 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	}
 
 	// transform input into game model
-	game := req.Game.toGame(user)
+	game, err := req.Game.toGame(user)
+	if err != nil {
+		log.Printf("Failed to construct game model from request data\n")
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-	if err := rhandler.Provider.GameService.Create(c, &game); err != nil {
+	if err := rhandler.Provider.GameService.Create(c, game); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -163,7 +190,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	}
 
 	// update user db entry to add new game to their list of games
-	user.Games = append(user.Games, game)
+	user.Games = append(user.Games, *game)
 	if err := rhandler.Provider.UserService.Update(c, user); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
