@@ -121,26 +121,19 @@ func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
 	return &game, nil
 }
 
-// populates fiels of receiver using the provided Game
-func (r *ElmGame) fromGame(g model.Game, authedUser model.User) error {
-	boardSize, err := types.UintToBoardSize(g.Board.Size)
-	if err != nil {
-		return err
-	}
-	r.BoardSize = boardSize
-
+/**
+ * Populates fields of receiver using the provided Game and User
+ */
+func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
+	// convert 2d board to 1d
 	board := make([]types.Piece, 0)
 	for _, row := range g.Board.Map {
-		for _, intPiece := range row {
-			piece, err := types.IntToPiece(intPiece)
-			if err != nil {
-				return err
-			}
+		for _, piece := range row {
 			board = append(board, piece)
 		}
 	}
 	r.Board = board
-
+	r.BoardSize = g.Board.Size
 	r.LastMoveWhite = g.LastMoveWhite
 	r.LastMoveBlack = g.LastMoveBlack
 	r.History = g.History
@@ -151,7 +144,6 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) error {
 	} else {
 		r.PlayerColor = types.Black
 	}
-	return nil
 }
 
 // POST /

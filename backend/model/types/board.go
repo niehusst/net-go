@@ -5,8 +5,8 @@ import (
 )
 
 type Board struct {
-	Size uint
-	Map  [][]int
+	Size BoardSize
+	Map  [][]Piece
 }
 
 func BoardFromArray(size BoardSize, board1d []Piece) (*Board, error) {
@@ -20,21 +20,16 @@ func BoardFromArray(size BoardSize, board1d []Piece) (*Board, error) {
 	}
 
 	rows := boardLen / intSize
-	newBoard := make([][]int, rows)
+	newBoard := make([][]Piece, rows)
 
 	for i := 0; i < rows; i++ {
 		start := i * intSize
 		end := start + intSize
-		// convert []Piece to []int
-		boardRow := make([]int, intSize)
-		for i, piece := range board1d[start:end] {
-			boardRow[i] = piece.ToInt()
-		}
-		newBoard[i] = boardRow
+		newBoard[i] = board1d[start:end]
 	}
 
 	return &Board{
-		Size: size.ToUint(),
+		Size: size,
 		Map:  newBoard,
 	}, nil
 }

@@ -1,7 +1,9 @@
 package types
 
 import (
+	"database/sql/driver"
 	"errors"
+	"fmt"
 )
 
 type Piece int
@@ -27,4 +29,26 @@ func IntToPiece(candidate int) (Piece, error) {
 
 func (p Piece) ToInt() int {
 	return int(p)
+}
+
+func (p Piece) Value() (driver.Value, error) {
+	return p.ToInt(), nil
+}
+
+func (p *Piece) Scan(value interface{}) error {
+	if value == nil {
+		*p = None
+		return nil
+	}
+	switch v := value.(type) {
+	case int:
+		piece, err := IntToPiece(v)
+		if err != nil {
+			return err
+		}
+		*p = piece
+	default:
+		return fmt.Errorf("unsupported Scan value type for Piece: %T", value)
+	}
+	return nil
 }

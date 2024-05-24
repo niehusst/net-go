@@ -1,7 +1,9 @@
 package types
 
 import (
+	"database/sql/driver"
 	"errors"
+	"fmt"
 )
 
 type MoveType uint
@@ -26,19 +28,34 @@ func (mt MoveType) ToUint() uint {
 	return uint(mt)
 }
 
-// can't use MoveType or Piece type aliases bcus gORM can't handle custom types
-// in model defintions
+func (mt MoveType) Value() (driver.Value, error) {
+	return mt.ToUint(), nil
+}
+
+func (mt *MoveType) Scan(value interface{}) error {
+	if value == nil {
+		*mt = Pass
+		return nil
+	}
+	switch v := value.(type) {
+	case uint:
+		moveType, err := UintToMoveType(v)
+		if err != nil {
+			return err
+		}
+		*mt = moveType
+	default:
+		return fmt.Errorf("unsupported Scan value type for MoveType: %T", value)
+	}
+	return nil
+}
+
 type Move struct {
-	MoveType uint
-	Piece    int
+	MoveType MoveType
+	Piece    Piece
 	Coord    uint // 0 when MoveType is Pass
 }
 
 func (m Move) IsPass() bool {
-	moveType, err := UintToMoveType(m.MoveType)
-	if err != nil {
-		return false
-	}
-
-	return moveType == Pass
+	return m.MoveType == Pass
 }
