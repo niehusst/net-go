@@ -27,6 +27,7 @@ type alias Model =
     , navKey : Nav.Key
     }
 
+
 type Page
     = NotFoundPage
     | HomePage Home.Model

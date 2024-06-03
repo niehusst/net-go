@@ -1,7 +1,7 @@
 module Model.Game exposing (..)
 
 import Array
-import Json.Decode as Decode exposing (Decoder, int, list, string, nullable, bool)
+import Json.Decode as Decode exposing (Decoder, bool, int, list, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import JsonExtra
@@ -61,6 +61,7 @@ addMoveToHistory : Move -> Game -> Game
 addMoveToHistory move game =
     { game | history = move :: game.history }
 
+
 getLastMoveWhite : Game -> Maybe Move
 getLastMoveWhite game =
     let
@@ -69,22 +70,26 @@ getLastMoveWhite game =
             case history of
                 [] ->
                     Nothing
+
                 move :: historyTail ->
                     let
                         playerPiece =
                             case move of
                                 Pass piece ->
                                     piece
+
                                 Play piece _ ->
                                     piece
                     in
                     case playerPiece of
                         WhiteStone ->
                             Just move
+
                         _ ->
                             kernel historyTail
     in
     kernel (List.reverse game.history)
+
 
 getLastMoveBlack : Game -> Maybe Move
 getLastMoveBlack game =
@@ -94,22 +99,26 @@ getLastMoveBlack game =
             case history of
                 [] ->
                     Nothing
+
                 move :: historyTail ->
                     let
                         playerPiece =
                             case move of
                                 Pass piece ->
                                     piece
+
                                 Play piece _ ->
                                     piece
                     in
                     case playerPiece of
                         BlackStone ->
                             Just move
+
                         _ ->
                             kernel historyTail
     in
     kernel (List.reverse game.history)
+
 
 getLastMove : Game -> Maybe Move
 getLastMove game =
@@ -175,29 +184,36 @@ isActiveTurn game =
             case moveHistory of
                 [] ->
                     Nothing
+
                 lastMove :: tail ->
                     case lastMove of
                         Pass WhiteStone ->
                             Just White
+
                         Pass BlackStone ->
                             Just Black
+
                         Play BlackStone _ ->
                             Just Black
+
                         Play WhiteStone _ ->
                             Just White
+
                         _ ->
                             -- this should never happen
                             Nothing
-
     in
     case lastMoveMade game.history of
         Nothing ->
             game.playerColor == Black
+
         Just color ->
             game.playerColor /= color
 
 
+
 --- JSON coding
+
 
 gameDecoder : Decoder Game
 gameDecoder =
@@ -213,10 +229,10 @@ gameDecoder =
 gameEncoder : Game -> Encode.Value
 gameEncoder game =
     Encode.object
-        [ ("boardSize", Board.boardSizeEncoder game.boardSize)
-        , ("board", Board.boardEncoder game.board)
-        , ("history", Encode.list Move.moveEncoder game.history)
-        , ("playerColor", ColorChoice.colorEncoder game.playerColor)
-        , ("isOver", Encode.bool game.isOver)
-        , ("score", Score.scoreEncoder game.score)
+        [ ( "boardSize", Board.boardSizeEncoder game.boardSize )
+        , ( "board", Board.boardEncoder game.board )
+        , ( "history", Encode.list Move.moveEncoder game.history )
+        , ( "playerColor", ColorChoice.colorEncoder game.playerColor )
+        , ( "isOver", Encode.bool game.isOver )
+        , ( "score", Score.scoreEncoder game.score )
         ]

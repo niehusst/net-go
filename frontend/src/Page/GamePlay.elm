@@ -1,7 +1,7 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
-import Array
 import API.Games exposing (getGame)
+import Array
 import Browser.Navigation as Nav
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
@@ -44,13 +44,16 @@ type alias Model =
     , playState : PlayState
     }
 
+
 gameFromModel : Model -> Maybe Game
 gameFromModel model =
     case model.remoteGameData of
         RemoteData.Success game ->
             Just game
+
         _ ->
             Nothing
+
 
 
 -- VIEW --
@@ -62,14 +65,16 @@ view model =
         RemoteData.NotAsked ->
             -- TODO: this will never happen? share case w/ err
             text ""
+
         RemoteData.Loading ->
             -- TODO: improve
             text "Loading"
+
         RemoteData.Failure error ->
             -- TODO: imporove
             text ("Error fetching game: " ++ stringFromHttpError error)
-        RemoteData.Success game ->
 
+        RemoteData.Success game ->
             case model.playState of
                 Playing ->
                     gamePlayView game model.invalidMoveAlert model.activeTurn
@@ -245,7 +250,8 @@ renderPiece piece =
 
 -- UPDATE --
 
-handlePlayPiece : Model -> Int -> (Model, Cmd Msg)
+
+handlePlayPiece : Model -> Int -> ( Model, Cmd Msg )
 handlePlayPiece model index =
     case gameFromModel model of
         Nothing ->
@@ -253,6 +259,7 @@ handlePlayPiece model index =
             ( model
             , Cmd.none
             )
+
         Just game ->
             let
                 move =
@@ -261,27 +268,28 @@ handlePlayPiece model index =
                 ( moveIsValid, errorMessage ) =
                     validMove move game
             in
-                if moveIsValid then
-                    -- TODO: how will I update game state locally when its trapped in immutable RemoteData?
-                    -- TODO: break up this update handler into smaller functions
-                    ( { model
-                          | remoteGameData =
-                             playMove move game
+            if moveIsValid then
+                -- TODO: how will I update game state locally when its trapped in immutable RemoteData?
+                -- TODO: break up this update handler into smaller functions
+                ( { model
+                    | remoteGameData =
+                        playMove move game
                             -- TODO: remove color swap w/ networking
                             |> setPlayerColor (colorInverse game.playerColor)
                             |> RemoteData.Success
-                          , activeTurn = not model.activeTurn
-                          , invalidMoveAlert = Nothing
-                      }
-                    , endTurn model
-                    )
+                    , activeTurn = not model.activeTurn
+                    , invalidMoveAlert = Nothing
+                  }
+                , endTurn model
+                )
 
-                else
-                    ( { model | invalidMoveAlert = errorMessage }
-                    , Cmd.none
-                    )
+            else
+                ( { model | invalidMoveAlert = errorMessage }
+                , Cmd.none
+                )
 
-handlePlayPass : Model -> (Model, Cmd Msg)
+
+handlePlayPass : Model -> ( Model, Cmd Msg )
 handlePlayPass model =
     case gameFromModel model of
         Nothing ->
@@ -289,6 +297,7 @@ handlePlayPass model =
             ( model
             , Cmd.none
             )
+
         Just game ->
             let
                 -- check that both players' passed their turn w/o playing a piece
@@ -309,7 +318,7 @@ handlePlayPass model =
                 ( updatedModel, command ) =
                     if gameEnded then
                         ( { model
-                              | playState = CalculatingScore
+                            | playState = CalculatingScore
                           }
                         , Random.generate CalculateGameScore (Random.int 0 42069)
                         )
@@ -319,15 +328,16 @@ handlePlayPass model =
                         , endTurn model
                         )
             in
-                ( { model
-                      | activeTurn = not model.activeTurn
-                      , invalidMoveAlert = Nothing
-                      , remoteGameData = RemoteData.Success updatedGame
-                  }
-                , command
-                )
+            ( { model
+                | activeTurn = not model.activeTurn
+                , invalidMoveAlert = Nothing
+                , remoteGameData = RemoteData.Success updatedGame
+              }
+            , command
+            )
 
-handleCalculateGameScore : Model -> Int -> (Model, Cmd Msg)
+
+handleCalculateGameScore : Model -> Int -> ( Model, Cmd Msg )
 handleCalculateGameScore model seed =
     case gameFromModel model of
         Nothing ->
@@ -335,13 +345,15 @@ handleCalculateGameScore model seed =
             ( model
             , Cmd.none
             )
+
         Just game ->
             -- TODO: show the score somehow when done calculating
             ( { model
-                  | playState = FinalScore (scoreGame game seed)
+                | playState = FinalScore (scoreGame game seed)
               }
             , Cmd.none
             )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -357,7 +369,7 @@ update msg model =
 
         FetchGame gameId ->
             ( model
-            , getGame gameId (DataReceived)
+            , getGame gameId DataReceived
             )
 
         DataReceived responseGame ->
@@ -366,6 +378,7 @@ update msg model =
                     case responseGame of
                         RemoteData.Success game ->
                             Game.isActiveTurn game
+
                         _ ->
                             False
             in
@@ -390,7 +403,7 @@ endTurn model =
 init : String -> ( Model, Cmd Msg )
 init gameId =
     ( initialModel
-    , getGame gameId (DataReceived)
+    , getGame gameId DataReceived
     )
 
 

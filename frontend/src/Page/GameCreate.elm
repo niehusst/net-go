@@ -1,19 +1,20 @@
-module Page.GameCreate exposing (Model, FormData, Msg(..), init, update, view)
+module Page.GameCreate exposing (FormData, Model, Msg(..), init, update, view)
 
-import API.Games exposing (createGame, CreateGameResponse)
+import API.Games exposing (CreateGameResponse, createGame)
 import Browser.Navigation as Nav
+import CmdExtra exposing (message)
 import Error
 import Html exposing (..)
-import Html.Attributes exposing (href, value, selected, type_, step, min)
+import Html.Attributes exposing (href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
-import CmdExtra exposing (message)
-import Model.Game as Game exposing (Game)
-import Model.Board as Board exposing (BoardSize(..), boardSizeToString, boardSizeToInt, intToBoardSize)
+import Model.Board as Board exposing (BoardSize(..), boardSizeToInt, boardSizeToString, intToBoardSize)
 import Model.ColorChoice exposing (ColorChoice(..), colorToString, stringToColor)
+import Model.Game as Game exposing (Game)
 import Model.Score as Score
-import Route exposing (Route, pushUrl)
 import RemoteData
+import Route exposing (Route, pushUrl)
+
 
 type Msg
     = StoreBoardSize String
@@ -36,17 +37,21 @@ type alias FormData =
     , komi : Float
     }
 
+
 setSize : BoardSize -> FormData -> FormData
 setSize size data =
     { data | boardSize = size }
+
 
 setColor : ColorChoice -> FormData -> FormData
 setColor color data =
     { data | colorChoice = color }
 
+
 setKomi : Float -> FormData -> FormData
 setKomi komi data =
     { data | komi = komi }
+
 
 formDataToGame : FormData -> Game
 formDataToGame formData =
@@ -57,6 +62,7 @@ formDataToGame formData =
     , isOver = False
     , score = Score.initWithKomi formData.komi
     }
+
 
 
 -- VIEW --
@@ -74,64 +80,73 @@ view model =
 viewGameSettings : FormData -> Html Msg
 viewGameSettings data =
     let
-        black = colorToString Black
+        black =
+            colorToString Black
 
-        white = colorToString White
+        white =
+            colorToString White
 
-        full = boardSizeToString Full
+        full =
+            boardSizeToString Full
 
-        med = boardSizeToString Medium
+        med =
+            boardSizeToString Medium
 
-        small = boardSizeToString Small
+        small =
+            boardSizeToString Small
     in
     div []
         [ Html.form []
-              [ div []
-                    [ label [] [ text "Color" ]
-                    , select [ onInput StoreColorChoice ]
-                        [ option
-                              [ value black
-                              , selected (data.colorChoice == Black)
-                              ]
-                              [ text black ]
-                        , option
-                              [ value white
-                              , selected (data.colorChoice == White)
-                              ]
-                              [ text white ]
+            [ div []
+                [ label [] [ text "Color" ]
+                , select [ onInput StoreColorChoice ]
+                    [ option
+                        [ value black
+                        , selected (data.colorChoice == Black)
                         ]
+                        [ text black ]
+                    , option
+                        [ value white
+                        , selected (data.colorChoice == White)
+                        ]
+                        [ text white ]
                     ]
-              , div []
-                    [ label [] [ text "Board size" ]
-                    , select [ onInput StoreBoardSize ]
-                        -- TODO: flexibility
-                             [ option [ value (String.fromInt <| boardSizeToInt Full)
-                                      , selected (data.boardSize == Full)
-                                      ]
-                                      [ text full ]
-                             , option [ value (String.fromInt <| boardSizeToInt Medium)
-                                      , selected (data.boardSize == Medium)
-                                      ]
-                                      [ text med ]
-                             , option [ value (String.fromInt <| boardSizeToInt Small)
-                                      , selected (data.boardSize == Small)
-                                      ]
-                                      [ text small ]
-                             ]
+                ]
+            , div []
+                [ label [] [ text "Board size" ]
+                , select [ onInput StoreBoardSize ]
+                    -- TODO: flexibility
+                    [ option
+                        [ value (String.fromInt <| boardSizeToInt Full)
+                        , selected (data.boardSize == Full)
+                        ]
+                        [ text full ]
+                    , option
+                        [ value (String.fromInt <| boardSizeToInt Medium)
+                        , selected (data.boardSize == Medium)
+                        ]
+                        [ text med ]
+                    , option
+                        [ value (String.fromInt <| boardSizeToInt Small)
+                        , selected (data.boardSize == Small)
+                        ]
+                        [ text small ]
                     ]
-              , div []
-                    [ label [] [ text "Komi" ]
-                    , input [ onInput StoreKomi
-                            , type_ "number"
-                            , step "0.1"
-                            , Html.Attributes.min "0"
-                            , value (String.fromFloat data.komi)
-                            ]
-                            []
+                ]
+            , div []
+                [ label [] [ text "Komi" ]
+                , input
+                    [ onInput StoreKomi
+                    , type_ "number"
+                    , step "0.1"
+                    , Html.Attributes.min "0"
+                    , value (String.fromFloat data.komi)
                     ]
-              , button [ onClick CreateGame ]
-                       [ text "Create game" ]
-              ]
+                    []
+                ]
+            , button [ onClick CreateGame ]
+                [ text "Create game" ]
+            ]
         ]
 
 
@@ -144,13 +159,15 @@ update msg model =
     case msg of
         StoreKomi komiStr ->
             let
-                value = String.toFloat komiStr
+                value =
+                    String.toFloat komiStr
             in
             case value of
                 Just komi ->
                     ( { model | formData = setKomi komi model.formData }
                     , Cmd.none
                     )
+
                 Nothing ->
                     ( model
                     , Cmd.none
@@ -158,22 +175,26 @@ update msg model =
 
         StoreBoardSize sizeStr ->
             let
-                value = String.toInt sizeStr
+                value =
+                    String.toInt sizeStr
             in
             case value of
                 Just candidateSizeInt ->
                     let
-                        candidateSize = intToBoardSize candidateSizeInt
+                        candidateSize =
+                            intToBoardSize candidateSizeInt
                     in
                     case candidateSize of
                         Just boardSize ->
                             ( { model | formData = setSize boardSize model.formData }
                             , Cmd.none
                             )
+
                         Nothing ->
                             ( model
                             , Cmd.none
                             )
+
                 Nothing ->
                     ( model
                     , Cmd.none
@@ -191,7 +212,7 @@ update msg model =
 
         CreateGame ->
             ( { model | httpError = Nothing }
-            , createGame (formDataToGame model.formData) (GameCreated)
+            , createGame (formDataToGame model.formData) GameCreated
             )
 
         GameCreated (Ok createdResponse) ->
@@ -203,6 +224,7 @@ update msg model =
             ( { model | httpError = Just httpErr }
             , Cmd.none
             )
+
 
 
 -- INIT --
@@ -217,10 +239,11 @@ init navKey =
 
 initialModel : Nav.Key -> Model
 initialModel navKey =
-    { formData = { boardSize = Full
-                 , colorChoice = Black
-                 , komi = 5.5 -- current? Japanese regulation komi
-                 }
+    { formData =
+        { boardSize = Full
+        , colorChoice = Black
+        , komi = 5.5 -- current? Japanese regulation komi
+        }
     , navKey = navKey
     , httpError = Nothing
     }

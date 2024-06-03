@@ -2,7 +2,7 @@ module Route exposing (Route(..), parseUrl, pushUrl, routeToString)
 
 import Browser.Navigation as Nav
 import Url exposing (Url)
-import Url.Parser exposing (Parser, (</>), string, map, oneOf, s, top, parse)
+import Url.Parser exposing ((</>), Parser, map, oneOf, parse, s, string, top)
 
 
 type Route

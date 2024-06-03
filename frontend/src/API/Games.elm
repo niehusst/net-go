@@ -1,13 +1,15 @@
-module API.Games exposing (getGame, createGame, CreateGameResponse)
+module API.Games exposing (CreateGameResponse, createGame, getGame)
 
 import Http
 import Json.Decode as Decode exposing (Decoder, string)
 import Json.Decode.Pipeline exposing (optional, required)
-import RemoteData
 import Model.Game exposing (Game, gameDecoder, gameEncoder)
+import RemoteData
+
 
 prefix =
     "/api/games"
+
 
 type alias CreateGameResponse =
     { uid : String }
@@ -42,5 +44,5 @@ createGame game msgType =
     Http.post
         { url = prefix ++ "/"
         , body = Http.jsonBody (gameEncoder game)
-        , expect = Http.expectJson (msgType) decodeCreateGameResponse
+        , expect = Http.expectJson msgType decodeCreateGameResponse
         }

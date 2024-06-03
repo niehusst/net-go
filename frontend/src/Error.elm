@@ -1,8 +1,8 @@
 module Error exposing (stringFromHttpError, viewHttpError)
 
-import Http
 import Html exposing (..)
 import Html.Attributes exposing (style)
+import Http
 
 
 stringFromHttpError : Http.Error -> String
@@ -31,13 +31,16 @@ stringFromHttpError error =
         Http.BadBody msg ->
             "Bad body: " ++ msg
 
+
 viewHttpError : Maybe Http.Error -> Html msg
 viewHttpError maybeHttpError =
     case maybeHttpError of
         Just httpError ->
             let
-                errMsg = stringFromHttpError httpError
+                errMsg =
+                    stringFromHttpError httpError
             in
             h2 [ style "color" "red" ] [ text errMsg ]
+
         Nothing ->
             text ""
