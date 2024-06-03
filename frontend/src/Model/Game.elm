@@ -15,8 +15,6 @@ import Model.Score as Score exposing (Score)
 type alias Game =
     { boardSize : BoardSize
     , board : Board
-    , lastMoveWhite : Maybe Move
-    , lastMoveBlack : Maybe Move
     , history : List Move
     , playerColor : ColorChoice
     , isOver : Bool
@@ -28,8 +26,6 @@ newGame : BoardSize -> ColorChoice -> Float -> Game
 newGame size color komi =
     { boardSize = size
     , board = emptyBoard size
-    , lastMoveWhite = Nothing
-    , lastMoveBlack = Nothing
     , history = []
     , playerColor = color
     , isOver = False
@@ -57,16 +53,6 @@ setIsOver flag game =
     { game | isOver = flag }
 
 
-setLastMove : Move -> Game -> Game
-setLastMove move game =
-    case game.playerColor of
-        ColorChoice.White ->
-            { game | lastMoveWhite = Just move }
-
-        ColorChoice.Black ->
-            { game | lastMoveBlack = Just move }
-
-
 {-| Note that because the moves are cons-ed
 together, the history is the reverse order
 of how the moves were actually played.
@@ -75,15 +61,64 @@ addMoveToHistory : Move -> Game -> Game
 addMoveToHistory move game =
     { game | history = move :: game.history }
 
+getLastMoveWhite : Game -> Maybe Move
+getLastMoveWhite game =
+    let
+        kernel : List Move -> Maybe Move
+        kernel history =
+            case history of
+                [] ->
+                    Nothing
+                move :: historyTail ->
+                    let
+                        playerPiece =
+                            case move of
+                                Pass piece ->
+                                    piece
+                                Play piece _ ->
+                                    piece
+                    in
+                    case playerPiece of
+                        WhiteStone ->
+                            Just move
+                        _ ->
+                            kernel historyTail
+    in
+    kernel (List.reverse game.history)
+
+getLastMoveBlack : Game -> Maybe Move
+getLastMoveBlack game =
+    let
+        kernel : List Move -> Maybe Move
+        kernel history =
+            case history of
+                [] ->
+                    Nothing
+                move :: historyTail ->
+                    let
+                        playerPiece =
+                            case move of
+                                Pass piece ->
+                                    piece
+                                Play piece _ ->
+                                    piece
+                    in
+                    case playerPiece of
+                        BlackStone ->
+                            Just move
+                        _ ->
+                            kernel historyTail
+    in
+    kernel (List.reverse game.history)
 
 getLastMove : Game -> Maybe Move
 getLastMove game =
     case game.playerColor of
         ColorChoice.White ->
-            game.lastMoveWhite
+            getLastMoveWhite game
 
         ColorChoice.Black ->
-            game.lastMoveBlack
+            getLastMoveBlack game
 
 
 {-| Debugging helper function for visualizing the board in tests
@@ -169,8 +204,6 @@ gameDecoder =
     Decode.succeed Game
         |> required "boardSize" Board.boardSizeDecoder
         |> required "board" Board.boardDecoder
-        |> required "lastMoveWhite" (nullable Move.moveDecoder)
-        |> required "lastMoveBlack" (nullable Move.moveDecoder)
         |> required "history" (list Move.moveDecoder)
         |> required "playerColor" ColorChoice.colorDecoder
         |> required "isOver" bool
@@ -182,8 +215,6 @@ gameEncoder game =
     Encode.object
         [ ("boardSize", Board.boardSizeEncoder game.boardSize)
         , ("board", Board.boardEncoder game.board)
-        , ("lastMoveWhite", JsonExtra.encodeMaybe (Move.moveEncoder) game.lastMoveWhite)
-        , ("lastMoveBlack", JsonExtra.encodeMaybe (Move.moveEncoder) game.lastMoveBlack)
         , ("history", Encode.list Move.moveEncoder game.history)
         , ("playerColor", ColorChoice.colorEncoder game.playerColor)
         , ("isOver", Encode.bool game.isOver)

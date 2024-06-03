@@ -52,8 +52,6 @@ formDataToGame : FormData -> Game
 formDataToGame formData =
     { boardSize = formData.boardSize
     , board = Board.emptyBoard formData.boardSize
-    , lastMoveWhite = Nothing
-    , lastMoveBlack = Nothing
     , history = []
     , playerColor = formData.colorChoice
     , isOver = False

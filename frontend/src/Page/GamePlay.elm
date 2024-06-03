@@ -293,7 +293,7 @@ handlePlayPass model =
             let
                 -- check that both players' passed their turn w/o playing a piece
                 gameEnded =
-                    case ( game.lastMoveWhite, game.lastMoveBlack ) of
+                    case ( getLastMoveWhite game, getLastMoveBlack game ) of
                         ( Just (Move.Pass _), Just (Move.Pass _) ) ->
                             True
 

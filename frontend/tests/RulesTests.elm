@@ -44,9 +44,10 @@ blackGame : Game
 blackGame =
     { boardSize = Board.Small
     , board = board
-    , lastMoveWhite = Just (Move.Play white 40) -- center of board
-    , lastMoveBlack = Just (Move.Play black 40)
-    , history = []
+    , history =
+          [ (Move.Play black 40)
+          , (Move.Play white 40)
+          ]
     , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0
@@ -57,9 +58,10 @@ whiteGame : Game
 whiteGame =
     { boardSize = Board.Small
     , board = board
-    , lastMoveWhite = Just (Move.Play white 40) -- center of board
-    , lastMoveBlack = Just (Move.Play black 40)
-    , history = []
+    , history =
+          [ (Move.Play black 40)
+          , (Move.Play white 40)
+          ]
     , playerColor = White
     , isOver = False
     , score = Score.initWithKomi 0

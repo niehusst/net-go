@@ -156,9 +156,7 @@ game : Game.Game
 game =
     { boardSize = Board.Small
     , board = life
-    , lastMoveBlack = Just (Move.Play black 40) -- center of board
-    , lastMoveWhite = Nothing
-    , history = []
+    , history = [(Move.Play black 40)]
     , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0.0

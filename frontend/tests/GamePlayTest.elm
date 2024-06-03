@@ -27,14 +27,6 @@ suite =
                         intBoardSize =
                             boardSizeToInt boardSize
 
-                        model =
-                            { boardSize = boardSize
-                            , board = Array.repeat (intBoardSize ^ 2) Piece.None
-                            , lastMoveBlack = Nothing
-                            , lastMoveWhite = Nothing
-                            , playerColor = Black
-                            }
-
                         expected9x9InnerSquaresTruthTable =
                             [ List.repeat (intBoardSize - 1)
                                 ([ List.repeat (intBoardSize - 1) True
