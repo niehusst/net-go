@@ -52,3 +52,7 @@ func (p *Piece) Scan(value interface{}) error {
 	}
 	return nil
 }
+
+func (Piece) GormDataType() string {
+	return "integer"
+}

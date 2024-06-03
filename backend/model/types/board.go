@@ -1,12 +1,30 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
+	"fmt"
 )
+
+// / custom type to json encode since gorm doesn't like 2d array of Pieces
+type PlayArea [][]Piece
+
+func (p PlayArea) Value() (driver.Value, error) {
+	return json.Marshal(p)
+}
+
+func (p *PlayArea) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSON value: %v", value)
+	}
+	return json.Unmarshal(bytes, p)
+}
 
 type Board struct {
 	Size BoardSize
-	Map  [][]Piece
+	Map  PlayArea `gorm:"type:json"`
 }
 
 func BoardFromArray(size BoardSize, board1d []Piece) (*Board, error) {

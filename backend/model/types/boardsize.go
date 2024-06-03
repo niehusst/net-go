@@ -52,3 +52,7 @@ func (bs *BoardSize) Scan(value interface{}) error {
 	}
 	return nil
 }
+
+func (BoardSize) GormDataType() string {
+	return "integer"
+}

@@ -2,8 +2,11 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 type MoveType uint
@@ -50,6 +53,10 @@ func (mt *MoveType) Scan(value interface{}) error {
 	return nil
 }
 
+func (MoveType) GormDataType() string {
+	return "integer"
+}
+
 type Move struct {
 	MoveType MoveType
 	Piece    Piece
@@ -58,4 +65,27 @@ type Move struct {
 
 func (m Move) IsPass() bool {
 	return m.MoveType == Pass
+}
+
+func (m Move) Value() (driver.Value, error) {
+	return json.Marshal(m)
+}
+
+func (m *Move) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSON value: %v", value)
+	}
+	return json.Unmarshal(bytes, m)
+}
+
+func (Move) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+	switch db.Dialector.Name() {
+	case "mysql", "sqlite":
+		return "JSON"
+	case "postgres":
+		return "JSONB"
+	}
+	// fallback hope it's json
+	return "JSON"
 }
