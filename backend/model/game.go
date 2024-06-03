@@ -26,12 +26,10 @@ func (m *MoveSlice) Scan(value interface{}) error {
 // struct sub-types get unpacked under the hood into the columns of Game, using the specified embeddedPrefix
 type Game struct {
 	gorm.Model
-	History       MoveSlice   `gorm:"type:json"`
-	Board         types.Board `gorm:"embedded;embeddedPrefix:board_"`
-	LastMoveWhite *types.Move `gorm:"embedded;embeddedPrefix:lmw_"`
-	LastMoveBlack *types.Move `gorm:"embedded;embeddedPrefix:lmb_"`
-	IsOver        bool
-	Score         types.Score `gorm:"embedded;embeddedPrefix:score_"`
-	BlackPlayer   User        `gorm:"foreignKey:ID;"`
-	WhitePlayer   User        `gorm:"foreignKey:ID;"`
+	History     MoveSlice   `gorm:"type:json"`
+	Board       types.Board `gorm:"embedded;embeddedPrefix:board_"`
+	IsOver      bool
+	Score       types.Score `gorm:"embedded;embeddedPrefix:score_"`
+	BlackPlayer User        `gorm:"foreignKey:ID;"`
+	WhitePlayer User        `gorm:"foreignKey:ID;"`
 }

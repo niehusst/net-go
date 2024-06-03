@@ -80,14 +80,12 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 
 // this follows the Game record shape in Elm frontend
 type ElmGame struct {
-	BoardSize     types.BoardSize
-	Board         []types.Piece
-	LastMoveWhite *types.Move
-	LastMoveBlack *types.Move
-	History       []types.Move
-	IsOver        bool
-	Score         types.Score
-	PlayerColor   types.ColorChoice
+	BoardSize   types.BoardSize
+	Board       []types.Piece
+	History     []types.Move
+	IsOver      bool
+	Score       types.Score
+	PlayerColor types.ColorChoice
 }
 
 /**
@@ -104,12 +102,10 @@ func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
 	}
 
 	game := model.Game{
-		Board:         *board,
-		LastMoveWhite: r.LastMoveWhite,
-		LastMoveBlack: r.LastMoveBlack,
-		History:       r.History,
-		IsOver:        r.IsOver,
-		Score:         r.Score,
+		Board:   *board,
+		History: r.History,
+		IsOver:  r.IsOver,
+		Score:   r.Score,
 	}
 
 	if r.PlayerColor == types.Black {
@@ -134,8 +130,6 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 	}
 	r.Board = board
 	r.BoardSize = g.Board.Size
-	r.LastMoveWhite = g.LastMoveWhite
-	r.LastMoveBlack = g.LastMoveBlack
 	r.History = g.History
 	r.IsOver = g.IsOver
 	r.Score = g.Score
