@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -28,6 +29,30 @@ func UintToBoardSize(candidate uint) (BoardSize, error) {
 		return 0, errors.New("invalid uint to convert to BoardSize")
 	}
 }
+
+/// JSON CODERS ///
+
+func (bs *BoardSize) UnmarshalJSON(data []byte) error {
+	// Unmarshal the data into a temporary uint
+	var size uint
+	if err := json.Unmarshal(data, &size); err != nil {
+		return err
+	}
+
+	boardSize, err := UintToBoardSize(size)
+	if err != nil {
+		return err
+	}
+	*bs = boardSize
+
+	return nil
+}
+
+func (bs *BoardSize) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bs.ToUint())
+}
+
+/// DATABASE CODERS ///
 
 // Implement the driver.Valuer interface
 func (bs BoardSize) Value() (driver.Value, error) {

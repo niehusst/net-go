@@ -1,8 +1,8 @@
 package types
 
 type Score struct {
-	ForfeitColor *ColorChoice // nil means game was not ended via forfeit
-	BlackPoints  float32
-	WhitePoints  float32
-	Komi         float32
+	ForfeitColor *ColorChoice `json:"forfeitColor"` // nil means game was not ended via forfeit
+	BlackPoints  float32      `json:"blackPoints"`
+	WhitePoints  float32      `json:"whitePoints"`
+	Komi         float32      `json:"komi"`
 }

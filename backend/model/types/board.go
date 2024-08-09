@@ -23,8 +23,8 @@ func (p *PlayArea) Scan(value interface{}) error {
 }
 
 type Board struct {
-	Size BoardSize
-	Map  PlayArea `gorm:"type:json"`
+	Size BoardSize `json:"size"`
+	Map  PlayArea  `json:"map" gorm:"type:json"`
 }
 
 func BoardFromArray(size BoardSize, board1d []Piece) (*Board, error) {

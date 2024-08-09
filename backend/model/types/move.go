@@ -31,6 +31,29 @@ func (mt MoveType) ToUint() uint {
 	return uint(mt)
 }
 
+// / JSON CODERS ///
+func (mt *MoveType) UnmarshalJSON(data []byte) error {
+	// Unmarshal the data into a temporary uint
+	var move uint
+	if err := json.Unmarshal(data, &move); err != nil {
+		return err
+	}
+
+	moveType, err := UintToMoveType(move)
+	if err != nil {
+		return err
+	}
+	*mt = moveType
+
+	return nil
+}
+
+func (mt *MoveType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mt.ToUint())
+}
+
+/// DATABASE CODERS ///
+
 func (mt MoveType) Value() (driver.Value, error) {
 	return mt.ToUint(), nil
 }
@@ -58,14 +81,16 @@ func (MoveType) GormDataType() string {
 }
 
 type Move struct {
-	MoveType MoveType
-	Piece    Piece
-	Coord    uint // 0 when MoveType is Pass
+	MoveType MoveType `json:"moveType"`
+	Piece    Piece    `json:"piece"`
+	Coord    uint     `json:"coord"` // 0 when MoveType is Pass
 }
 
 func (m Move) IsPass() bool {
 	return m.MoveType == Pass
 }
+
+/// DATABASE CODERS ///
 
 func (m Move) Value() (driver.Value, error) {
 	return json.Marshal(m)

@@ -16,7 +16,7 @@ type gameUri struct {
 }
 
 type createGameRequest struct {
-	Game ElmGame `json:"game"`
+	Game ElmGame `json:"game" binding:"required"`
 }
 
 func parseUriParams(c *gin.Context) (*gameUri, error) {
@@ -38,8 +38,8 @@ func getUserFromCtx(c *gin.Context) (*model.User, error) {
 	if !exists {
 		return nil, apperrors.NewUnauthorized()
 	}
-	user := untypedUser.(model.User)
-	return &user, nil
+	user := untypedUser.(*model.User)
+	return user, nil
 }
 
 // GET /:id
@@ -78,14 +78,14 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	})
 }
 
-// this follows the Game record shape in Elm frontend
+// this follows t
 type ElmGame struct {
-	BoardSize   types.BoardSize
-	Board       []types.Piece
-	History     []types.Move
-	IsOver      bool
-	Score       types.Score
-	PlayerColor types.ColorChoice
+	BoardSize   types.BoardSize   `json:"boardSize" binding:"required"`
+	Board       []types.Piece     `json:"board" binding:"required"`
+	History     []types.Move      `json:"history" binding:"required"`
+	IsOver      bool              `json:"isOver"`
+	Score       types.Score       `json:"score" binding:"required"`
+	PlayerColor types.ColorChoice `json:"playerColor" binding:"required"`
 }
 
 /**

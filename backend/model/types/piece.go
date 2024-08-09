@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -30,6 +31,30 @@ func IntToPiece(candidate int) (Piece, error) {
 func (p Piece) ToInt() int {
 	return int(p)
 }
+
+/// JSON CODERS ///
+
+func (p *Piece) UnmarshalJSON(data []byte) error {
+	// Unmarshal the data into a temporary uint
+	var piece int
+	if err := json.Unmarshal(data, &piece); err != nil {
+		return err
+	}
+
+	tPiece, err := IntToPiece(piece)
+	if err != nil {
+		return err
+	}
+	*p = tPiece
+
+	return nil
+}
+
+func (p *Piece) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.ToInt())
+}
+
+/// DATABASE CODERS ///
 
 func (p Piece) Value() (driver.Value, error) {
 	return p.ToInt(), nil

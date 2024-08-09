@@ -1,6 +1,7 @@
 module API.Games exposing (CreateGameResponse, createGame, getGame)
 
 import Http
+import Json.Encode
 import Json.Decode as Decode exposing (Decoder, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Model.Game exposing (Game, gameDecoder, gameEncoder)
@@ -41,8 +42,13 @@ msgType - the Msg to trigger on completion via Cmd
 -}
 createGame : Game -> (Result Http.Error CreateGameResponse -> msg) -> Cmd msg
 createGame game msgType =
+    let
+        body =
+           Json.Encode.object
+               [ ("game", gameEncoder game) ]
+    in
     Http.post
         { url = prefix ++ "/"
-        , body = Http.jsonBody (gameEncoder game)
+        , body = Http.jsonBody body
         , expect = Http.expectJson msgType decodeCreateGameResponse
         }

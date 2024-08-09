@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -27,6 +28,30 @@ func StringToColorChoice(candidate string) (ColorChoice, error) {
 		return "", errors.New("invalid string to convert to ColorChoice")
 	}
 }
+
+/// JSON CODERS ///
+
+func (cc *ColorChoice) UnmarshalJSON(data []byte) error {
+	// Unmarshal the data into a temporary uint
+	var color string
+	if err := json.Unmarshal(data, &color); err != nil {
+		return err
+	}
+
+	colorChoice, err := StringToColorChoice(color)
+	if err != nil {
+		return err
+	}
+	*cc = colorChoice
+
+	return nil
+}
+
+func (cc *ColorChoice) MarshalJSON() ([]byte, error) {
+	return json.Marshal(cc.ToString())
+}
+
+/// DATABASE CODERS ///
 
 func (c ColorChoice) Value() (driver.Value, error) {
 	return c.ToString(), nil
