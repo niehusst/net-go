@@ -96,7 +96,7 @@ viewGameSettings data =
             boardSizeToString Small
     in
     div []
-        [ Html.form []
+        [ div []
             [ div []
                 [ label [] [ text "Color" ]
                 , select [ onInput StoreColorChoice ]
