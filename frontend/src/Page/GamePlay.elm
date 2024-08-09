@@ -38,6 +38,9 @@ type PlayState
 
 type alias Model =
     { remoteGameData : WebData Game
+    -- for showing client side changes immediately while they are
+    -- being propogated to backend
+    , clientGameData : Maybe Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     , initialSeed : Int
@@ -47,8 +50,11 @@ type alias Model =
 
 gameFromModel : Model -> Maybe Game
 gameFromModel model =
-    case model.remoteGameData of
-        RemoteData.Success game ->
+    case (model.clientGameData, model.remoteGameData) of
+        (Just game, _) ->
+            Just game
+
+        (Nothing, RemoteData.Success game) ->
             Just game
 
         _ ->
@@ -61,20 +67,9 @@ gameFromModel model =
 
 view : Model -> Html Msg
 view model =
-    case model.remoteGameData of
-        RemoteData.NotAsked ->
-            -- TODO: this will never happen? share case w/ err
-            text ""
-
-        RemoteData.Loading ->
-            -- TODO: improve
-            text "Loading"
-
-        RemoteData.Failure error ->
-            -- TODO: imporove
-            text ("Error fetching game: " ++ stringFromHttpError error)
-
-        RemoteData.Success game ->
+    -- show a game if we have one; local or remote
+    case gameFromModel model of
+        Just game ->
             case model.playState of
                 Playing ->
                     gamePlayView game model.invalidMoveAlert model.activeTurn
@@ -85,6 +80,22 @@ view model =
 
                 FinalScore score ->
                     scoreView score game.playerColor
+
+        Nothing ->
+            case model.remoteGameData of
+                RemoteData.Loading ->
+                    loadingView
+
+                RemoteData.Failure error ->
+                    -- TODO: imporove
+                    text ("Error fetching game: " ++ stringFromHttpError error)
+
+                _ ->
+                    -- RemoteData.NotAsked + RemoteData.Success
+                    -- niether of which should ever happen/reach here
+                    -- TODO: this will never happen? share case result w/ err
+                    text "Error"
+
 
 
 loadingView : Html Msg
@@ -269,14 +280,12 @@ handlePlayPiece model index =
                     validMove move game
             in
             if moveIsValid then
-                -- TODO: how will I update game state locally when its trapped in immutable RemoteData?
-                -- TODO: break up this update handler into smaller functions
                 ( { model
-                    | remoteGameData =
+                    | clientGameData =
                         playMove move game
                             -- TODO: remove color swap w/ networking
                             |> setPlayerColor (colorInverse game.playerColor)
-                            |> RemoteData.Success
+                            |> Just
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
                   }
@@ -381,9 +390,18 @@ update msg model =
 
                         _ ->
                             False
+
+                clientGameData =
+                    case responseGame of
+                        RemoteData.Success game ->
+                            Just game
+
+                        _ ->
+                            Nothing
             in
             ( { model
                 | remoteGameData = responseGame
+                , clientGameData = clientGameData
                 , activeTurn = activeTurn
               }
             , Cmd.none
@@ -410,7 +428,8 @@ init gameId =
 initialModel : Model
 initialModel =
     { remoteGameData = RemoteData.Loading
-    , activeTurn = False -- colorChoice == Black
+    , clientGameData = Nothing
+    , activeTurn = False -- TODO colorChoice == Black
     , invalidMoveAlert = Nothing
     , playState = Playing
     , initialSeed = 0
