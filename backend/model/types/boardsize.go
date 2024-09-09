@@ -67,8 +67,8 @@ func (bs *BoardSize) Scan(value interface{}) error {
 		return nil
 	}
 	switch v := value.(type) {
-	case uint:
-		boardSize, err := UintToBoardSize(v)
+	case int64:
+		boardSize, err := UintToBoardSize(uint(v))
 		if err != nil {
 			return err
 		}

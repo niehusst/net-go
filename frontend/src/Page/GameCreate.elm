@@ -217,7 +217,7 @@ update msg model =
 
         GameCreated (Ok createdResponse) ->
             ( model
-            , pushUrl (Route.GamePlay createdResponse.uid) model.navKey
+            , pushUrl (Route.GamePlay <| String.fromInt createdResponse.uid) model.navKey
             )
 
         GameCreated (Err httpErr) ->

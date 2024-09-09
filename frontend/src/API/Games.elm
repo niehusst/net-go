@@ -2,7 +2,7 @@ module API.Games exposing (CreateGameResponse, createGame, getGame)
 
 import Http
 import Json.Encode
-import Json.Decode as Decode exposing (Decoder, string)
+import Json.Decode as Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (optional, required)
 import Model.Game exposing (Game, gameDecoder, gameEncoder)
 import RemoteData
@@ -13,13 +13,13 @@ prefix =
 
 
 type alias CreateGameResponse =
-    { uid : String }
+    { uid : Int }
 
 
 decodeCreateGameResponse : Decoder CreateGameResponse
 decodeCreateGameResponse =
     Decode.succeed CreateGameResponse
-        |> required "uid" string
+        |> required "uid" int
 
 
 {-| Fetches a game from backend by path param ID.

@@ -65,8 +65,8 @@ func (mt *MoveType) Scan(value interface{}) error {
 		return nil
 	}
 	switch v := value.(type) {
-	case uint:
-		moveType, err := UintToMoveType(v)
+	case int64:
+		moveType, err := UintToMoveType(uint(v))
 		if err != nil {
 			return err
 		}
