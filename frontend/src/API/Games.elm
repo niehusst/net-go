@@ -2,7 +2,7 @@ module API.Games exposing (CreateGameResponse, createGame, getGame)
 
 import Http
 import Json.Encode
-import Json.Decode as Decode exposing (Decoder, int)
+import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Model.Game exposing (Game, gameDecoder, gameEncoder)
 import RemoteData
@@ -15,11 +15,10 @@ prefix =
 type alias CreateGameResponse =
     { uid : Int }
 
-
 decodeCreateGameResponse : Decoder CreateGameResponse
 decodeCreateGameResponse =
     Decode.succeed CreateGameResponse
-        |> required "uid" int
+        |> required "uid" Decode.int
 
 
 {-| Fetches a game from backend by path param ID.
@@ -28,10 +27,15 @@ msgType - the Msg type to trigger on completion via Cmd
 -}
 getGame : String -> (RemoteData.WebData Model.Game.Game -> msg) -> Cmd msg
 getGame gameId msgType =
+    let
+        respDecoder : Decoder Model.Game.Game
+        respDecoder =
+            Decode.field "game" gameDecoder
+    in
     Http.get
         { url = prefix ++ "/" ++ gameId
         , expect =
-            gameDecoder
+            respDecoder
                 |> Http.expectJson (RemoteData.fromResult >> msgType)
         }
 
