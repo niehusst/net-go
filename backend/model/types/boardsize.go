@@ -56,7 +56,8 @@ func (bs *BoardSize) MarshalJSON() ([]byte, error) {
 
 // Implement the driver.Valuer interface
 func (bs BoardSize) Value() (driver.Value, error) {
-	return bs.ToUint(), nil
+	// has to be int bcus gorm doesnt recognize uint as a sql type
+	return int64(bs), nil
 }
 
 // Implement the sql.Scanner interface

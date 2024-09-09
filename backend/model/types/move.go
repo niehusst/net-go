@@ -55,7 +55,8 @@ func (mt *MoveType) MarshalJSON() ([]byte, error) {
 /// DATABASE CODERS ///
 
 func (mt MoveType) Value() (driver.Value, error) {
-	return mt.ToUint(), nil
+	// int bcus gorm doesnt recognize uint as a valid sql type
+	return int64(mt), nil
 }
 
 func (mt *MoveType) Scan(value interface{}) error {
