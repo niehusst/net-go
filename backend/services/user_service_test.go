@@ -70,7 +70,7 @@ func TestUserServiceSignup(t *testing.T) {
 		// We can use Run method to modify the user when the Create method is called.
 		// We can then chain on a Return method to return no error.
 		mockUserRepository.
-			On("Create", mock.AnythingOfType("*context.emptyCtx"), mock.AnythingOfType("*model.User")).
+			On("Create", mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("*model.User")).
 			Run(func(args mock.Arguments) {
 				userArg := args.Get(1).(*model.User)
 				userArg.ID = uid
@@ -100,7 +100,7 @@ func TestUserServiceSignup(t *testing.T) {
 
 		mockErr := apperrors.NewConflict("Username", mockUser.Username)
 		mockUserRepository.
-			On("Create", mock.AnythingOfType("*context.emptyCtx"), mock.AnythingOfType("*model.User")).
+			On("Create", mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("*model.User")).
 			Return(mockErr)
 
 		ctx := context.TODO()
@@ -132,7 +132,7 @@ func TestUserServiceSignin(t *testing.T) {
 		// We can use Run method to modify the user when the Create method is called.
 		// We can then chain on a Return method to return no error.
 		mockUserRepository.
-			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			On("FindByUsername", mock.AnythingOfType("context.todoCtx"), mockUser.Username).
 			Return(mockUser, nil)
 
 		ctx := context.TODO()
@@ -158,7 +158,7 @@ func TestUserServiceSignin(t *testing.T) {
 
 		mockErr := apperrors.NewNotFound("User", mockUser.Username)
 		mockUserRepository.
-			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			On("FindByUsername", mock.AnythingOfType("context.todoCtx"), mockUser.Username).
 			Return(nil, mockErr)
 
 		ctx := context.TODO()
@@ -183,7 +183,7 @@ func TestUserServiceSignin(t *testing.T) {
 
 		mockErr := apperrors.NewNotFound("User", mockUser.Username)
 		mockUserRepository.
-			On("FindByUsername", mock.AnythingOfType("*context.emptyCtx"), mockUser.Username).
+			On("FindByUsername", mock.AnythingOfType("context.todoCtx"), mockUser.Username).
 			Return(mockUser, nil)
 
 		ctx := context.TODO()
