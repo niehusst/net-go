@@ -15,7 +15,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
-import Route exposing (Route)
+import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import Url exposing (Url)
 
@@ -24,6 +24,7 @@ type alias Model =
     { page : Page
     , route : Route
     , session : Session
+    , navKey : Nav.Key
     }
 
 
@@ -113,8 +114,9 @@ viewTabTitle page =
 -- UPDATE --
 
 
-{-| Msg mapping to intercept any UpdateSession messages before
-passing them along to intended Page.
+{-| Msg interception for any page messages before
+passing them along to intended Page, allowing us to save, or update
+shared data accordingly.
 This allows us to share specific data, or pass data between pages.
 -}
 interceptMsg : Msg -> Model -> Model
@@ -238,6 +240,7 @@ init flags url navKey =
             { page = NotFoundPage
             , route = Route.parseUrl url
             , session = session
+            , navKey = navKey
             }
     in
     initCurrentPage ( model, Cmd.none )
@@ -272,17 +275,16 @@ initCurrentPage ( model, existingCmds ) =
                 Route.GameCreate ->
                     let
                         ( pageModel, pageCmds ) =
-                            GameCreate.init
+                            GameCreate.init model.navKey
                     in
                     ( GameCreatePage pageModel
                     , Cmd.map GameCreatePageMsg pageCmds
                     )
 
-                Route.GamePlay ->
+                Route.GamePlay gameId ->
                     let
-                        -- TODO: give real values from form
                         ( pageModel, pageCmds ) =
-                            GamePlay.init Board.Small ColorChoice.Black 0.0
+                            GamePlay.init gameId
                     in
                     ( GamePlayPage pageModel
                     , Cmd.map GamePlayPageMsg pageCmds

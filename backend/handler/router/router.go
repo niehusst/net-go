@@ -3,6 +3,8 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"net-go/server/backend/handler/provider"
+	"net-go/server/backend/handler/router/endpoints"
+	"net-go/server/backend/handler/router/middleware"
 	"net/http"
 )
 
@@ -10,7 +12,7 @@ import (
 // route handling on that pointer.
 func SetRouter(p provider.Provider) {
 	router := p.R
-	handler := NewRouteHandler(p)
+	handler := endpoints.NewRouteHandler(p)
 
 	router.RedirectTrailingSlash = true
 
@@ -29,8 +31,15 @@ func SetRouter(p provider.Provider) {
 	authGroup.POST("/signin", handler.Signin)
 	authGroup.GET("/signout", handler.Signout)
 
+	// game play
+	gameGroup := router.Group("/api/games")
+	gameGroup.Use(middleware.AuthUser(handler))
+	gameGroup.GET("/:id", handler.GetGame)
+	//gameGroup.POST("/:id", handler.UpdateGame)
+	gameGroup.POST("/", handler.CreateGame)
+
 	// serve the Elm app HTML for any other route; the
-	// app will handle its own routing internally
+	// Elm SPA will handle its own routing internally
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})

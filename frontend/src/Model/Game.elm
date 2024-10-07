@@ -1,18 +1,20 @@
 module Model.Game exposing (..)
 
 import Array
+import Json.Decode as Decode exposing (Decoder, bool, int, list, nullable, string)
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
+import JsonExtra
 import Model.Board as Board exposing (Board, BoardSize, emptyBoard, setPieceAt)
-import Model.ColorChoice exposing (ColorChoice)
+import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
 import Model.Move as Move exposing (Move(..))
-import Model.Piece exposing (Piece(..))
+import Model.Piece as Piece exposing (Piece(..))
 import Model.Score as Score exposing (Score)
 
 
 type alias Game =
     { boardSize : BoardSize
     , board : Board
-    , lastMoveWhite : Maybe Move
-    , lastMoveBlack : Maybe Move
     , history : List Move
     , playerColor : ColorChoice
     , isOver : Bool
@@ -24,8 +26,6 @@ newGame : BoardSize -> ColorChoice -> Float -> Game
 newGame size color komi =
     { boardSize = size
     , board = emptyBoard size
-    , lastMoveWhite = Nothing
-    , lastMoveBlack = Nothing
     , history = []
     , playerColor = color
     , isOver = False
@@ -53,16 +53,6 @@ setIsOver flag game =
     { game | isOver = flag }
 
 
-setLastMove : Move -> Game -> Game
-setLastMove move game =
-    case game.playerColor of
-        Model.ColorChoice.White ->
-            { game | lastMoveWhite = Just move }
-
-        Model.ColorChoice.Black ->
-            { game | lastMoveBlack = Just move }
-
-
 {-| Note that because the moves are cons-ed
 together, the history is the reverse order
 of how the moves were actually played.
@@ -72,14 +62,72 @@ addMoveToHistory move game =
     { game | history = move :: game.history }
 
 
+getLastMoveWhite : Game -> Maybe Move
+getLastMoveWhite game =
+    let
+        kernel : List Move -> Maybe Move
+        kernel history =
+            case history of
+                [] ->
+                    Nothing
+
+                move :: historyTail ->
+                    let
+                        playerPiece =
+                            case move of
+                                Pass piece ->
+                                    piece
+
+                                Play piece _ ->
+                                    piece
+                    in
+                    case playerPiece of
+                        WhiteStone ->
+                            Just move
+
+                        _ ->
+                            kernel historyTail
+    in
+    kernel (List.reverse game.history)
+
+
+getLastMoveBlack : Game -> Maybe Move
+getLastMoveBlack game =
+    let
+        kernel : List Move -> Maybe Move
+        kernel history =
+            case history of
+                [] ->
+                    Nothing
+
+                move :: historyTail ->
+                    let
+                        playerPiece =
+                            case move of
+                                Pass piece ->
+                                    piece
+
+                                Play piece _ ->
+                                    piece
+                    in
+                    case playerPiece of
+                        BlackStone ->
+                            Just move
+
+                        _ ->
+                            kernel historyTail
+    in
+    kernel (List.reverse game.history)
+
+
 getLastMove : Game -> Maybe Move
 getLastMove game =
     case game.playerColor of
-        Model.ColorChoice.White ->
-            game.lastMoveWhite
+        ColorChoice.White ->
+            getLastMoveWhite game
 
-        Model.ColorChoice.Black ->
-            game.lastMoveBlack
+        ColorChoice.Black ->
+            getLastMoveBlack game
 
 
 {-| Debugging helper function for visualizing the board in tests
@@ -89,13 +137,13 @@ printBoard game =
     let
         mapper p =
             case p of
-                Model.Piece.None ->
+                Piece.None ->
                     "_"
 
-                Model.Piece.BlackStone ->
+                Piece.BlackStone ->
                     "X"
 
-                Model.Piece.WhiteStone ->
+                Piece.WhiteStone ->
                     "O"
 
         kernel : Game -> Board -> Game
@@ -124,3 +172,67 @@ printBoard game =
                 kernel g rest
     in
     kernel game game.board
+
+
+{-| The last move made should be made by the opponent
+-}
+isActiveTurn : Game -> Bool
+isActiveTurn game =
+    let
+        lastMoveMade : List Move -> Maybe ColorChoice
+        lastMoveMade moveHistory =
+            case moveHistory of
+                [] ->
+                    Nothing
+
+                lastMove :: tail ->
+                    case lastMove of
+                        Pass WhiteStone ->
+                            Just White
+
+                        Pass BlackStone ->
+                            Just Black
+
+                        Play BlackStone _ ->
+                            Just Black
+
+                        Play WhiteStone _ ->
+                            Just White
+
+                        _ ->
+                            -- this should never happen
+                            Nothing
+    in
+    case lastMoveMade game.history of
+        Nothing ->
+            game.playerColor == Black
+
+        Just color ->
+            game.playerColor /= color
+
+
+
+--- JSON coding
+
+
+gameDecoder : Decoder Game
+gameDecoder =
+    Decode.succeed Game
+        |> required "boardSize" Board.boardSizeDecoder
+        |> required "board" Board.boardDecoder
+        |> required "history" (list Move.moveDecoder)
+        |> required "playerColor" ColorChoice.colorDecoder
+        |> required "isOver" bool
+        |> required "score" Score.scoreDecoder
+
+
+gameEncoder : Game -> Encode.Value
+gameEncoder game =
+    Encode.object
+        [ ( "boardSize", Board.boardSizeEncoder game.boardSize )
+        , ( "board", Board.boardEncoder game.board )
+        , ( "history", Encode.list Move.moveEncoder game.history )
+        , ( "playerColor", ColorChoice.colorEncoder game.playerColor )
+        , ( "isOver", Encode.bool game.isOver )
+        , ( "score", Score.scoreEncoder game.score )
+        ]

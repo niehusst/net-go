@@ -7,7 +7,7 @@ import (
 	"net-go/server/backend/model"
 )
 
-// MockUserRepository is a mock type for model.UserRepository
+// MockUserRepository is a mock type for services.UserRepository
 type MockUserRepository struct {
 	mock.Mock
 }

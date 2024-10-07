@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"net-go/server/backend/model"
 )
 
@@ -11,9 +9,7 @@ import (
 
 // methods for interacting with the data layer
 type IUserRepository interface {
-	// utiltity method for db setup
-	MigrateAll() error
-
+	IMigratable
 	// db functionality abstractions
 	FindByID(ctx context.Context, id uint) (*model.User, error)
 	Create(ctx context.Context, u *model.User) error
@@ -24,47 +20,42 @@ type IUserRepository interface {
 /* implementation */
 
 type UserRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 type UserRepoDeps struct {
-	// auth/location string for connecting to db
-	DbString string
-	Config   *gorm.Config
+	BaseRepoDeps
 }
 
 func NewUserRepository(deps *UserRepoDeps) IUserRepository {
-	db, err := gorm.Open(sqlite.Open(deps.DbString), deps.Config)
-	if err != nil {
-		panic("Failed to connect to database!")
-	}
+	db := OpenDbConnection(deps.DbString, deps.Config)
 
 	return &UserRepository{
-		db: db,
+		BaseRepository: BaseRepository{Db: db},
 	}
 }
 
 func (u *UserRepository) FindByID(ctx context.Context, id uint) (*model.User, error) {
 	var user model.User
-	err := u.db.First(&user, id).Error
+	err := u.Db.First(&user, id).Error
 
 	return &user, err
 }
 
 func (u *UserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
-	err := u.db.First(&user, "username = ?", username).Error
+	err := u.Db.First(&user, "username = ?", username).Error
 
 	return &user, err
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *model.User) error {
-	err := u.db.Create(user).Error
+	err := u.Db.Create(user).Error
 	return err
 }
 
 func (u *UserRepository) Update(ctx context.Context, user *model.User) error {
-	err := u.db.Save(user).Error
+	err := u.Db.Save(user).Error
 	return err
 }
 
@@ -74,6 +65,6 @@ func (u *UserRepository) Update(ctx context.Context, user *model.User) error {
  * https://gorm.io/docs/migration.html
  */
 func (u *UserRepository) MigrateAll() error {
-	err := u.db.AutoMigrate(&model.User{})
+	err := u.Db.AutoMigrate(&model.User{})
 	return err
 }

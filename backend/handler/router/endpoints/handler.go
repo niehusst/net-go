@@ -1,15 +1,15 @@
-package router
+package endpoints
 
 import (
 	"net-go/server/backend/handler/provider"
 )
 
 type RouteHandler struct {
-	p provider.Provider
+	Provider provider.Provider
 }
 
 func NewRouteHandler(p provider.Provider) RouteHandler {
 	return RouteHandler{
-		p: p,
+		Provider: p,
 	}
 }

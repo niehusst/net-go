@@ -1,4 +1,4 @@
-package router
+package endpoints
 
 import (
 	"bytes"
@@ -17,6 +17,21 @@ import (
 	"net-go/server/backend/services/mocks"
 )
 
+func buildSignupRouter(mockUserService *mocks.MockUserService) *gin.Engine {
+	router := gin.Default()
+
+	p := provider.Provider{
+		R:           router,
+		UserService: mockUserService,
+	}
+	rhandler := NewRouteHandler(p)
+
+	// keep this in sync w/ route defintion in router.go
+	// (couldnt use SetRouter directly w/o import cycle)
+	router.POST("/api/accounts/signup", rhandler.Signup)
+	return router
+}
+
 func TestSignupIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -34,12 +49,7 @@ func TestSignupIntegration(t *testing.T) {
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
 
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			UserService: mockUserService,
-		})
+		router := buildSignupRouter(mockUserService)
 
 		// create json req w/ no password field
 		reqBody, err := json.Marshal(gin.H{
@@ -72,12 +82,7 @@ func TestSignupIntegration(t *testing.T) {
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
 
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			UserService: mockUserService,
-		})
+		router := buildSignupRouter(mockUserService)
 
 		// create json req w/ no password field
 		reqBody, err := json.Marshal(gin.H{
@@ -111,12 +116,7 @@ func TestSignupIntegration(t *testing.T) {
 		// response recorder for saving http resps
 		rr := httptest.NewRecorder()
 
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			UserService: mockUserService,
-		})
+		router := buildSignupRouter(mockUserService)
 
 		// create json req w/ no password field
 		reqBody, err := json.Marshal(gin.H{
@@ -154,13 +154,7 @@ func TestSignupIntegration(t *testing.T) {
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
 
-		// don't need a middleware as we don't yet have authorized user
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			UserService: mockUserService,
-		})
+		router := buildSignupRouter(mockUserService)
 
 		reqBody, err := json.Marshal(gin.H{
 			"username": u.Username,
@@ -206,13 +200,7 @@ func TestSignupIntegration(t *testing.T) {
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
 
-		// don't need a middleware as we don't yet have authorized user
-		router := gin.Default()
-
-		SetRouter(provider.Provider{
-			R:           router,
-			UserService: mockUserService,
-		})
+		router := buildSignupRouter(mockUserService)
 
 		reqBody, err := json.Marshal(gin.H{
 			"username": u.Username,

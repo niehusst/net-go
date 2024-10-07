@@ -3,7 +3,7 @@ module Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPiec
 import Array
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece)
-import Model.Game as Game exposing (Game, addMoveToHistory, getLastMove, setLastMove)
+import Model.Game as Game exposing (Game, addMoveToHistory, getLastMove)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
@@ -86,7 +86,7 @@ validMove move gameState =
                             applyChecks checksTail piece position game
     in
     case move of
-        Move.Pass ->
+        Move.Pass _ ->
             okay
 
         Move.Play piece position ->
@@ -359,9 +359,8 @@ isSurroundedByEnemyOrWall boardData position state =
 playMove : Move.Move -> Game.Game -> Game.Game
 playMove move game =
     case move of
-        Move.Pass ->
-            setLastMove move game
-                |> addMoveToHistory move
+        Move.Pass _ ->
+            addMoveToHistory move game
 
         Move.Play piece position ->
             let
@@ -387,5 +386,4 @@ playMove move game =
                 | board = boardWithoutCapturedPieces
                 , score = updatedScore
             }
-                |> setLastMove move
                 |> addMoveToHistory move

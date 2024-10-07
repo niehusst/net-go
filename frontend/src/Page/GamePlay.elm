@@ -1,7 +1,9 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
 
+import API.Games exposing (getGame)
 import Array
 import Browser.Navigation as Nav
+import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
@@ -14,6 +16,7 @@ import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
 import Random
+import RemoteData exposing (WebData)
 import Route exposing (routeToString)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
@@ -23,6 +26,8 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | CalculateGameScore Int
+    | FetchGame String -- gameId
+    | DataReceived (WebData Game)
 
 
 type PlayState
@@ -32,12 +37,29 @@ type PlayState
 
 
 type alias Model =
-    { game : Game
+    { remoteGameData : WebData Game
+
+    -- for showing client side changes immediately while they are
+    -- being propogated to backend
+    , clientGameData : Maybe Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     , initialSeed : Int
     , playState : PlayState
     }
+
+
+gameFromModel : Model -> Maybe Game
+gameFromModel model =
+    case ( model.clientGameData, model.remoteGameData ) of
+        ( Just game, _ ) ->
+            Just game
+
+        ( Nothing, RemoteData.Success game ) ->
+            Just game
+
+        _ ->
+            Nothing
 
 
 
@@ -46,16 +68,34 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
-    case model.playState of
-        Playing ->
-            gamePlayView model
+    -- show a game if we have one; local or remote
+    case gameFromModel model of
+        Just game ->
+            case model.playState of
+                Playing ->
+                    gamePlayView game model.invalidMoveAlert model.activeTurn
 
-        CalculatingScore ->
-            -- TODO: this view is never showing...
-            loadingView
+                CalculatingScore ->
+                    -- TODO: this view is never showing... browser too busy?
+                    loadingView
 
-        FinalScore score ->
-            scoreView score model.game.playerColor
+                FinalScore score ->
+                    scoreView score game.playerColor
+
+        Nothing ->
+            case model.remoteGameData of
+                RemoteData.Loading ->
+                    loadingView
+
+                RemoteData.Failure error ->
+                    -- TODO: imporove
+                    text ("Error fetching game: " ++ stringFromHttpError error)
+
+                _ ->
+                    -- RemoteData.NotAsked + RemoteData.Success
+                    -- niether of which should ever happen/reach here
+                    -- TODO: this will never happen? share case result w/ err
+                    text "Error"
 
 
 loadingView : Html Msg
@@ -90,15 +130,15 @@ scoreView score playerColor =
         ]
 
 
-gamePlayView : Model -> Html Msg
-gamePlayView model =
+gamePlayView : Game -> Maybe String -> Bool -> Html Msg
+gamePlayView game invalidMoveAlert activeTurn =
     div []
         [ h3 [] [ text "Goban state" ]
-        , viewBuildBoard model
-        , viewWaitForOpponent model.activeTurn
+        , viewBuildBoard game
+        , viewWaitForOpponent activeTurn
         , div []
             [ button [ onClick PlayPass ] [ text "Pass" ] ]
-        , viewAlert model.invalidMoveAlert
+        , viewAlert invalidMoveAlert
         ]
 
 
@@ -121,25 +161,25 @@ viewWaitForOpponent activeTurn =
         text "Wait for opponent to play..."
 
 
-viewBuildBoard : Model -> Html Msg
-viewBuildBoard model =
+viewBuildBoard : Game -> Html Msg
+viewBuildBoard game =
     let
         intSize =
-            boardSizeToInt model.game.boardSize
+            boardSizeToInt game.boardSize
 
         gridStyle =
             String.join " " (List.repeat intSize "auto")
     in
     div [ class "board", style "grid-template-columns" gridStyle ]
-        (viewGameBoard model)
+        (viewGameBoard game)
 
 
-viewGameBoard : Model -> List (Html Msg)
-viewGameBoard model =
+viewGameBoard : Game -> List (Html Msg)
+viewGameBoard game =
     Array.toList
         (Array.indexedMap
-            (viewBuildCell model.game.boardSize model.game.playerColor)
-            model.game.board
+            (viewBuildCell game.boardSize game.playerColor)
+            game.board
         )
 
 
@@ -222,23 +262,30 @@ renderPiece piece =
 -- UPDATE --
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        PlayPiece index ->
+handlePlayPiece : Model -> Int -> ( Model, Cmd Msg )
+handlePlayPiece model index =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+
+        Just game ->
             let
                 move =
-                    Move.Play (colorToPiece model.game.playerColor) index
+                    Move.Play (colorToPiece game.playerColor) index
 
                 ( moveIsValid, errorMessage ) =
-                    validMove move model.game
+                    validMove move game
             in
             if moveIsValid then
                 ( { model
-                    | game =
-                        playMove move model.game
+                    | clientGameData =
+                        playMove move game
                             -- TODO: remove color swap w/ networking
-                            |> setPlayerColor (colorInverse model.game.playerColor)
+                            |> setPlayerColor (colorInverse game.playerColor)
+                            |> Just
                     , activeTurn = not model.activeTurn
                     , invalidMoveAlert = Nothing
                   }
@@ -250,22 +297,32 @@ update msg model =
                 , Cmd.none
                 )
 
-        PlayPass ->
+
+handlePlayPass : Model -> ( Model, Cmd Msg )
+handlePlayPass model =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+
+        Just game ->
             let
                 -- check that both players' passed their turn w/o playing a piece
                 gameEnded =
-                    case ( model.game.lastMoveWhite, model.game.lastMoveBlack ) of
-                        ( Just Move.Pass, Just Move.Pass ) ->
+                    case ( getLastMoveWhite game, getLastMoveBlack game ) of
+                        ( Just (Move.Pass _), Just (Move.Pass _) ) ->
                             True
 
                         _ ->
                             False
 
                 updatedGame =
-                    playMove Move.Pass model.game
+                    playMove (Move.Pass (colorToPiece game.playerColor)) game
                         |> setIsOver gameEnded
                         -- TODO remove color swap w/ networking
-                        |> setPlayerColor (colorInverse model.game.playerColor)
+                        |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
                     if gameEnded then
@@ -283,15 +340,69 @@ update msg model =
             ( { model
                 | activeTurn = not model.activeTurn
                 , invalidMoveAlert = Nothing
-                , game = updatedGame
+                , remoteGameData = RemoteData.Success updatedGame
               }
             , command
             )
 
-        CalculateGameScore seed ->
+
+handleCalculateGameScore : Model -> Int -> ( Model, Cmd Msg )
+handleCalculateGameScore model seed =
+    case gameFromModel model of
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
+            )
+
+        Just game ->
             -- TODO: show the score somehow when done calculating
             ( { model
-                | playState = FinalScore (scoreGame model.game seed)
+                | playState = FinalScore (scoreGame game seed)
+              }
+            , Cmd.none
+            )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        PlayPiece index ->
+            handlePlayPiece model index
+
+        PlayPass ->
+            handlePlayPass model
+
+        CalculateGameScore seed ->
+            handleCalculateGameScore model seed
+
+        FetchGame gameId ->
+            ( model
+            , getGame gameId DataReceived
+            )
+
+        DataReceived responseGame ->
+            let
+                activeTurn =
+                    case responseGame of
+                        RemoteData.Success game ->
+                            Game.isActiveTurn game
+
+                        _ ->
+                            False
+
+                clientGameData =
+                    case responseGame of
+                        RemoteData.Success game ->
+                            Just game
+
+                        _ ->
+                            Nothing
+            in
+            ( { model
+                | remoteGameData = responseGame
+                , clientGameData = clientGameData
+                , activeTurn = activeTurn
               }
             , Cmd.none
             )
@@ -307,17 +418,18 @@ endTurn model =
 -- INIT --
 
 
-init : BoardSize -> ColorChoice -> Float -> ( Model, Cmd Msg )
-init boardSize colorChoice komi =
-    ( initialModel boardSize colorChoice komi
-    , Cmd.none
+init : String -> ( Model, Cmd Msg )
+init gameId =
+    ( initialModel
+    , getGame gameId DataReceived
     )
 
 
-initialModel : BoardSize -> ColorChoice -> Float -> Model
-initialModel boardSize colorChoice komi =
-    { game = newGame boardSize colorChoice komi
-    , activeTurn = colorChoice == Black
+initialModel : Model
+initialModel =
+    { remoteGameData = RemoteData.Loading
+    , clientGameData = Nothing
+    , activeTurn = False -- TODO colorChoice == Black
     , invalidMoveAlert = Nothing
     , playState = Playing
     , initialSeed = 0

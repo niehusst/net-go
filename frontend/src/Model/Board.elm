@@ -1,7 +1,9 @@
 module Model.Board exposing (..)
 
 import Array exposing (Array)
-import Model.ColorChoice exposing (ColorChoice, colorToPiece)
+import Json.Decode as Decode exposing (Decoder, array, int)
+import Json.Encode as Encode
+import Model.ColorChoice as ColorChoice exposing (ColorChoice, colorToPiece)
 import Model.Piece as Piece exposing (Piece(..), pieceToInt)
 
 
@@ -97,6 +99,42 @@ boardSizeToInt size =
             9
 
 
+intToBoardSize : Int -> Maybe BoardSize
+intToBoardSize size =
+    case size of
+        19 ->
+            Just Full
+
+        12 ->
+            Just Medium
+
+        9 ->
+            Just Small
+
+        _ ->
+            Nothing
+
+
+boardSizeToString : BoardSize -> String
+boardSizeToString size =
+    let
+        sizeStr =
+            String.fromInt <| boardSizeToInt size
+
+        dims =
+            "(" ++ sizeStr ++ "x" ++ sizeStr ++ ")"
+    in
+    case size of
+        Full ->
+            "Full-size " ++ dims
+
+        Medium ->
+            "Medium " ++ dims
+
+        Small ->
+            "Small " ++ dims
+
+
 {-| Create a 1 dimensional version of a 2D
 Goban of size `size`, with all the squares
 laid out in order.
@@ -156,3 +194,36 @@ getPercentFilled board =
                 board
     in
     piecesOnBoard / toFloat boardSize
+
+
+
+--- JSON
+
+
+boardSizeDecoder : Decoder BoardSize
+boardSizeDecoder =
+    int
+        |> Decode.andThen
+            (\number ->
+                case intToBoardSize number of
+                    Just boardSize ->
+                        Decode.succeed boardSize
+
+                    Nothing ->
+                        Decode.fail ("Invalid board size " ++ String.fromInt number)
+            )
+
+
+boardSizeEncoder : BoardSize -> Encode.Value
+boardSizeEncoder boardSize =
+    Encode.int (boardSizeToInt boardSize)
+
+
+boardDecoder : Decoder Board
+boardDecoder =
+    array Piece.pieceDecoder
+
+
+boardEncoder : Board -> Encode.Value
+boardEncoder board =
+    Encode.array Piece.pieceEncoder board

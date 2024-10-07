@@ -1,5 +1,8 @@
-module Model.ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece, colorToString)
+module Model.ColorChoice exposing (ColorChoice(..), colorDecoder, colorEncoder, colorInverse, colorToPiece, colorToString, stringToColor)
 
+import Json.Decode as Decode exposing (Decoder, string)
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
 import Model.Piece exposing (Piece(..))
 
 
@@ -36,3 +39,42 @@ colorToString color =
 
         Black ->
             "black"
+
+
+stringToColor : String -> Maybe ColorChoice
+stringToColor string =
+    case String.toLower string of
+        "black" ->
+            Just Black
+
+        "white" ->
+            Just White
+
+        _ ->
+            Nothing
+
+
+
+--- JSON
+
+
+colorDecoder : Decoder ColorChoice
+colorDecoder =
+    string
+        |> Decode.andThen
+            (\str ->
+                case str of
+                    "black" ->
+                        Decode.succeed Black
+
+                    "white" ->
+                        Decode.succeed White
+
+                    _ ->
+                        Decode.fail "Invalid color"
+            )
+
+
+colorEncoder : ColorChoice -> Encode.Value
+colorEncoder color =
+    Encode.string (colorToString color)

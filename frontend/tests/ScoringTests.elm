@@ -156,9 +156,7 @@ game : Game.Game
 game =
     { boardSize = Board.Small
     , board = life
-    , lastMoveBlack = Just (Move.Play black 40) -- center of board
-    , lastMoveWhite = Nothing
-    , history = []
+    , history = [(Move.Play black 40)]
     , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0.0
@@ -270,7 +268,7 @@ suite =
                             Score.initWithKomi 0.0
 
                         forfeitScore =
-                            { score | blackForfeit = True }
+                            { score | forfeitColor = Just Model.ColorChoice.Black }
 
                         actualScore =
                             scoreGame { game | score = forfeitScore } initialSeed

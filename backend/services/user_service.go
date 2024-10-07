@@ -6,22 +6,25 @@ import (
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/model"
+	"strconv"
 )
 
 /* interfaces */
 
 // methods the router handler layer interacts with
 type IUserService interface {
+	IMigratable
 	Get(ctx context.Context, id uint) (*model.User, error)
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
 	Signin(ctx context.Context, username string, password string) (*model.User, error)
 	UpdateSessionToken(ctx context.Context, user *model.User) error
+	Update(ctx context.Context, user *model.User) error
 }
 
 /* implementation */
 
 type UserService struct {
-	UserRepository IUserRepository
+	userRepository IUserRepository
 }
 
 // injectable deps
@@ -31,13 +34,18 @@ type UserServiceDeps struct {
 
 func NewUserService(d UserServiceDeps) IUserService {
 	return &UserService{
-		UserRepository: d.UserRepository,
+		userRepository: d.UserRepository,
 	}
 }
 
 // Get retrieves a user based on their id
 func (s *UserService) Get(ctx context.Context, id uint) (*model.User, error) {
-	return s.UserRepository.FindByID(ctx, id)
+	user, err := s.userRepository.FindByID(ctx, id)
+	if err != nil {
+		log.Printf("Error fetching user: %v\n", err)
+		return user, apperrors.NewNotFound("User", strconv.FormatUint(uint64(id), 10))
+	}
+	return user, err
 }
 
 // create a new user in the db
@@ -53,7 +61,7 @@ func (s *UserService) Signup(ctx context.Context, username string, password stri
 		Username: username,
 		Password: hashedPassword,
 	}
-	if err := s.UserRepository.Create(ctx, u); err != nil {
+	if err := s.userRepository.Create(ctx, u); err != nil {
 		log.Printf("User signup creation error: %v\n", err)
 		return nil, apperrors.NewConflict("Username", username)
 	}
@@ -65,7 +73,7 @@ func (s *UserService) Signup(ctx context.Context, username string, password stri
 // always returns 404 err on any failure for secrecy
 func (s *UserService) Signin(ctx context.Context, username string, password string) (*model.User, error) {
 	// fetch user from db w/ username
-	user, err := s.UserRepository.FindByUsername(ctx, username)
+	user, err := s.userRepository.FindByUsername(ctx, username)
 	if err != nil {
 		log.Printf("Error fetching user: %v\n", err)
 		return user, apperrors.NewNotFound("User", username)
@@ -75,7 +83,7 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 	if err != nil {
 		log.Printf("Error comparing passwords: %v\n", err)
 	}
-	if !matching {
+	if !matching || err != nil {
 		// wrong password
 		return user, apperrors.NewNotFound("User", username)
 	}
@@ -87,6 +95,21 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 func (s *UserService) UpdateSessionToken(ctx context.Context, user *model.User) error {
 	sessToken := uuid.New().String()
 	user.SessionToken = sessToken
-	err := s.UserRepository.Update(ctx, user)
-	return err
+	if err := s.userRepository.Update(ctx, user); err != nil {
+		log.Printf("Unable to update user: %v\n", err)
+		return apperrors.NewInternal()
+	}
+	return nil
+}
+
+func (s *UserService) Update(ctx context.Context, user *model.User) error {
+	if err := s.userRepository.Update(ctx, user); err != nil {
+		log.Printf("Unable to update user: %v\n", err)
+		return apperrors.NewInternal()
+	}
+	return nil
+}
+
+func (s *UserService) MigrateAll() error {
+	return s.userRepository.MigrateAll()
 }

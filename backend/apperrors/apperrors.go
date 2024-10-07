@@ -60,10 +60,11 @@ func Status(err error) int {
  * Error factories
  */
 
-func NewAuthorization(reason string) *Error {
+// 401
+func NewUnauthorized() *Error {
 	return &Error{
 		Type:    Authorization,
-		Message: reason,
+		Message: "Unauthorized, please log in",
 	}
 }
 

@@ -48,7 +48,7 @@ type alias SigninRequestData r =
 
 view : Model -> Html Msg
 view model =
-    div [ class "TODO css here" ]
+    div []
         [ h1 [] [ text "Sign In" ]
         , viewBody model
         ]

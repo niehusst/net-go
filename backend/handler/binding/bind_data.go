@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"log"
@@ -28,7 +29,6 @@ type invalidArgument struct {
 func BindData(c *gin.Context, req interface{}) bool {
 	// attempt bind json data to struct
 	if err := c.ShouldBindJSON(req); err != nil {
-		// handle failure
 		log.Printf("Error binding data: %+v\n", err)
 
 		if errs, ok := err.(validator.ValidationErrors); ok {
@@ -37,7 +37,7 @@ func BindData(c *gin.Context, req interface{}) bool {
 			for _, error := range errs {
 				invalidArgs = append(invalidArgs, invalidArgument{
 					error.Field(),
-					error.Value().(string),
+					fmt.Sprintf("%v", error.Value()),
 					error.Tag(),
 					error.Param(),
 				})

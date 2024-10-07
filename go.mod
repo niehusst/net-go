@@ -1,6 +1,6 @@
 module net-go/server
 
-go 1.18
+go 1.23
 
 require (
 	github.com/gin-gonic/gin v1.8.2
@@ -32,6 +32,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	golang.org/dl v0.0.0-20241001165935-bedb0f791d00 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect

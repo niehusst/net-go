@@ -2,14 +2,14 @@ module Route exposing (Route(..), parseUrl, pushUrl, routeToString)
 
 import Browser.Navigation as Nav
 import Url exposing (Url)
-import Url.Parser exposing (..)
+import Url.Parser exposing ((</>), Parser, map, oneOf, parse, s, string, top)
 
 
 type Route
     = NotFound
     | Home
     | GameCreate
-    | GamePlay
+    | GamePlay String -- game ID
     | SignUp
     | SignIn
     | Logout
@@ -20,7 +20,7 @@ matchRoute =
     oneOf
         [ map Home top
         , map GameCreate (s "game" </> s "create")
-        , map GamePlay (s "game") -- TODO: set game query param
+        , map GamePlay (s "game" </> string)
         , map SignUp (s "signup")
         , map SignIn (s "signin")
         , map Logout (s "logout")
@@ -47,7 +47,7 @@ routeToString : Route -> String
 routeToString route =
     case route of
         NotFound ->
-            "/route-not-found"
+            "/"
 
         Home ->
             "/"
@@ -55,9 +55,8 @@ routeToString route =
         GameCreate ->
             "/game/create"
 
-        GamePlay ->
-            -- TODO: add game query param
-            "/game"
+        GamePlay gameId ->
+            "/game/" ++ gameId
 
         SignUp ->
             "/signup"

@@ -1,4 +1,7 @@
-module Model.Piece exposing (Piece(..), intToPiece, pieceToInt)
+module Model.Piece exposing (Piece(..), intToPiece, pieceDecoder, pieceEncoder, pieceToInt)
+
+import Json.Decode as Decode exposing (Decoder, int)
+import Json.Encode as Encode
 
 
 type Piece
@@ -37,3 +40,36 @@ intToPiece value =
 
     else
         Nothing
+
+
+
+-- JSON
+
+
+pieceDecoder : Decoder Piece
+pieceDecoder =
+    int
+        |> Decode.andThen
+            (\number ->
+                let
+                    positiveNum =
+                        number + 1
+                in
+                case positiveNum of
+                    0 ->
+                        Decode.succeed WhiteStone
+
+                    1 ->
+                        Decode.succeed None
+
+                    2 ->
+                        Decode.succeed BlackStone
+
+                    _ ->
+                        Decode.fail ("Piece number " ++ String.fromInt number ++ " is invalid")
+            )
+
+
+pieceEncoder : Piece -> Encode.Value
+pieceEncoder piece =
+    Encode.int (pieceToInt piece)

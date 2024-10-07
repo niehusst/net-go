@@ -1,11 +1,14 @@
-module Model.Score exposing (Score, increaseBlackPoints, increaseWhitePoints, initWithKomi, isForfeit, scoreToString, winningColor)
+module Model.Score exposing (Score, increaseBlackPoints, increaseWhitePoints, initWithKomi, isForfeit, scoreDecoder, scoreEncoder, scoreToString, winningColor)
 
+import Json.Decode as Decode exposing (Decoder, float, nullable)
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
+import JsonExtra
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..))
 
 
 type alias Score =
-    { blackForfeit : Bool
-    , whiteForfeit : Bool
+    { forfeitColor : Maybe ColorChoice
     , blackPoints : Float
     , whitePoints : Float
     , komi : Float
@@ -14,8 +17,7 @@ type alias Score =
 
 initWithKomi : Float -> Score
 initWithKomi komi =
-    { blackForfeit = False
-    , whiteForfeit = False
+    { forfeitColor = Nothing
     , blackPoints = 0.0
     , whitePoints = 0.0
     , komi = komi
@@ -39,28 +41,33 @@ scoreToString score =
         displayScore =
             abs scoreDiff
     in
-    if isForfeit score then
-        if score.blackForfeit then
+    case score.forfeitColor of
+        Just ColorChoice.Black ->
             "W [Black Forfeit]"
 
-        else
+        Just ColorChoice.White ->
             "B [White Forfeit]"
 
-    else
-        case winningColor score of
-            Just ColorChoice.Black ->
-                "B+" ++ String.fromFloat displayScore
+        Nothing ->
+            case winningColor score of
+                Just ColorChoice.Black ->
+                    "B+" ++ String.fromFloat displayScore
 
-            Just ColorChoice.White ->
-                "W+" ++ String.fromFloat displayScore
+                Just ColorChoice.White ->
+                    "W+" ++ String.fromFloat displayScore
 
-            Nothing ->
-                "Draw"
+                Nothing ->
+                    "Draw"
 
 
 isForfeit : Score -> Bool
 isForfeit score =
-    score.blackForfeit || score.whiteForfeit
+    case score.forfeitColor of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
 
 
 {-| Returns Just the winning color, or Nothing on a draw.
@@ -96,3 +103,26 @@ increaseWhitePoints points score =
 increaseBlackPoints : Float -> Score -> Score
 increaseBlackPoints points score =
     { score | blackPoints = score.blackPoints + points }
+
+
+
+--- JSON
+
+
+scoreDecoder : Decoder Score
+scoreDecoder =
+    Decode.succeed Score
+        |> required "forfeitColor" (nullable ColorChoice.colorDecoder)
+        |> required "blackPoints" float
+        |> required "whitePoints" float
+        |> required "komi" float
+
+
+scoreEncoder : Score -> Encode.Value
+scoreEncoder score =
+    Encode.object
+        [ ( "forfeitColor", JsonExtra.encodeMaybe ColorChoice.colorEncoder score.forfeitColor )
+        , ( "blackPoints", Encode.float score.blackPoints )
+        , ( "whitePoints", Encode.float score.whitePoints )
+        , ( "komi", Encode.float score.komi )
+        ]
