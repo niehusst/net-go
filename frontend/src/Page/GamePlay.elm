@@ -38,6 +38,7 @@ type PlayState
 
 type alias Model =
     { remoteGameData : WebData Game
+
     -- for showing client side changes immediately while they are
     -- being propogated to backend
     , clientGameData : Maybe Game
@@ -50,11 +51,11 @@ type alias Model =
 
 gameFromModel : Model -> Maybe Game
 gameFromModel model =
-    case (model.clientGameData, model.remoteGameData) of
-        (Just game, _) ->
+    case ( model.clientGameData, model.remoteGameData ) of
+        ( Just game, _ ) ->
             Just game
 
-        (Nothing, RemoteData.Success game) ->
+        ( Nothing, RemoteData.Success game ) ->
             Just game
 
         _ ->
@@ -95,7 +96,6 @@ view model =
                     -- niether of which should ever happen/reach here
                     -- TODO: this will never happen? share case result w/ err
                     text "Error"
-
 
 
 loadingView : Html Msg

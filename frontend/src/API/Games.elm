@@ -1,9 +1,9 @@
 module API.Games exposing (CreateGameResponse, createGame, getGame)
 
 import Http
-import Json.Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode
 import Model.Game exposing (Game, gameDecoder, gameEncoder)
 import RemoteData
 
@@ -14,6 +14,7 @@ prefix =
 
 type alias CreateGameResponse =
     { uid : Int }
+
 
 decodeCreateGameResponse : Decoder CreateGameResponse
 decodeCreateGameResponse =
@@ -48,8 +49,8 @@ createGame : Game -> (Result Http.Error CreateGameResponse -> msg) -> Cmd msg
 createGame game msgType =
     let
         body =
-           Json.Encode.object
-               [ ("game", gameEncoder game) ]
+            Json.Encode.object
+                [ ( "game", gameEncoder game ) ]
     in
     Http.post
         { url = prefix ++ "/"
