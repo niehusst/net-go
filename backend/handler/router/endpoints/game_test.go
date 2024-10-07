@@ -29,7 +29,7 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	rhandler := NewRouteHandler(p)
 	if ctxUser != nil {
 		router.Use(func(c *gin.Context) {
-			c.Set("user", *ctxUser)
+			c.Set("user", ctxUser)
 		})
 	}
 
@@ -191,7 +191,14 @@ func TestCreateGameIntegration(t *testing.T) {
 
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
-			"game": ElmGame{},
+			"game": ElmGame{
+				BoardSize:   types.Full,
+				Board:       make([]types.Piece, 0),
+				History:     make([]types.Move, 0),
+				IsOver:      false,
+				Score:       types.Score{},
+				PlayerColor: types.Black,
+			},
 		})
 		assert.NoError(t, err)
 

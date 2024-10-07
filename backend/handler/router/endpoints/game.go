@@ -78,7 +78,7 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	})
 }
 
-// this follows t
+// this follows the definition of Game in the Elm frontend
 type ElmGame struct {
 	BoardSize   types.BoardSize   `json:"boardSize" binding:"required"`
 	Board       []types.Piece     `json:"board" binding:"required"`

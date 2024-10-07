@@ -22,14 +22,12 @@ func TestGameServiceGet(t *testing.T) {
 			Password: "aaaaa",
 		}
 		mockGameResp := &model.Game{
-			Board:         types.Board{},
-			LastMoveWhite: nil,
-			LastMoveBlack: nil,
-			History:       []types.Move{},
-			IsOver:        false,
-			Score:         types.Score{},
-			BlackPlayer:   *mockUser, // TODO: don't use same user for both?
-			WhitePlayer:   *mockUser,
+			Board:       types.Board{},
+			History:     []types.Move{},
+			IsOver:      false,
+			Score:       types.Score{},
+			BlackPlayer: *mockUser, // TODO: don't use same user for both?
+			WhitePlayer: *mockUser,
 		}
 		mockGameResp.ID = uid
 

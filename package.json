@@ -3,7 +3,7 @@
   "description": "script runner and elm dep setup",
   "scripts": {
     "start" : "npm run make-elm && go run main.go",
-    "test": "npm run test-go ; npm run test-elm",
+    "test": "npm run test-go && npm run test-elm",
     "test-elm": "npx elm-test frontend/tests/**/*.elm",
     "test-go": "go test -v ./...",
     "format": "npm run format-elm ; npm run format-go",
