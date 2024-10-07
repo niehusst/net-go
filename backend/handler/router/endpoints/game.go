@@ -109,8 +109,10 @@ func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
 	}
 
 	if r.PlayerColor == types.Black {
+		game.BlackPlayerId = authedUser.ID
 		game.BlackPlayer = *authedUser
 	} else {
+		game.WhitePlayerId = authedUser.ID
 		game.WhitePlayer = *authedUser
 	}
 
