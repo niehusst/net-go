@@ -20,7 +20,9 @@ type alias Model =
 view : Model -> Html Msg
 view model =
     div [ class "" ]
-        [ h1 [] [ text "Play Go online with a friend!" ]
+        [ h1
+            [ class "text-3xl font-bold underline" ]
+            [ text "Play Go online with a friend!" ]
         , p []
             [ text "It's pretty "
             , strong [] [ text "FUN." ]
