@@ -50,7 +50,7 @@ type alias SignupRequestData r =
 
 view : Model -> Html Msg
 view model =
-    div [ class "w-full flex flex-col justify-center content-center" ]
+    div [ class "w-full flex flex-col justify-center items-center" ]
         [ h1 [class "text-center text-3xl font-bold my-4"] [ text "Sign Up" ]
         , viewBody model
         ]
@@ -92,7 +92,7 @@ viewBanner error =
 viewForm : Model -> Html Msg
 viewForm model =
     Html.form [ onSubmit SendHttpSignupReq
-              , class "flex flex-col justify-center content-center"
+              , class "flex flex-col justify-center items-center"
               ]
         [ div [ class "my-2" ]
             [ text "Username"

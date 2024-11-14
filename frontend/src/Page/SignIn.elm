@@ -48,7 +48,7 @@ type alias SigninRequestData r =
 
 view : Model -> Html Msg
 view model =
-    div [ class "w-full flex flex-col justify-center content-center" ]
+    div [ class "w-full flex flex-col justify-center items-center" ]
         [ h1 [ class "text-center text-3xl font-bold my-4"] [ text "Sign In" ]
         , viewBody model
         ]
@@ -70,7 +70,7 @@ viewBody model =
                 text "Signin Success!"
 
             RemoteData.Failure error ->
-                div [ class "flex flex-col justify-center content-center" ]
+                div [ class "flex flex-col justify-center items-center" ]
                     [ viewForm model
                     , viewBanner error
                     ]
@@ -90,7 +90,7 @@ viewBanner error =
 viewForm : Model -> Html Msg
 viewForm model =
     Html.form [ onSubmit SendHttpSigninReq
-              , class "flex flex-col justify-center content-center"
+              , class "flex flex-col justify-center items-center"
               ]
         [ div [ class "my-2" ]
             [ text "Username"
