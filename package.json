@@ -2,19 +2,21 @@
   "name": "net-go",
   "description": "script runner and elm dep setup",
   "scripts": {
-    "start" : "npm run make-elm && go run main.go",
+    "start": "npm run make-elm && npm run make-css && go run main.go",
     "test": "npm run test-go && npm run test-elm",
     "test-elm": "npx elm-test frontend/tests/**/*.elm",
     "test-go": "go test -v ./...",
     "format": "npm run format-elm ; npm run format-go",
     "format-elm": "npx elm-format frontend/src/ --yes",
     "format-go": "go fmt .",
-    "make": "npm run make-elm ; npm run make-go",
+    "make": "npm run make-elm ; npm run make-go ; npm run make-css",
     "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js",
-    "make-go": "go build main.go"
+    "make-go": "go build main.go",
+    "make-css": "npx tailwindcss -i ./frontend/static/css/raw.css -o ./frontend/static/css/index.css"
   },
   "devDependencies": {
     "elm-format": "^0.8.5",
-    "elm-test": "^0.19.1-revision11"
+    "elm-test": "^0.19.1-revision11",
+    "tailwindcss": "^3.4.14"
   }
 }

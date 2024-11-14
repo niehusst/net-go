@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn {
+  @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
+}
+
+/* grid-template-columns must be added at runtime */
+.board {
+  display: grid;
+  width: fit-content;
+}
+
+.board-square {
+  width: 26px;
+  height: 26px;
+  background: #dfc566;
+}
+
+.hidden-hover-element {
+  height: 26px;
+  width: 26px;
+  opacity: 0;
+  position: absolute;
+}
+
+.board-square-white:hover {
+  background-color: white;
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.board-square-black:hover {
+  background-color: black;
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* these classes are for drawing the board grid */
+.inner-board-square::before {
+  content: "";
+  position: absolute;
+  border: 1px solid #000;
+  width: 26px;
+  height: 26px;
+  transform: translate3d(13px, 13px, 0);
+  box-sizing: border-box;
+  pointer-events: none;
+}

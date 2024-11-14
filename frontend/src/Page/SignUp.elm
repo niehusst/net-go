@@ -50,34 +50,33 @@ type alias SignupRequestData r =
 
 view : Model -> Html Msg
 view model =
-    div [ class "TODO css here" ]
-        [ h1 [] [ text "Sign Up" ]
+    div [ class "w-full flex flex-col justify-center items-center" ]
+        [ h1 [ class "text-center text-3xl font-bold my-4" ] [ text "Sign Up" ]
         , viewBody model
         ]
 
 
 viewBody : Model -> Html Msg
 viewBody model =
-    case model.formResponse of
-        RemoteData.NotAsked ->
-            div []
-                [ viewForm model ]
+    div [ class "w-full max-w-xs flex flex-col" ]
+        [ case model.formResponse of
+            RemoteData.NotAsked ->
+                viewForm model
 
-        RemoteData.Loading ->
-            -- TODO: spinner or something + css
-            div []
-                [ text "Loading..." ]
+            RemoteData.Loading ->
+                -- TODO: spinner or something + css
+                text "Loading..."
 
-        RemoteData.Success msg ->
-            -- this will likely never be shown
-            div []
-                [ text "Signup Success!" ]
+            RemoteData.Success msg ->
+                -- this will likely never be shown
+                text "Signup Success!"
 
-        RemoteData.Failure error ->
-            div []
-                [ viewForm model
-                , viewBanner error
-                ]
+            RemoteData.Failure error ->
+                div []
+                    [ viewForm model
+                    , viewBanner error
+                    ]
+        ]
 
 
 viewBanner : Http.Error -> Html Msg
@@ -86,42 +85,48 @@ viewBanner error =
         errString =
             stringForAuthError error
     in
-    div [ style "color" "red" ]
+    div [ class "bg-red-500 text-white font-bold py-2 px-4 rounded" ]
         [ text <| "Error: " ++ errString ]
 
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form [ onSubmit SendHttpSignupReq ]
-        [ div []
+    Html.form
+        [ onSubmit SendHttpSignupReq
+        , class "flex flex-col justify-center items-center"
+        ]
+        [ div [ class "my-2" ]
             [ text "Username"
             , input
                 [ id "username"
                 , type_ "text"
                 , onInput SaveUsername
+                , class "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 ]
                 []
             ]
-        , div []
+        , div [ class "my-2" ]
             [ text "Password"
             , input
                 [ id "password"
                 , type_ "password"
                 , onInput SavePassword
+                , class "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 ]
                 []
             ]
-        , div []
+        , div [ class "my-2" ]
             [ text "Confirm Password"
             , input
                 [ id "confirmpassword"
                 , type_ "password"
                 , onInput SaveConfirmPassword
+                , class "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 ]
                 []
             ]
-        , div []
-            [ button [ type_ "submit" ]
+        , div [ class "my-2" ]
+            [ button [ type_ "submit", class "btn" ]
                 [ text "Create Account" ]
             ]
         ]

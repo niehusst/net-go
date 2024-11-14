@@ -19,8 +19,10 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "" ]
-        [ h1 [] [ text "Play Go online with a friend!" ]
+    div [ class "flex flex-col w-screen content-center justify-center text-center" ]
+        [ h1
+            [ class "text-3xl font-bold" ]
+            [ text "Play Go online with a friend!" ]
         , p []
             [ text "It's pretty "
             , strong [] [ text "FUN." ]
@@ -29,12 +31,21 @@ view model =
                 More functionality coming soon.
                 """
             ]
-        , a [ href (routeToString Route.GameCreate) ]
-            [ button [] [ text "Create a game" ] ]
-        , a [ href "#" ]
-            [ button [] [ text "Join a game" ] ]
-        , a [ href "#" ]
-            [ button [] [ text "Continue a game" ] ]
+        , a
+            [ href (routeToString Route.GameCreate)
+            , class "my-1"
+            ]
+            [ button [ class "btn" ] [ text "Create a game" ] ]
+        , a
+            [ href "#"
+            , class "my-1"
+            ]
+            [ button [ class "btn" ] [ text "Join a game" ] ]
+        , a
+            [ href "#"
+            , class "my-1"
+            ]
+            [ button [ class "btn" ] [ text "Continue a game" ] ]
         ]
 
 
