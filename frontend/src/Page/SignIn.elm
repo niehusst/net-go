@@ -49,7 +49,7 @@ type alias SigninRequestData r =
 view : Model -> Html Msg
 view model =
     div [ class "w-full flex flex-col justify-center items-center" ]
-        [ h1 [ class "text-center text-3xl font-bold my-4"] [ text "Sign In" ]
+        [ h1 [ class "text-center text-3xl font-bold my-4" ] [ text "Sign In" ]
         , viewBody model
         ]
 
@@ -89,9 +89,10 @@ viewBanner error =
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form [ onSubmit SendHttpSigninReq
-              , class "flex flex-col justify-center items-center"
-              ]
+    Html.form
+        [ onSubmit SendHttpSigninReq
+        , class "flex flex-col justify-center items-center"
+        ]
         [ div [ class "my-2" ]
             [ text "Username"
             , input
