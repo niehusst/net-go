@@ -281,15 +281,19 @@ initCurrentPage ( model, existingCmds ) =
                     , Cmd.map SignInPageMsg pageCmds
                     )
 
-                _ ->
-                    -- Route.Home
-                    -- TODO: doesnt redirect url, just shows home UI
+                Route.Home ->
                     let
                         ( pageModel, pageCmds ) =
                             Home.init
                     in
                     ( HomePage pageModel
                     , Cmd.map HomePageMsg pageCmds
+                    )
+
+                _ ->
+                    -- redirect to login
+                    ( NotFoundPage
+                    , pushUrl Route.SignIn (Session.navKey model.session)
                     )
 
         authOnlyRoutes =
