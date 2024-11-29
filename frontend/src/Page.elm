@@ -9,10 +9,6 @@ import Route exposing (Route, routeToString)
 import Session exposing (Session(..))
 
 
-
--- TODO: redo all CSS
-
-
 viewHeader : Session -> Html msg
 viewHeader session =
     nav [ class "w-screen bg-primary p-3" ]
@@ -40,10 +36,13 @@ viewMenu session =
 
 viewFooter : Html msg
 viewFooter =
-    footer []
-        [ div [ class "container" ]
-            [ a [ class "logo-font", href (routeToString Route.Home) ] [ text "net-go" ]
-            , span [ class "attribution" ]
+    footer [ class "w-screen flex items-center justify-center bg-accent3 py-12"]
+        [ div [ class "text-white" ]
+            [ a [ class "logo-font pr-4 text-sm"
+                , href (routeToString Route.Home)
+                ]
+                [ text "net-go" ]
+            , span [ class "text-xs" ]
                 [ text "Code & design licensed under GPL-3.0"
                 ]
             ]

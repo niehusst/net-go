@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* makes sure footer sits at bottom of screen
+html, body {
+  height: 100%;
+}*/
+
 :root {
   --primary: #01baefff;
   --primary-highlight: #01baef99;
@@ -43,12 +48,15 @@
   background-color: var(--primary-highlight);
 }
 
-.brand-logo {
-  @apply text-4xl;
+.logo-font {
   font-family: "Jaro", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+}
+
+.brand-logo {
+  @apply text-4xl logo-font;
   color: var(--accent1);
 }
 

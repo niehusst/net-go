@@ -3,7 +3,8 @@ module Main exposing (main)
 import API.Accounts exposing (doLogout)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (Html)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import Http
 import Model.Board as Board
 import Model.ColorChoice as ColorChoice
@@ -54,10 +55,18 @@ type Msg
 
 {-| Wrap the current page with header + footer content
 -}
+viewPageContainer : Model -> Html Msg
+viewPageContainer model =
+    div [ class "flex flex-col h-screen" ]
+        [ Page.viewHeader model.session
+        , div [ class "flex-grow" ] [ viewCurrentPage model ]
+        ,Page.viewFooter
+        ]
+
 view : Model -> Document Msg
 view model =
     { title = viewTabTitle model.page
-    , body = Page.viewHeader model.session :: viewCurrentPage model :: [ Page.viewFooter ]
+    , body = [viewPageContainer model]
     }
 
 
