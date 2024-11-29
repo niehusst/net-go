@@ -2,8 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary: #01baefff;
+  --primary-highlight: #01baef99;
+  --secondary: #0cbabaff;
+  --accent1: #380036ff;
+  --accent2: #26081cff;
+  --accent3: #150811ff;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.bg-accent1 {
+  background-color: var(--accent1);
+}
+
+.bg-accent2 {
+  background-color: var(--accent2);
+}
+
+.bg-accent3 {
+  background-color: var(--accent3);
+}
+
+.text-accent3 {
+  color: var(--accent3);
+}
+
 .btn {
-  @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
+  @apply font-bold py-2 px-4 rounded bg-primary text-accent3;
+}
+
+.btn:hover {
+  background-color: var(--primary-highlight);
+}
+
+.brand-logo {
+  @apply text-4xl;
+  font-family: "Jaro", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--accent1);
 }
 
 /* grid-template-columns must be added at runtime */

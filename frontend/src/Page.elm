@@ -15,11 +15,11 @@ import Session exposing (Session(..))
 
 viewHeader : Session -> Html msg
 viewHeader session =
-    nav [ class "navbar navbar-light" ]
-        [ div [ class "container" ]
-            [ a [ class "navbar-brand", href (routeToString Route.Home) ]
+    nav [ class "w-screen bg-primary p-3" ]
+        [ div [ class "flex flex-row justify-between items-center" ]
+            [ a [ class "brand-logo", href (routeToString Route.Home) ]
                 [ text "net-go" ]
-            , ul [ class "nav navbar-nav pull-xs-right" ] <|
+            , ul [ class "flex flex-row gap-6 text-accent3 text-lg" ] <|
                 viewMenu session
             ]
         ]
