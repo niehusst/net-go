@@ -60,13 +60,14 @@ viewPageContainer model =
     div [ class "flex flex-col h-screen" ]
         [ Page.viewHeader model.session
         , div [ class "flex-grow" ] [ viewCurrentPage model ]
-        ,Page.viewFooter
+        , Page.viewFooter
         ]
+
 
 view : Model -> Document Msg
 view model =
     { title = viewTabTitle model.page
-    , body = [viewPageContainer model]
+    , body = [ viewPageContainer model ]
     }
 
 

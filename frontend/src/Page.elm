@@ -36,16 +36,21 @@ viewMenu session =
 
 viewFooter : Html msg
 viewFooter =
-    footer [ class "w-screen flex items-center justify-center bg-accent3 py-12"]
-        [ div [ class "text-white" ]
-            [ a [ class "logo-font pr-4 text-sm"
+    footer [ class "w-screen flex flex-col items-center justify-center bg-accent3 py-12 text-white" ]
+        [ div []
+            [ a
+                [ class "logo-font pr-4 text-sm"
                 , href (routeToString Route.Home)
                 ]
                 [ text "net-go" ]
             , span [ class "text-xs" ]
-                [ text "Code & design licensed under GPL-3.0"
-                ]
+                [ text "Code & design licensed under GPL-3.0" ]
             ]
+        , a
+            [ class "text-xs underline"
+            , href "https://github.com/niehusst/net-go"
+            ]
+            [ text "Source available on GitHub" ]
         ]
 
 
