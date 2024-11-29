@@ -249,7 +249,7 @@ init flags url navKey =
 initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 initCurrentPage ( model, existingCmds ) =
     let
-        ( currentPage, mappedCmds ) =
+        loggedOutRoutes =
             case model.route of
                 Route.NotFound ->
                     ( NotFoundPage, Cmd.none )
@@ -261,33 +261,6 @@ initCurrentPage ( model, existingCmds ) =
                     in
                     ( HomePage pageModel
                     , doLogout LogoutResponse
-                    )
-
-                Route.Home ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            Home.init
-                    in
-                    ( HomePage pageModel
-                    , Cmd.map HomePageMsg pageCmds
-                    )
-
-                Route.GameCreate ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            GameCreate.init model.navKey
-                    in
-                    ( GameCreatePage pageModel
-                    , Cmd.map GameCreatePageMsg pageCmds
-                    )
-
-                Route.GamePlay gameId ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            GamePlay.init gameId
-                    in
-                    ( GamePlayPage pageModel
-                    , Cmd.map GamePlayPageMsg pageCmds
                     )
 
                 Route.SignUp ->
@@ -307,6 +280,52 @@ initCurrentPage ( model, existingCmds ) =
                     ( SignInPage pageModel
                     , Cmd.map SignInPageMsg pageCmds
                     )
+
+                Route.Home ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Home.init
+                    in
+                    ( HomePage pageModel
+                    , Cmd.map HomePageMsg pageCmds
+                    )
+
+                _ ->
+                    -- redirect to login
+                    ( NotFoundPage
+                    , pushUrl Route.SignIn (Session.navKey model.session)
+                    )
+
+        authOnlyRoutes =
+            case model.route of
+                Route.GameCreate ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            GameCreate.init model.navKey
+                    in
+                    ( GameCreatePage pageModel
+                    , Cmd.map GameCreatePageMsg pageCmds
+                    )
+
+                Route.GamePlay gameId ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            GamePlay.init gameId
+                    in
+                    ( GamePlayPage pageModel
+                    , Cmd.map GamePlayPageMsg pageCmds
+                    )
+
+                _ ->
+                    loggedOutRoutes
+
+        ( currentPage, mappedCmds ) =
+            case model.session of
+                Session.LoggedIn _ ->
+                    authOnlyRoutes
+
+                Session.LoggedOut _ ->
+                    loggedOutRoutes
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedCmds ]
