@@ -9,17 +9,13 @@ import Route exposing (Route, routeToString)
 import Session exposing (Session(..))
 
 
-
--- TODO: redo all CSS
-
-
 viewHeader : Session -> Html msg
 viewHeader session =
-    nav [ class "navbar navbar-light" ]
-        [ div [ class "container" ]
-            [ a [ class "navbar-brand", href (routeToString Route.Home) ]
+    nav [ class "w-screen bg-primary p-3" ]
+        [ div [ class "flex flex-row justify-between items-center" ]
+            [ a [ class "brand-logo", href (routeToString Route.Home) ]
                 [ text "net-go" ]
-            , ul [ class "nav navbar-nav pull-xs-right" ] <|
+            , ul [ class "flex flex-row gap-6 text-accent3 text-lg" ] <|
                 viewMenu session
             ]
         ]
@@ -40,13 +36,21 @@ viewMenu session =
 
 viewFooter : Html msg
 viewFooter =
-    footer []
-        [ div [ class "container" ]
-            [ a [ class "logo-font", href (routeToString Route.Home) ] [ text "net-go" ]
-            , span [ class "attribution" ]
-                [ text "Code & design licensed under GPL-3.0"
+    footer [ class "w-screen flex flex-col items-center justify-center bg-accent3 py-12 text-white" ]
+        [ div []
+            [ a
+                [ class "logo-font pr-4 text-sm"
+                , href (routeToString Route.Home)
                 ]
+                [ text "net-go" ]
+            , span [ class "text-xs" ]
+                [ text "Code & design licensed under GPL-3.0" ]
             ]
+        , a
+            [ class "text-xs underline"
+            , href "https://github.com/niehusst/net-go"
+            ]
+            [ text "Source available on GitHub" ]
         ]
 
 
