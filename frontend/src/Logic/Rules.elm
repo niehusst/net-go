@@ -1,9 +1,9 @@
-module Logic.Rules exposing (playMove, positionIsFriendlyEye, removeCapturedPieces, validMove)
+module Logic.Rules exposing (isGameEnded, playMove, positionIsFriendlyEye, removeCapturedPieces, validMove)
 
 import Array
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (ColorChoice(..), colorInverse, colorToPiece)
-import Model.Game as Game exposing (Game, addMoveToHistory, getLastMove)
+import Model.Game as Game exposing (Game, addMoveToHistory, getLastMove, getLastMoveBlack, getLastMoveWhite)
 import Model.Move as Move exposing (Move(..))
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
@@ -387,3 +387,15 @@ playMove move game =
                 , score = updatedScore
             }
                 |> addMoveToHistory move
+
+
+{-| Game is over when both players passed their turn w/o playing a piece
+-}
+isGameEnded : Game.Game -> Bool
+isGameEnded game =
+    case ( getLastMoveWhite game, getLastMoveBlack game ) of
+        ( Just (Move.Pass _), Just (Move.Pass _) ) ->
+            True
+
+        _ ->
+            False

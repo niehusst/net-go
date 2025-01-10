@@ -288,5 +288,23 @@ suite =
                     Expect.equal
                         ( expectedEndBoard, expectedNumCapturedPieces )
                         (removeCapturedPieces capturedWhiteGameState)
+            , test "game end on double pass" <|
+                \_ ->
+                    let
+                        game = playMove (Move.Pass Piece.WhiteStone) blackGame
+                               |> playMove (Move.Pass Piece.BlackStone)
+                    in
+                    Expect.equal
+                        True
+                        (isGameEnded game)
+            , test "game not ended on single pass" <|
+                \_ ->
+                    let
+                        game = playMove (Move.Pass Piece.WhiteStone) blackGame
+                               |> playMove (Move.Play Piece.BlackStone 0)
+                    in
+                    Expect.equal
+                        False
+                        (isGameEnded game)
             ]
         ]
