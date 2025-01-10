@@ -309,23 +309,14 @@ handlePlayPass model =
 
         Just game ->
             let
-                -- check that both players' passed their turn w/o playing a piece
-                gameEnded =
-                    case ( getLastMoveWhite game, getLastMoveBlack game ) of
-                        ( Just (Move.Pass _), Just (Move.Pass _) ) ->
-                            True
-
-                        _ ->
-                            False
-
                 updatedGame =
                     playMove (Move.Pass (colorToPiece game.playerColor)) game
-                        |> setIsOver gameEnded
+                        |> setIsOver (isGameEnded game)
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
-                    if gameEnded then
+                    if updatedGame.isOver then
                         ( { model
                             | playState = CalculatingScore
                           }

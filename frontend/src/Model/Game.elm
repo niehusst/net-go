@@ -88,7 +88,7 @@ getLastMoveWhite game =
                         _ ->
                             kernel historyTail
     in
-    kernel (List.reverse game.history)
+    kernel game.history
 
 
 getLastMoveBlack : Game -> Maybe Move
@@ -117,7 +117,7 @@ getLastMoveBlack game =
                         _ ->
                             kernel historyTail
     in
-    kernel (List.reverse game.history)
+    kernel game.history
 
 
 getLastMove : Game -> Maybe Move
