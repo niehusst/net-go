@@ -57,4 +57,4 @@ viewFooter =
 linkTo : Route -> List (Html msg) -> Html msg
 linkTo route linkContent =
     li [ classList [ ( "nav-item", True ) ] ]
-        [ a [ class "nav-link", href (routeToString route) ] linkContent ]
+        [ a [ class "nav-link hover:underline font-semibold", href (routeToString route) ] linkContent ]

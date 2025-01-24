@@ -120,6 +120,8 @@ getLastMoveBlack game =
     kernel game.history
 
 
+{-| Get last move made by the player matching `playerColor`
+-}
 getLastMove : Game -> Maybe Move
 getLastMove game =
     case game.playerColor of
