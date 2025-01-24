@@ -62,13 +62,36 @@ gameFromModel model =
         _ ->
             Nothing
 
-startScoring : Model -> ( Model, Cmd Msg )
-startScoring model =
-    ( { model
-        | playState = CalculatingScore
-      }
-    , Random.generate CalculateGameScore (Random.int 0 42069)
-    )
+
+startScoring : Model -> Maybe ColorChoice -> ( Model, Cmd Msg )
+startScoring model forfeitColor =
+    case ( gameFromModel model, forfeitColor ) of
+        ( Just game, Just color ) ->
+            -- skip calculation; someone forfeit
+            let
+                forfeitScore =
+                    Score.setForfeitColor color game.score
+
+                completedGame =
+                    setScore forfeitScore game
+                        |> setIsOver True
+            in
+            ( { model
+                | playState = FinalScore forfeitScore
+                , clientGameData = Just completedGame
+              }
+            , Cmd.none
+              -- TODO: send game scored game to backend!
+            )
+
+        _ ->
+            -- trigger score calculation
+            ( { model
+                | playState = CalculatingScore
+              }
+            , Random.generate CalculateGameScore (Random.int 0 42069)
+            )
+
 
 
 -- VIEW --
@@ -146,14 +169,14 @@ gamePlayView game invalidMoveAlert activeTurn =
         [ viewWaitForOpponent activeTurn
         , viewBuildBoard game
         , viewAlert invalidMoveAlert
-        , div [class "flex gap-4"]
+        , div [ class "flex gap-4" ]
             [ button
                 [ class "btn"
                 , onClick PlayPass
                 ]
                 [ text "Pass" ]
             , button
-                [class "btn bg-red-700 text-white hover:bg-white hover:text-red-500"
+                [ class "btn bg-red-700 text-white hover:bg-white hover:text-red-500"
                 , onClick Resign
                 ]
                 [ text "Resign" ]
@@ -339,16 +362,20 @@ handlePlayPiece model index =
                     validMove move game
             in
             if moveIsValid then
-                ( { model
-                    | clientGameData =
-                        playMove move game
-                            -- TODO: remove color swap w/ networking
-                            |> setPlayerColor (colorInverse game.playerColor)
-                            |> Just
-                    , activeTurn = not model.activeTurn
-                    , invalidMoveAlert = Nothing
-                  }
-                , endTurn model
+                let
+                    updatedModel =
+                        { model
+                            | clientGameData =
+                                playMove move game
+                                    -- TODO: remove color swap w/ networking
+                                    |> setPlayerColor (colorInverse game.playerColor)
+                                    |> Just
+                            , activeTurn = not model.activeTurn
+                            , invalidMoveAlert = Nothing
+                        }
+                in
+                ( updatedModel
+                , endTurn updatedModel
                 )
 
             else
@@ -360,12 +387,6 @@ handlePlayPiece model index =
 handlePlayPass : Model -> ( Model, Cmd Msg )
 handlePlayPass model =
     case gameFromModel model of
-        Nothing ->
-            -- game required to be loaded to handle this msg
-            ( model
-            , Cmd.none
-            )
-
         Just game ->
             let
                 updatedGame =
@@ -375,20 +396,31 @@ handlePlayPass model =
                         |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
+                    -- check if game ended by Pass moves
                     if updatedGame.isOver then
-                        startScoring model
+                        startScoring model Nothing
 
                     else
-                        ( model
-                        , endTurn model
+                        let
+                            modelWithMove =
+                                { model
+                                    | activeTurn = not model.activeTurn
+                                    , invalidMoveAlert = Nothing
+                                    , clientGameData = Just updatedGame
+                                }
+                        in
+                        ( modelWithMove
+                        , endTurn modelWithMove
                         )
             in
-            ( { model
-                | activeTurn = not model.activeTurn
-                , invalidMoveAlert = Nothing
-                , remoteGameData = RemoteData.Success updatedGame
-              }
+            ( updatedModel
             , command
+            )
+
+        Nothing ->
+            -- game required to be loaded to handle this msg
+            ( model
+            , Cmd.none
             )
 
 
@@ -402,11 +434,20 @@ handleCalculateGameScore model seed =
             )
 
         Just game ->
-            -- TODO: show the score somehow when done calculating
+            let
+                finalScore =
+                    scoreGame game seed
+
+                completedGame =
+                    setScore finalScore game
+                        |> setIsOver True
+            in
             ( { model
-                | playState = FinalScore (scoreGame game seed)
+                | playState = FinalScore finalScore
+                , clientGameData = Just completedGame
               }
             , Cmd.none
+              -- TODO: send game scored game to backend!
             )
 
 
@@ -421,10 +462,16 @@ update msg model =
 
         Resign ->
             let
-                -- TODO: mark resigned
-                resignedModel = model
+                resignedColor =
+                    case gameFromModel model of
+                        Nothing ->
+                            -- should never happen, but fallthrough to score calc (which falls back to doing nothing)
+                            Nothing
+
+                        Just game ->
+                            Just game.playerColor
             in
-            startScoring resignedModel
+            startScoring model resignedColor
 
         CalculateGameScore seed ->
             handleCalculateGameScore model seed
@@ -464,6 +511,7 @@ update msg model =
 endTurn : Model -> Cmd Msg
 endTurn model =
     -- TODO: placeholder turn swap w/o networking
+    -- TODO: send updated clientGameData to server to persist
     Cmd.none
 
 
