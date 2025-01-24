@@ -581,6 +581,10 @@ video {
   display: grid;
 }
 
+.h-full {
+  height: 100%;
+}
+
 .h-screen {
   height: 100vh;
 }
@@ -615,10 +619,6 @@ video {
   flex-direction: column;
 }
 
-.content-center {
-  align-content: center;
-}
-
 .items-center {
   align-items: center;
 }
@@ -635,6 +635,10 @@ video {
   gap: 1rem;
 }
 
+.gap-5 {
+  gap: 1.25rem;
+}
+
 .gap-6 {
   gap: 1.5rem;
 }
@@ -645,6 +649,19 @@ video {
 
 .border {
   border-width: 1px;
+}
+
+.border-2 {
+  border-width: 2px;
+}
+
+.border-solid {
+  border-style: solid;
+}
+
+.border-red-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity));
 }
 
 .bg-red-300 {
@@ -689,6 +706,11 @@ video {
   padding-bottom: 0.5rem;
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
 .pr-4 {
   padding-right: 1rem;
 }
@@ -700,6 +722,26 @@ video {
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
+}
+
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.text-7xl {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.text-9xl {
+  font-size: 8rem;
+  line-height: 1;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
 }
 
 .text-lg {
@@ -719,6 +761,10 @@ video {
 
 .font-bold {
   font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
 }
 
 .leading-tight {
@@ -787,15 +833,24 @@ html, body {
   color: var(--accent3);
 }
 
-.btn {
+.btn-base {
   border-radius: 0.25rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 1rem;
   font-weight: 700;
+}
+
+.btn {
   background-color: var(--primary);
   color: var(--accent3);
+  border-radius: 0.25rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-weight: 700;
 }
 
 .btn:hover {
@@ -867,6 +922,20 @@ html, body {
   transform: translate3d(13px, 13px, 0);
   box-sizing: border-box;
   pointer-events: none;
+}
+
+.hover\:bg-white:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+.hover\:text-red-500:hover {
+  --tw-text-opacity: 1;
+  color: rgb(239 68 68 / var(--tw-text-opacity));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .focus\:outline-none:focus {

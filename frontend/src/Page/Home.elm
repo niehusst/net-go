@@ -19,33 +19,35 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex flex-col w-screen content-center justify-center text-center" ]
-        [ h1
-            [ class "text-3xl font-bold" ]
-            [ text "Play Go online with a friend!" ]
-        , p []
-            [ text "It's pretty "
-            , strong [] [ text "FUN." ]
-            , text <|
-                """ 
-                More functionality coming soon.
-                """
+    div [ class "flex items-center justify-center h-full" ]
+        [ div [ class "flex flex-col h-full gap-4 items-center justify-center text-center" ]
+            [ h1
+                [ class "text-3xl font-bold" ]
+                [ text "Play Go online with a friend!" ]
+            , p []
+                [ text "It's pretty "
+                , strong [] [ text "FUN." ]
+                , text <|
+                    """
+                        More functionality coming soon.
+                        """
+                ]
+            , a
+                [ href (routeToString Route.GameCreate)
+                , class "my-1"
+                ]
+                [ button [ class "btn" ] [ text "Create a game" ] ]
+            , a
+                [ href "#"
+                , class "my-1"
+                ]
+                [ button [ class "btn" ] [ text "Join a game" ] ]
+            , a
+                [ href "#"
+                , class "my-1"
+                ]
+                [ button [ class "btn" ] [ text "Continue a game" ] ]
             ]
-        , a
-            [ href (routeToString Route.GameCreate)
-            , class "my-1"
-            ]
-            [ button [ class "btn" ] [ text "Create a game" ] ]
-        , a
-            [ href "#"
-            , class "my-1"
-            ]
-            [ button [ class "btn" ] [ text "Join a game" ] ]
-        , a
-            [ href "#"
-            , class "my-1"
-            ]
-            [ button [ class "btn" ] [ text "Continue a game" ] ]
         ]
 
 

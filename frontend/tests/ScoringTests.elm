@@ -274,7 +274,7 @@ suite =
                             scoreGame { game | score = forfeitScore } initialSeed
                                 |> scoreToString
                     in
-                    Expect.equal "W [Black Forfeit]" actualScore
+                    Expect.equal "W+R" actualScore
             , test "very incomplete game gets scored" <|
                 \_ ->
                     let

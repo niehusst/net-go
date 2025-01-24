@@ -1,4 +1,4 @@
-module Model.Score exposing (Score, increaseBlackPoints, increaseWhitePoints, initWithKomi, isForfeit, scoreDecoder, scoreEncoder, scoreToString, winningColor)
+module Model.Score exposing (Score, increaseBlackPoints, increaseWhitePoints, initWithKomi, isForfeit, scoreDecoder, scoreEncoder, scoreToString, setForfeitColor, winningColor)
 
 import Json.Decode as Decode exposing (Decoder, float, nullable)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -24,6 +24,11 @@ initWithKomi komi =
     }
 
 
+setForfeitColor : ColorChoice -> Score -> Score
+setForfeitColor color score =
+    { score | forfeitColor = Just color }
+
+
 {-| Returns the difference between player scores.
 A positive value means Black victory, a negative White victory.
 -}
@@ -43,10 +48,10 @@ scoreToString score =
     in
     case score.forfeitColor of
         Just ColorChoice.Black ->
-            "W [Black Forfeit]"
+            "W+R"
 
         Just ColorChoice.White ->
-            "B [White Forfeit]"
+            "B+R"
 
         Nothing ->
             case winningColor score of
