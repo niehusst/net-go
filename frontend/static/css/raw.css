@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The raw css source that tailwind compiles index.css from
+ */
+
 /* makes sure footer sits at bottom of screen
 html, body {
   height: 100%;

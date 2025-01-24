@@ -132,13 +132,17 @@ scoreView score playerColor =
 
 gamePlayView : Game -> Maybe String -> Bool -> Html Msg
 gamePlayView game invalidMoveAlert activeTurn =
-    div []
-        [ h3 [] [ text "Goban state" ]
+    div [ class "p-5 flex flex-col gap-4" ]
+        [ viewWaitForOpponent activeTurn
         , viewBuildBoard game
-        , viewWaitForOpponent activeTurn
-        , div []
-            [ button [ onClick PlayPass ] [ text "Pass" ] ]
         , viewAlert invalidMoveAlert
+        , div []
+            [ button
+                [ class "btn"
+                , onClick PlayPass
+                ]
+                [ text "Pass" ]
+            ]
         ]
 
 
@@ -149,13 +153,17 @@ viewAlert error =
             text ""
 
         Just errorMessage ->
-            text ("Invalid move: " ++ errorMessage)
+            div
+                [ class "bg-red-300 rounded p-2" ]
+                [ p [ class "font-bold" ]
+                    [ text ("Invalid move: " ++ errorMessage) ]
+                ]
 
 
 viewWaitForOpponent : Bool -> Html Msg
 viewWaitForOpponent activeTurn =
     if activeTurn then
-        text ""
+        text "It's your turn!"
 
     else
         text "Wait for opponent to play..."
@@ -176,9 +184,23 @@ viewBuildBoard game =
 
 viewGameBoard : Game -> List (Html Msg)
 viewGameBoard game =
+    let
+        lastMovePosition =
+            case game.history of
+                [] ->
+                    -1
+
+                move :: _ ->
+                    case move of
+                        Move.Play _ pos ->
+                            pos
+
+                        _ ->
+                            -1
+    in
     Array.toList
         (Array.indexedMap
-            (viewBuildCell game.boardSize game.playerColor)
+            (viewBuildCell game.boardSize game.playerColor lastMovePosition)
             game.board
         )
 
@@ -202,11 +224,14 @@ isInnerCell boardSize index =
     not (isLastRow || isLastCol)
 
 
-viewBuildCell : BoardSize -> ColorChoice -> Int -> Piece -> Html Msg
-viewBuildCell boardSize color index piece =
+viewBuildCell : BoardSize -> ColorChoice -> Int -> Int -> Piece -> Html Msg
+viewBuildCell boardSize color lastMoveIndex index piece =
     let
+        isLastMoveIndex =
+            index == lastMoveIndex
+
         pieceHtml =
-            renderPiece piece
+            renderPiece piece isLastMoveIndex
 
         hoverClass =
             "hidden-hover-element board-square-" ++ colorToString color
@@ -224,8 +249,8 @@ viewBuildCell boardSize color index piece =
         ]
 
 
-renderPiece : Piece -> Html msg
-renderPiece piece =
+renderPiece : Piece -> Bool -> Html msg
+renderPiece piece isLastMove =
     let
         fillColor =
             case piece of
@@ -237,6 +262,32 @@ renderPiece piece =
 
                 None ->
                     ""
+
+        pieceSvgList =
+            let
+                filledPiece =
+                    [ circle
+                        [ SAtts.cx "13"
+                        , SAtts.cy "13"
+                        , SAtts.r "11"
+                        , SAtts.fill fillColor
+                        ]
+                        []
+                    ]
+            in
+            if isLastMove then
+                filledPiece
+                    ++ [ circle
+                            [ SAtts.cx "13"
+                            , SAtts.cy "13"
+                            , SAtts.r "5"
+                            , SAtts.fill "#f5c71a"
+                            ]
+                            []
+                       ]
+
+            else
+                filledPiece
     in
     if piece == None then
         text ""
@@ -248,14 +299,7 @@ renderPiece piece =
             , SAtts.viewBox "0 0 26 26"
             , SAtts.style "position: absolute;"
             ]
-            [ circle
-                [ SAtts.cx "13"
-                , SAtts.cy "13"
-                , SAtts.r "11"
-                , SAtts.fill fillColor
-                ]
-                []
-            ]
+            pieceSvgList
 
 
 
