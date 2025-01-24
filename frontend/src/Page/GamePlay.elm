@@ -137,10 +137,12 @@ gamePlayView game invalidMoveAlert activeTurn =
         , viewBuildBoard game
         , viewAlert invalidMoveAlert
         , div []
-            [ button [ class "btn"
-                     , onClick PlayPass
-                     ]
-                  [ text "Pass" ] ]
+            [ button
+                [ class "btn"
+                , onClick PlayPass
+                ]
+                [ text "Pass" ]
+            ]
         ]
 
 
@@ -154,7 +156,7 @@ viewAlert error =
             div
                 [ class "bg-red-300 rounded p-2" ]
                 [ p [ class "font-bold" ]
-                     [ text ("Invalid move: " ++ errorMessage) ]
+                    [ text ("Invalid move: " ++ errorMessage) ]
                 ]
 
 
