@@ -25,6 +25,7 @@ import Svg.Attributes as SAtts
 type Msg
     = PlayPiece Int
     | PlayPass
+    | Resign
     | CalculateGameScore Int
     | FetchGame String -- gameId
     | DataReceived (WebData Game)
@@ -61,6 +62,13 @@ gameFromModel model =
         _ ->
             Nothing
 
+startScoring : Model -> ( Model, Cmd Msg )
+startScoring model =
+    ( { model
+        | playState = CalculatingScore
+      }
+    , Random.generate CalculateGameScore (Random.int 0 42069)
+    )
 
 
 -- VIEW --
@@ -100,8 +108,10 @@ view model =
 
 loadingView : Html Msg
 loadingView =
-    div []
-        [ img [ src "static/resources/loading-wheel.svg" ] [] ]
+    div [ class "flex flex-col items-center justify-center" ]
+        [ p [] [ text "Calculating final score..." ]
+        , img [ src "/static/resources/loading-wheel.svg" ] []
+        ]
 
 
 scoreView : Score.Score -> ColorChoice -> Html Msg
@@ -119,12 +129,12 @@ scoreView score playerColor =
                 Nothing ->
                     ""
     in
-    div []
-        [ h3 [] [ text "Final Score:" ]
-        , h1 [] [ text <| Score.scoreToString score ]
-        , p [] [ text ("Komi was: " ++ String.fromFloat score.komi) ]
-        , h2 [] [ text resultSummaryText ]
-        , button []
+    div [ class "flex flex-col items-center justify-center" ]
+        [ h3 [ class "text-5xl" ] [ text "Final Score:" ]
+        , h1 [ class "text-9xl" ] [ text <| Score.scoreToString score ]
+        , p [ class "text-base" ] [ text ("Komi was: " ++ String.fromFloat score.komi) ]
+        , h2 [ class "text-7xl" ] [ text resultSummaryText ]
+        , button [ class "btn" ]
             [ a [ href (routeToString Route.Home) ] [ text "Return Home" ]
             ]
         ]
@@ -136,12 +146,17 @@ gamePlayView game invalidMoveAlert activeTurn =
         [ viewWaitForOpponent activeTurn
         , viewBuildBoard game
         , viewAlert invalidMoveAlert
-        , div []
+        , div [class "flex gap-4"]
             [ button
                 [ class "btn"
                 , onClick PlayPass
                 ]
                 [ text "Pass" ]
+            , button
+                [class "btn bg-red-700 text-white hover:bg-white hover:text-red-500"
+                , onClick Resign
+                ]
+                [ text "Resign" ]
             ]
         ]
 
@@ -361,11 +376,7 @@ handlePlayPass model =
 
                 ( updatedModel, command ) =
                     if updatedGame.isOver then
-                        ( { model
-                            | playState = CalculatingScore
-                          }
-                        , Random.generate CalculateGameScore (Random.int 0 42069)
-                        )
+                        startScoring model
 
                     else
                         ( model
@@ -407,6 +418,13 @@ update msg model =
 
         PlayPass ->
             handlePlayPass model
+
+        Resign ->
+            let
+                -- TODO: mark resigned
+                resignedModel = model
+            in
+            startScoring resignedModel
 
         CalculateGameScore seed ->
             handleCalculateGameScore model seed
