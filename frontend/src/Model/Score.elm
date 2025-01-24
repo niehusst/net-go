@@ -48,10 +48,10 @@ scoreToString score =
     in
     case score.forfeitColor of
         Just ColorChoice.Black ->
-            "W [Black Forfeit]"
+            "W+R"
 
         Just ColorChoice.White ->
-            "B [White Forfeit]"
+            "B+R"
 
         Nothing ->
             case winningColor score of

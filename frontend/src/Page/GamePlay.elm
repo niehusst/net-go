@@ -152,7 +152,7 @@ scoreView score playerColor =
                 Nothing ->
                     ""
     in
-    div [ class "flex flex-col items-center justify-center" ]
+    div [ class "flex flex-col gap-5 py-5 items-center justify-center" ]
         [ h3 [ class "text-5xl" ] [ text "Final Score:" ]
         , h1 [ class "text-9xl" ] [ text <| Score.scoreToString score ]
         , p [ class "text-base" ] [ text ("Komi was: " ++ String.fromFloat score.komi) ]
@@ -176,7 +176,7 @@ gamePlayView game invalidMoveAlert activeTurn =
                 ]
                 [ text "Pass" ]
             , button
-                [ class "btn bg-red-700 text-white hover:bg-white hover:text-red-500"
+                [ class "btn-base bg-red-500 text-white border-solid border-2 border-red-500 hover:bg-white hover:text-red-500"
                 , onClick Resign
                 ]
                 [ text "Resign" ]
