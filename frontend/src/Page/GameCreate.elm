@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import CmdExtra exposing (message)
 import Error
 import Html exposing (..)
-import Html.Attributes exposing (href, min, selected, step, type_, value)
+import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Model.Board as Board exposing (BoardSize(..), boardSizeToInt, boardSizeToString, intToBoardSize)
@@ -70,8 +70,8 @@ formDataToGame formData =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h2 [] [ text "Game Settings" ]
+    div [ class "flex flex-col items-center justify-center p-9" ]
+        [ h2 [ class "text-xl" ] [ text "Game Settings" ]
         , viewGameSettings model.formData
         , Error.viewHttpError model.httpError
         ]
@@ -79,72 +79,58 @@ view model =
 
 viewGameSettings : FormData -> Html Msg
 viewGameSettings data =
-    let
-        black =
-            colorToString Black
-
-        white =
-            colorToString White
-
-        full =
-            boardSizeToString Full
-
-        med =
-            boardSizeToString Medium
-
-        small =
-            boardSizeToString Small
-    in
-    div []
-        [ div []
-            [ div []
-                [ label [] [ text "Color" ]
-                , select [ onInput StoreColorChoice ]
-                    [ option
-                        [ value black
-                        , selected (data.colorChoice == Black)
-                        ]
-                        [ text black ]
-                    , option
-                        [ value white
-                        , selected (data.colorChoice == White)
-                        ]
-                        [ text white ]
+    div [ class "container flex justify-center" ]
+        [ div [ class "w-full flex flex-col gap-3" ]
+            [ div [ class "w-full" ]
+                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Color" ]
+                , select
+                    [ onInput StoreColorChoice
+                    , class "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     ]
+                    (List.map
+                        (\color ->
+                            option
+                                [ value (colorToString color)
+                                , selected (data.colorChoice == color)
+                                ]
+                                [ text (colorToString color) ]
+                        )
+                        [ Black, White ]
+                    )
                 ]
             , div []
-                [ label [] [ text "Board size" ]
-                , select [ onInput StoreBoardSize ]
-                    -- TODO: flexibility
-                    [ option
-                        [ value (String.fromInt <| boardSizeToInt Full)
-                        , selected (data.boardSize == Full)
-                        ]
-                        [ text full ]
-                    , option
-                        [ value (String.fromInt <| boardSizeToInt Medium)
-                        , selected (data.boardSize == Medium)
-                        ]
-                        [ text med ]
-                    , option
-                        [ value (String.fromInt <| boardSizeToInt Small)
-                        , selected (data.boardSize == Small)
-                        ]
-                        [ text small ]
+                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Board size" ]
+                , select
+                    [ onInput StoreBoardSize
+                    , class "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     ]
+                    (List.map
+                        (\size ->
+                            option
+                                [ value (String.fromInt <| boardSizeToInt size)
+                                , selected (data.boardSize == size)
+                                ]
+                                [ text (boardSizeToString size) ]
+                        )
+                        [ Full, Medium, Small ]
+                    )
                 ]
             , div []
-                [ label [] [ text "Komi" ]
+                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Komi" ]
                 , input
                     [ onInput StoreKomi
                     , type_ "number"
+                    , class "w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     , step "0.1"
                     , Html.Attributes.min "0"
                     , value (String.fromFloat data.komi)
                     ]
                     []
                 ]
-            , button [ onClick CreateGame ]
+            , button
+                [ class "btn"
+                , onClick CreateGame
+                ]
                 [ text "Create game" ]
             ]
         ]
@@ -242,7 +228,7 @@ initialModel navKey =
     { formData =
         { boardSize = Full
         , colorChoice = Black
-        , komi = 5.5 -- current? Japanese regulation komi
+        , komi = 6.5 -- current Japanese regulation komi
         }
     , navKey = navKey
     , httpError = Nothing

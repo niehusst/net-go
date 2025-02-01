@@ -135,7 +135,7 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 	r.History = g.History
 	r.IsOver = g.IsOver
 	r.Score = g.Score
-	if g.WhitePlayer.ID == authedUser.ID {
+	if g.WhitePlayerId == authedUser.ID {
 		r.PlayerColor = types.White
 	} else {
 		r.PlayerColor = types.Black

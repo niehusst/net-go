@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"net-go/server/backend/model"
+
+	"gorm.io/gorm/clause"
 )
 
 /* interface */
@@ -34,7 +36,8 @@ func NewGameRepository(deps *GameRepoDeps) IGameRepository {
 
 func (g *GameRepository) FindByID(ctx context.Context, id uint) (*model.Game, error) {
 	var game model.Game
-	err := g.Db.First(&game, id).Error
+	// Preload fills the fk references in the object
+	err := g.Db.Preload(clause.Associations).First(&game, id).Error
 	return &game, err
 }
 

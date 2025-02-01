@@ -12,7 +12,8 @@ type BoardSize uint
 const (
 	Undefined BoardSize = 0
 	Full      BoardSize = 19
-	// TODO: the rest
+	Medium    BoardSize = 12
+	Small     BoardSize = 9
 )
 
 func (bs BoardSize) ToUint() uint {
@@ -25,6 +26,10 @@ func UintToBoardSize(candidate uint) (BoardSize, error) {
 		return Undefined, nil
 	case Full.ToUint():
 		return Full, nil
+	case Medium.ToUint():
+		return Medium, nil
+	case Small.ToUint():
+		return Small, nil
 	default:
 		return 0, errors.New("invalid uint to convert to BoardSize")
 	}
