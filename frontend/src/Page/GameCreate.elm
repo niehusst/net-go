@@ -226,7 +226,7 @@ initialModel navKey =
     { formData =
         { boardSize = Full
         , colorChoice = Black
-        , komi = 5.5 -- current? Japanese regulation komi
+        , komi = 6.5 -- current Japanese regulation komi
         }
     , navKey = navKey
     , httpError = Nothing
