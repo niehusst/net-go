@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import CmdExtra exposing (message)
 import Error
 import Html exposing (..)
-import Html.Attributes exposing (href, class, min, selected, step, type_, value)
+import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Model.Board as Board exposing (BoardSize(..), boardSizeToInt, boardSizeToString, intToBoardSize)
@@ -80,29 +80,30 @@ view model =
 viewGameSettings : FormData -> Html Msg
 viewGameSettings data =
     div [ class "container flex justify-center" ]
-        [ div [ class "w-full flex flex-col gap-3"]
+        [ div [ class "w-full flex flex-col gap-3" ]
             [ div [ class "w-full" ]
                 [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Color" ]
                 , select
                     [ onInput StoreColorChoice
-                    , class  "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    , class "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     ]
                     (List.map
-                        ( \color ->
-                              option
-                                    [ value (colorToString color)
-                                    , selected (data.colorChoice == color)
-                                    ]
-                                    [ text (colorToString color) ]
+                        (\color ->
+                            option
+                                [ value (colorToString color)
+                                , selected (data.colorChoice == color)
+                                ]
+                                [ text (colorToString color) ]
                         )
-                        [Black, White]
+                        [ Black, White ]
                     )
                 ]
             , div []
                 [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Board size" ]
-                , select [ onInput StoreBoardSize
-                         , class  "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                         ]
+                , select
+                    [ onInput StoreBoardSize
+                    , class "w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    ]
                     (List.map
                         (\size ->
                             option
@@ -111,7 +112,7 @@ viewGameSettings data =
                                 ]
                                 [ text (boardSizeToString size) ]
                         )
-                        [Full, Medium, Small]
+                        [ Full, Medium, Small ]
                     )
                 ]
             , div []
@@ -126,9 +127,10 @@ viewGameSettings data =
                     ]
                     []
                 ]
-            , button [ class "btn"
-                     , onClick CreateGame
-                     ]
+            , button
+                [ class "btn"
+                , onClick CreateGame
+                ]
                 [ text "Create game" ]
             ]
         ]
