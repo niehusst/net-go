@@ -10,7 +10,7 @@
     "format-elm": "npx elm-format frontend/src/ --yes",
     "format-go": "go fmt .",
     "make": "npm run make-elm ; npm run make-go ; npm run make-css",
-    "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js",
+    "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js && elm make frontend/src/ScoringWorker.elm --output frontend/static/js/scoring-worker.js",
     "make-go": "go build main.go",
     "make-css": "npx tailwindcss -i ./frontend/static/css/raw.css -o ./frontend/static/css/index.css"
   },

@@ -1,4 +1,4 @@
-module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view)
+module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view, subscriptions)
 
 import API.Games exposing (getGame)
 import Array
@@ -530,8 +530,14 @@ initialModel : Model
 initialModel =
     { remoteGameData = RemoteData.Loading
     , clientGameData = Nothing
-    , activeTurn = False -- TODO colorChoice == Black
+    , activeTurn = False -- this gets updated when remote data loads
     , invalidMoveAlert = Nothing
     , playState = Playing
     , initialSeed = 0
     }
+
+-- SUBSCRIPTIONS --
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none -- TODO; finish

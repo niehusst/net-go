@@ -342,13 +342,39 @@ initCurrentPage ( model, existingCmds ) =
     )
 
 
+-- SUBSCRIPTIONS --
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model.page of
+        NotFoundPage ->
+            Sub.none
+
+        HomePage pageModel ->
+            Sub.none
+
+        GameCreatePage pageModel ->
+            Sub.none
+
+        GamePlayPage pageModel ->
+            Sub.map GamePlayPageMsg (GamePlay.subscriptions pageModel)
+
+        SignUpPage pageModel ->
+            Sub.none
+
+        SignInPage pageModel ->
+            Sub.none
+
+
+-- MAIN --
+
 main : Program Bool Model Msg
 main =
     Browser.application
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
         }
