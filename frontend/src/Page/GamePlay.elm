@@ -18,6 +18,7 @@ import Model.Score as Score
 import Random
 import RemoteData exposing (WebData)
 import Route exposing (routeToString)
+import ScoringPorts exposing (sendScoreGame, receiveReturnedGame)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -29,6 +30,7 @@ type Msg
     | CalculateGameScore Int
     | FetchGame String -- gameId
     | DataReceived (WebData Game)
+    | ReceiveScoredGame Game
 
 
 type PlayState
@@ -84,13 +86,17 @@ startScoring model forfeitColor =
               -- TODO: send game scored game to backend!
             )
 
-        _ ->
+        (Just game, _) ->
             -- trigger score calculation
             ( { model
                 | playState = CalculatingScore
               }
-            , Random.generate CalculateGameScore (Random.int 0 42069)
+            , sendScoreGame game
             )
+
+        _ ->
+            -- should never happen
+            (model, Cmd.none)
 
 
 
@@ -434,20 +440,8 @@ handleCalculateGameScore model seed =
             )
 
         Just game ->
-            let
-                finalScore =
-                    scoreGame game seed
-
-                completedGame =
-                    setScore finalScore game
-                        |> setIsOver True
-            in
-            ( { model
-                | playState = FinalScore finalScore
-                , clientGameData = Just completedGame
-              }
-            , Cmd.none
-              -- TODO: send game scored game to backend!
+            ( model
+            , sendScoreGame game
             )
 
 
@@ -507,6 +501,13 @@ update msg model =
             , Cmd.none
             )
 
+        ReceiveScoredGame game ->
+            ( { model
+                | clientGameData = Just game
+                , playState = FinalScore game.score
+              }
+            , Cmd.none
+            )
 
 endTurn : Model -> Cmd Msg
 endTurn model =
@@ -540,4 +541,4 @@ initialModel =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none -- TODO; finish
+    receiveReturnedGame ReceiveScoredGame

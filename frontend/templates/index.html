@@ -20,8 +20,17 @@
                                   ?.split("=")[1];
       const app = Elm.Main.init({ flags: authCookieSet !== undefined });
 
-      // TODO: register app ports
+      // listen for calls to `sendScoreGame` and pass along to web worker
+      app.ports.listenForSendScoreGame.subscribe(function (game) {
+        console.log(`sending ${game}`)
+        worker.postMessage({ type: "score", value: game });
+      });
 
+      // listen for `returnScoreGame` responses from web worker
+      worker.onmessage = funciton ({ data }) {
+        console.log(`got returned game ${data}`)
+        app.ports.returnScoreGame.send(data);
+      }
     </script>
     <noscript>This App requires JavaScript.</noscript>
   </body>
