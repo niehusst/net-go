@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"net-go/server/backend/model"
+
+	"gorm.io/gorm/clause"
 )
 
 /* interface */
@@ -37,14 +39,14 @@ func NewUserRepository(deps *UserRepoDeps) IUserRepository {
 
 func (u *UserRepository) FindByID(ctx context.Context, id uint) (*model.User, error) {
 	var user model.User
-	err := u.Db.First(&user, id).Error
+	err := u.Db.Preload(clause.Associations).First(&user, id).Error
 
 	return &user, err
 }
 
 func (u *UserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
-	err := u.Db.First(&user, "username = ?", username).Error
+	err := u.Db.Preload(clause.Associations).First(&user, "username = ?", username).Error
 
 	return &user, err
 }

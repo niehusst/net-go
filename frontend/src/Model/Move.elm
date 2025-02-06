@@ -23,19 +23,10 @@ type Move
 
 moveDecoder : Decoder Move
 moveDecoder =
-    field "moveType" int
-        |> Decode.andThen
-            (\moveType ->
-                case moveType of
-                    0 ->
-                        Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) int
-
-                    1 ->
-                        Decode.map Pass (field "piece" Model.Piece.pieceDecoder)
-
-                    _ ->
-                        Decode.fail ("No JSON decode mapping for MoveType " ++ String.fromInt moveType)
-            )
+    Decode.oneOf
+        [ Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) int
+        , Decode.map Pass (field "piece" Model.Piece.pieceDecoder)
+        ]
 
 
 moveEncoder : Move -> Encode.Value

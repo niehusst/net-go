@@ -11,11 +11,24 @@
   <body>
     <script src="/static/js/elm.js"></script>
     <script>
+      // load Web Worker
+      const worker = new Worker("/static/js/worker.js");
+
       const authCookieSet = document.cookie
                                   .split("; ")
                                   .find((row) => row.startsWith("ngo_auth_set="))
                                   ?.split("=")[1];
       const app = Elm.Main.init({ flags: authCookieSet !== undefined });
+
+      // listen for calls to `sendScoreGame` and pass along to web worker
+      app.ports.sendScoreGame.subscribe(function (game) {
+        worker.postMessage({ type: "score", value: game });
+      });
+
+      // listen for `returnScoreGame` responses from web worker and forward to Elm.Main app
+      worker.onmessage = function ({ data }) {
+        app.ports.receiveReturnedGame.send(data);
+      }
     </script>
     <noscript>This App requires JavaScript.</noscript>
   </body>
