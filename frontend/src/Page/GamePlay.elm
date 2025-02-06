@@ -550,13 +550,16 @@ update msg model =
 
                         _ ->
                             Playing
+
+                updatedModel =
+                    { model
+                        | clientGameData = newGameData
+                        , transportError = transportError
+                        , playState = nextPlayState
+                    }
             in
-            ( { model
-                | clientGameData = newGameData
-                , transportError = transportError
-                , playState = nextPlayState
-              }
-            , Cmd.none
+            ( updatedModel
+            , endTurn updatedModel
             )
 
 

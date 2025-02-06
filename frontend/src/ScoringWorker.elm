@@ -10,7 +10,7 @@ import ScoringPorts exposing (decodeGameFromValue, receiveSentGame, returnScoreG
 
 type Msg
     = ScoreGame Game.Game Int
-    | GenerateSeedForScoring Value
+    | GenerateSeedForScoring Value -- JSON encoded Game
 
 
 init : () -> ( (), Cmd msg )

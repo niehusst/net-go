@@ -2,7 +2,7 @@ importScripts("scoring-worker.js");
 
 const app = Elm.ScoringWorker.init();
 
-// when we receive a msg from main thread, send it to worker's `sendScoreGame` port
+// when we receive a msg from main thread, send it to worker's `receiveSentGame` elm port
 onmessage = function ({ data }) {
   const { type, value } = data;
 
