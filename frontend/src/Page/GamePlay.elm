@@ -29,8 +29,6 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | Resign
-    | CalculateGameScore
-    | FetchGame String -- gameId
     | DataReceived (WebData Game)
     | ReceiveScoredGame Value -- JSON encoded Game
     | UpdateGameResponse (Result Http.Error Game)
@@ -87,8 +85,7 @@ startScoring model forfeitColor =
                 | playState = FinalScore forfeitScore
                 , clientGameData = Just completedGame
               }
-            , Cmd.none
-              -- TODO: send game scored game to backend!
+            , endTurn model
             )
 
         ( Just game, _ ) ->
@@ -118,7 +115,6 @@ view model =
                     gamePlayView game model
 
                 CalculatingScore ->
-                    -- TODO: this view is never showing... browser too busy?
                     loadingView
 
                 FinalScore score ->
@@ -412,13 +408,12 @@ handlePlayPass model =
             let
                 updatedGame =
                     playMove (Move.Pass (colorToPiece game.playerColor)) game
-                        |> setIsOver (isGameEnded game)
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
                     -- check if game ended by Pass moves
-                    if updatedGame.isOver then
+                    if isGameEnded updatedGame then
                         startScoring model Nothing
 
                     else
@@ -466,24 +461,6 @@ update msg model =
                             Just game.playerColor
             in
             startScoring model resignedColor
-
-        CalculateGameScore ->
-            case gameFromModel model of
-                Nothing ->
-                    -- game required to be loaded to handle this msg
-                    ( model
-                    , Cmd.none
-                    )
-
-                Just game ->
-                    ( model
-                    , sendScoreGame (Game.gameEncoder game)
-                    )
-
-        FetchGame gameId ->
-            ( model
-            , getGame gameId DataReceived
-            )
 
         DataReceived responseGame ->
             let
