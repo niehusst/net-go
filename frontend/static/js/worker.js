@@ -1,6 +1,8 @@
+console.log("starting web worker")
 importScripts("scoring-worker.js");
 
-const app = Elm.Worker.init();
+console.log("imported scorere script")
+const app = Elm.ScoringWorker.init();
 
 // when we receive a msg from main thread, send it to worker's `sendScoreGame` port
 onmessage = function ({ data }) {
@@ -8,15 +10,20 @@ onmessage = function ({ data }) {
 
   switch (type) {
     case "score":
-      app.ports.sendScoreGame.send(value);
+      console.log("recieving sent game", JSON.stringify(value))
+      app.ports.receiveSentGame.send(value);
       break;
     default:
       console.error("Unhandled web worker message: " + type);
   }
 };
 
+console.log("worker:", app)
+
 // listen for calls to `returnScoreGame` port, and pass back to main thread
-app.ports.receiveReturnedGame.subscribe(function (game) {
+app.ports.returnScoreGame.subscribe(function (game) {
   console.log(`returning ${game}`)
   postMessage(game);
 });
+
+console.log('web worker setup')

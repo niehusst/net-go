@@ -2,6 +2,8 @@ module GameTest exposing (..)
 
 
 import Expect exposing (Expectation)
+import Json.Encode exposing (encode)
+import Json.Decode exposing (decodeValue)
 import Model.Game exposing (..)
 import Model.Board exposing (BoardSize(..))
 import Model.Piece exposing (Piece(..))
@@ -66,4 +68,29 @@ suite =
                     in
                     Expect.equal True (isActiveTurn game)
             ]
+            , describe "JSON coding"
+              [ test "JSON coding works both ways" <|
+                \_ ->
+                    let
+                        game =
+                            newGame Full White 0.0
+                                |> addMoveToHistory (Play BlackStone 0)
+                                |> addMoveToHistory (Pass WhiteStone)
+                                |> addMoveToHistory (Pass BlackStone)
+
+                        encodedGame =
+                            gameEncoder game
+
+                        decodedGame =
+                            decodeValue (gameDecoder) encodedGame
+
+                        _ =
+                            case decodedGame of
+                                Err e ->
+                                    Debug.log "test" (Json.Decode.errorToString e)
+                                _ ->
+                                    Debug.log "test" "no decoding error here"
+                    in
+                    Expect.ok decodedGame
+              ]
         ]

@@ -11,6 +11,7 @@
   <body>
     <script src="/static/js/elm.js"></script>
     <script>
+      console.log("starting app")
       // load Web Worker
       const worker = new Worker("/static/js/worker.js");
 
@@ -19,17 +20,18 @@
                                   .find((row) => row.startsWith("ngo_auth_set="))
                                   ?.split("=")[1];
       const app = Elm.Main.init({ flags: authCookieSet !== undefined });
+      console.log("app loadde", app)
 
       // listen for calls to `sendScoreGame` and pass along to web worker
-      app.ports.listenForSendScoreGame.subscribe(function (game) {
+      app.ports.sendScoreGame.subscribe(function (game) {
         console.log(`sending ${game}`)
         worker.postMessage({ type: "score", value: game });
       });
 
-      // listen for `returnScoreGame` responses from web worker
-      worker.onmessage = funciton ({ data }) {
+      // listen for `returnScoreGame` responses from web worker and forward to Elm.Main app
+      worker.onmessage = function ({ data }) {
         console.log(`got returned game ${data}`)
-        app.ports.returnScoreGame.send(data);
+        app.ports.receiveReturnedGame.send(data);
       }
     </script>
     <noscript>This App requires JavaScript.</noscript>
