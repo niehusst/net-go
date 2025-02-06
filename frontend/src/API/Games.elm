@@ -1,4 +1,4 @@
-module API.Games exposing (CreateGameResponse, createGame, getGame)
+module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -62,7 +62,7 @@ gameId - ID of the DB Game table row to update
 game - new value of Game struct to update DB with
 msgType - the Msg to trigger on completion via Cmd
 -}
-updateGame : String -> Game -> (RemoteData.WebData Model.Game.Game -> msg) -> Cmd msg
+updateGame : String -> Game -> (Result Http.Error Model.Game.Game -> msg) -> Cmd msg
 updateGame gameId game msgType =
     let
         body =
@@ -76,7 +76,5 @@ updateGame gameId game msgType =
     Http.post
         { url = prefix ++ "/" ++ gameId
         , body = Http.jsonBody body
-        , expect =
-            respDecoder
-                |> Http.expectJson (RemoteData.fromResult >> msgType)
+        , expect = Http.expectJson msgType respDecoder
         }
