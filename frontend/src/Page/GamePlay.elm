@@ -1,4 +1,4 @@
-module Page.GamePlay exposing (Model, Msg, init, isInnerCell, update, view, subscriptions)
+module Page.GamePlay exposing (Model, Msg, init, isInnerCell, subscriptions, update, view)
 
 import API.Games exposing (getGame)
 import Array
@@ -7,6 +7,7 @@ import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
+import Json.Decode exposing (Value)
 import Logic.Rules exposing (..)
 import Logic.Scoring exposing (scoreGame)
 import Model.Board as Board exposing (..)
@@ -15,11 +16,10 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
-import Json.Decode exposing (Value)
 import Random
 import RemoteData exposing (WebData)
 import Route exposing (routeToString)
-import ScoringPorts exposing (sendScoreGame, receiveReturnedGame, decodeGameFromValue)
+import ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -88,7 +88,7 @@ startScoring model forfeitColor =
               -- TODO: send game scored game to backend!
             )
 
-        (Just game, _) ->
+        ( Just game, _ ) ->
             -- trigger score calculation
             ( { model
                 | playState = CalculatingScore
@@ -98,7 +98,7 @@ startScoring model forfeitColor =
 
         _ ->
             -- should never happen; there must be a game if we're trying to score it
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
 
 
@@ -203,15 +203,15 @@ viewAlert model =
                     div
                         [ class "bg-red-300 rounded p-2" ]
                         [ p [ class "font-bold" ]
-                              [ text ("Invalid move: " ++ errorMessage) ]
+                            [ text ("Invalid move: " ++ errorMessage) ]
                         ]
     in
     div
         []
-        ( List.map
-            (viewCreator)
-            [model.invalidMoveAlert
-            ,model.transportError
+        (List.map
+            viewCreator
+            [ model.invalidMoveAlert
+            , model.transportError
             ]
         )
 
@@ -552,12 +552,13 @@ update msg model =
                             Playing
             in
             ( { model
-                  | clientGameData = newGameData
-                  , transportError = transportError
-                  , playState = nextPlayState
+                | clientGameData = newGameData
+                , transportError = transportError
+                , playState = nextPlayState
               }
             , Cmd.none
             )
+
 
 endTurn : Model -> Cmd Msg
 endTurn model =
@@ -588,7 +589,10 @@ initialModel =
     , initialSeed = 0
     }
 
+
+
 -- SUBSCRIPTIONS --
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

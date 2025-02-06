@@ -28,6 +28,7 @@ moveDecoder =
         , Decode.map Pass (field "piece" Model.Piece.pieceDecoder)
         ]
 
+
 moveEncoder : Move -> Encode.Value
 moveEncoder move =
     case move of

@@ -342,7 +342,9 @@ initCurrentPage ( model, existingCmds ) =
     )
 
 
+
 -- SUBSCRIPTIONS --
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -366,7 +368,9 @@ subscriptions model =
             Sub.none
 
 
+
 -- MAIN --
+
 
 main : Program Bool Model Msg
 main =

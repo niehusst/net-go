@@ -83,13 +83,6 @@ suite =
 
                         decodedGame =
                             decodeValue (gameDecoder) encodedGame
-
-                        _ =
-                            case decodedGame of
-                                Err e ->
-                                    Debug.log "test" (Json.Decode.errorToString e)
-                                _ ->
-                                    Debug.log "test" "no decoding error here"
                     in
                     Expect.ok decodedGame
               ]
