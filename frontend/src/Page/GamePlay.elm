@@ -15,10 +15,11 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
+import Json.Decode exposing (Value)
 import Random
 import RemoteData exposing (WebData)
 import Route exposing (routeToString)
-import ScoringPorts exposing (sendScoreGame, receiveReturnedGame)
+import ScoringPorts exposing (sendScoreGame, receiveReturnedGame, decodeGameFromValue)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 
@@ -30,7 +31,7 @@ type Msg
     | CalculateGameScore Int
     | FetchGame String -- gameId
     | DataReceived (WebData Game)
-    | ReceiveScoredGame Game
+    | ReceiveScoredGame Value
 
 
 type PlayState
@@ -47,6 +48,7 @@ type alias Model =
     , clientGameData : Maybe Game
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
+    , transportError : Maybe String
     , initialSeed : Int
     , playState : PlayState
     }
@@ -91,11 +93,11 @@ startScoring model forfeitColor =
             ( { model
                 | playState = CalculatingScore
               }
-            , sendScoreGame game
+            , sendScoreGame (Game.gameEncoder game)
             )
 
         _ ->
-            -- should never happen
+            -- should never happen; there must be a game if we're trying to score it
             (model, Cmd.none)
 
 
@@ -110,7 +112,7 @@ view model =
         Just game ->
             case model.playState of
                 Playing ->
-                    gamePlayView game model.invalidMoveAlert model.activeTurn
+                    gamePlayView game model
 
                 CalculatingScore ->
                     -- TODO: this view is never showing... browser too busy?
@@ -125,14 +127,13 @@ view model =
                     loadingView
 
                 RemoteData.Failure error ->
-                    -- TODO: imporove
+                    -- TODO: improve
                     text ("Error fetching game: " ++ stringFromHttpError error)
 
                 _ ->
                     -- RemoteData.NotAsked + RemoteData.Success
                     -- niether of which should ever happen/reach here
-                    -- TODO: this will never happen? share case result w/ err
-                    text "Error"
+                    text "Unknown Error. Please refresh."
 
 
 loadingView : Html Msg
@@ -169,12 +170,12 @@ scoreView score playerColor =
         ]
 
 
-gamePlayView : Game -> Maybe String -> Bool -> Html Msg
-gamePlayView game invalidMoveAlert activeTurn =
+gamePlayView : Game -> Model -> Html Msg
+gamePlayView game model =
     div [ class "p-5 flex flex-col gap-4" ]
-        [ viewWaitForOpponent activeTurn
+        [ viewWaitForOpponent model.activeTurn
         , viewBuildBoard game
-        , viewAlert invalidMoveAlert
+        , viewAlert model
         , div [ class "flex gap-4" ]
             [ button
                 [ class "btn"
@@ -190,18 +191,29 @@ gamePlayView game invalidMoveAlert activeTurn =
         ]
 
 
-viewAlert : Maybe String -> Html Msg
-viewAlert error =
-    case error of
-        Nothing ->
-            text ""
+viewAlert : Model -> Html Msg
+viewAlert model =
+    let
+        viewCreator error =
+            case error of
+                Nothing ->
+                    text ""
 
-        Just errorMessage ->
-            div
-                [ class "bg-red-300 rounded p-2" ]
-                [ p [ class "font-bold" ]
-                    [ text ("Invalid move: " ++ errorMessage) ]
-                ]
+                Just errorMessage ->
+                    div
+                        [ class "bg-red-300 rounded p-2" ]
+                        [ p [ class "font-bold" ]
+                              [ text ("Invalid move: " ++ errorMessage) ]
+                        ]
+    in
+    div
+        []
+        ( List.map
+            (viewCreator)
+            [model.invalidMoveAlert
+            ,model.transportError
+            ]
+        )
 
 
 viewWaitForOpponent : Bool -> Html Msg
@@ -441,7 +453,7 @@ handleCalculateGameScore model seed =
 
         Just game ->
             ( model
-            , sendScoreGame game
+            , sendScoreGame (Game.gameEncoder game)
             )
 
 
@@ -492,19 +504,57 @@ update msg model =
 
                         _ ->
                             Nothing
+
+                transportError =
+                    case responseGame of
+                        RemoteData.Failure error ->
+                            Just (stringFromHttpError error)
+
+                        _ ->
+                            Nothing
             in
             ( { model
                 | remoteGameData = responseGame
                 , clientGameData = clientGameData
+                , transportError = transportError
                 , activeTurn = activeTurn
               }
             , Cmd.none
             )
 
-        ReceiveScoredGame game ->
+        ReceiveScoredGame encodedGame ->
+            let
+                decodedGame =
+                    decodeGameFromValue encodedGame
+
+                newGameData =
+                    case decodedGame of
+                        Ok game ->
+                            Just game
+
+                        _ ->
+                            model.clientGameData
+
+                transportError =
+                    case decodedGame of
+                        Err error ->
+                            Just (Json.Decode.errorToString error)
+
+                        _ ->
+                            Nothing
+
+                nextPlayState =
+                    case decodedGame of
+                        Ok game ->
+                            FinalScore game.score
+
+                        _ ->
+                            Playing
+            in
             ( { model
-                | clientGameData = Just game
-                , playState = FinalScore game.score
+                  | clientGameData = newGameData
+                  , transportError = transportError
+                  , playState = nextPlayState
               }
             , Cmd.none
             )
@@ -533,6 +583,7 @@ initialModel =
     , clientGameData = Nothing
     , activeTurn = False -- this gets updated when remote data loads
     , invalidMoveAlert = Nothing
+    , transportError = Nothing
     , playState = Playing
     , initialSeed = 0
     }
