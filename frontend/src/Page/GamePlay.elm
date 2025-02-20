@@ -10,7 +10,6 @@ import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
 import Json.Decode exposing (Value)
 import Logic.Rules exposing (..)
-import Logic.Scoring exposing (scoreGame)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (..)
 import Model.Game as Game exposing (..)
@@ -37,7 +36,6 @@ type Msg
 type PlayState
     = Playing
     | CalculatingScore
-    | FinalScore Score.Score
 
 
 type alias Model =
@@ -82,8 +80,7 @@ startScoring model forfeitColor =
                         |> setIsOver True
             in
             ( { model
-                | playState = FinalScore forfeitScore
-                , clientGameData = Just completedGame
+                | clientGameData = Just completedGame
               }
             , endTurn model
             )
@@ -110,20 +107,20 @@ view model =
     -- show a game if we have one; local or remote
     case gameFromModel model of
         Just game ->
-            case model.playState of
-                Playing ->
+            case (game.isOver, model.playState) of
+                (True, _) ->
+                    scoreView game.score game.playerColor
+
+                (False, Playing) ->
                     gamePlayView game model
 
-                CalculatingScore ->
-                    loadingView
-
-                FinalScore score ->
-                    scoreView score game.playerColor
+                (False, CalculatingScore) ->
+                    loadingView "Calculating final score..."
 
         Nothing ->
             case model.remoteGameData of
                 RemoteData.Loading ->
-                    loadingView
+                    loadingView "Loading game..."
 
                 RemoteData.Failure error ->
                     -- TODO: improve
@@ -135,10 +132,10 @@ view model =
                     text "Unknown Error. Please refresh."
 
 
-loadingView : Html Msg
-loadingView =
+loadingView : String -> Html Msg
+loadingView message =
     div [ class "flex flex-col items-center justify-center" ]
-        [ p [] [ text "Calculating final score..." ]
+        [ p [] [ text message ]
         , img [ src "/static/resources/loading-wheel.svg" ] []
         ]
 
@@ -518,19 +515,10 @@ update msg model =
                         _ ->
                             Nothing
 
-                nextPlayState =
-                    case decodedGame of
-                        Ok game ->
-                            FinalScore game.score
-
-                        _ ->
-                            Playing
-
                 updatedModel =
                     { model
                         | clientGameData = newGameData
                         , transportError = transportError
-                        , playState = nextPlayState
                     }
             in
             ( updatedModel
