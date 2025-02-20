@@ -232,6 +232,8 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 		})
 		return
 	}
+	// reassign game ID since it's not part of the JSON payload from client
+	game.ID = uriParams.ID
 
 	// fetch current value from DB
 	currentGame, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
