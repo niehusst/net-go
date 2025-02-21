@@ -21,12 +21,37 @@ type Move
 -}
 
 
+moveToInt : Move -> Int
+moveToInt move =
+    case move of
+        Pass _ ->
+            0
+
+        Play _ _ ->
+            1
+
 moveDecoder : Decoder Move
 moveDecoder =
-    Decode.oneOf
-        [ Decode.map2 Play (field "piece" Model.Piece.pieceDecoder) int
-        , Decode.map Pass (field "piece" Model.Piece.pieceDecoder)
-        ]
+    let
+        moveTypeValidation moveType =
+            if moveType < 0 || moveType > 1 then
+                Decode.fail ("Invalid move type: " ++ String.fromInt moveType)
+            else
+                Decode.succeed moveType
+    in
+    Decode.map3
+        (\moveType piece coord ->
+             case moveType of
+                 1 ->
+                    Play piece coord
+
+                 _ ->
+                    -- should only be 0 from moveType validation
+                    Pass piece
+        )
+        ((field "moveType" int) |> Decode.andThen moveTypeValidation)
+        (field "piece" Model.Piece.pieceDecoder)
+        (field "coord" int)
 
 
 moveEncoder : Move -> Encode.Value
@@ -34,14 +59,14 @@ moveEncoder move =
     case move of
         Pass piece ->
             Encode.object
-                [ ( "moveType", Encode.int 0 )
+                [ ( "moveType", Encode.int (moveToInt move) )
                 , ( "piece", Model.Piece.pieceEncoder piece )
                 , ( "coord", Encode.int 0 )
                 ]
 
         Play piece position ->
             Encode.object
-                [ ( "moveType", Encode.int 1 )
+                [ ( "moveType", Encode.int (moveToInt move) )
                 , ( "piece", Model.Piece.pieceEncoder piece )
                 , ( "coord", Encode.int position )
                 ]
