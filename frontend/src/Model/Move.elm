@@ -30,26 +30,28 @@ moveToInt move =
         Play _ _ ->
             1
 
+
 moveDecoder : Decoder Move
 moveDecoder =
     let
         moveTypeValidation moveType =
             if moveType < 0 || moveType > 1 then
                 Decode.fail ("Invalid move type: " ++ String.fromInt moveType)
+
             else
                 Decode.succeed moveType
     in
     Decode.map3
         (\moveType piece coord ->
-             case moveType of
-                 1 ->
+            case moveType of
+                1 ->
                     Play piece coord
 
-                 _ ->
+                _ ->
                     -- should only be 0 from moveType validation
                     Pass piece
         )
-        ((field "moveType" int) |> Decode.andThen moveTypeValidation)
+        (field "moveType" int |> Decode.andThen moveTypeValidation)
         (field "piece" Model.Piece.pieceDecoder)
         (field "coord" int)
 

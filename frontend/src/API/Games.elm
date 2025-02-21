@@ -16,7 +16,6 @@ type alias CreateGameResponse =
     { uid : Int }
 
 
-
 {-| Fetches a game from backend by path param ID.
 gameId - ID of game to fetch
 msgType - the Msg type to trigger on completion via Cmd
@@ -47,6 +46,7 @@ createGame game msgType =
         decodeResponse =
             Decode.succeed CreateGameResponse
                 |> required "uid" Decode.int
+
         body =
             Json.Encode.object
                 [ ( "game", gameEncoder game ) ]
@@ -56,6 +56,7 @@ createGame game msgType =
         , body = Http.jsonBody body
         , expect = Http.expectJson msgType decodeResponse
         }
+
 
 {-| Update the stored Game in the DB with the pass value.
 gameId - ID of the DB Game table row to update

@@ -4,10 +4,10 @@ import API.Games exposing (getGame, updateGame)
 import Array
 import Browser.Navigation as Nav
 import Error exposing (stringFromHttpError)
-import Http
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
+import Http
 import Json.Decode exposing (Value)
 import Logic.Rules exposing (..)
 import Model.Board as Board exposing (..)
@@ -107,14 +107,14 @@ view model =
     -- show a game if we have one; local or remote
     case gameFromModel model of
         Just game ->
-            case (game.isOver, model.playState) of
-                (True, _) ->
+            case ( game.isOver, model.playState ) of
+                ( True, _ ) ->
                     scoreView game.score game.playerColor
 
-                (False, Playing) ->
+                ( False, Playing ) ->
                     gamePlayView game model
 
-                (False, CalculatingScore) ->
+                ( False, CalculatingScore ) ->
                     loadingView "Calculating final score..."
 
         Nothing ->
@@ -529,7 +529,7 @@ update msg model =
             case resp of
                 Ok game ->
                     ( { model
-                            | clientGameData = Just game
+                        | clientGameData = Just game
                       }
                     , Cmd.none
                     )
@@ -546,6 +546,7 @@ endTurn model =
     case gameFromModel model of
         Just game ->
             updateGame model.gameId game UpdateGameResponse
+
         Nothing ->
             Cmd.none
 
