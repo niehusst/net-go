@@ -13,6 +13,7 @@ type Type string
 
 const (
 	Authorization Type = "AUTHORIZATION" // Authentication Failures -
+	Forbidden     Type = "FORBIDDEN"     // Bad access errors
 	BadRequest    Type = "BADREQUEST"    // Validation errors / BadInput
 	Conflict      Type = "CONFLICT"      // Already exists (eg, create account with existent username) - 409
 	Internal      Type = "INTERNAL"      // Server (500) and fallback errors
@@ -42,6 +43,8 @@ func (e *Error) Status() int {
 		return http.StatusInternalServerError
 	case NotFound:
 		return http.StatusNotFound
+	case Forbidden:
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}
@@ -65,6 +68,14 @@ func NewUnauthorized() *Error {
 	return &Error{
 		Type:    Authorization,
 		Message: "Unauthorized, please log in",
+	}
+}
+
+// 403
+func NewForbidden() *Error {
+	return &Error{
+		Type:    Forbidden,
+		Message: "Unauthorized, forbidden",
 	}
 }
 

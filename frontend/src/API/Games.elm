@@ -1,4 +1,4 @@
-module API.Games exposing (CreateGameResponse, createGame, getGame)
+module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -14,12 +14,6 @@ prefix =
 
 type alias CreateGameResponse =
     { uid : Int }
-
-
-decodeCreateGameResponse : Decoder CreateGameResponse
-decodeCreateGameResponse =
-    Decode.succeed CreateGameResponse
-        |> required "uid" Decode.int
 
 
 {-| Fetches a game from backend by path param ID.
@@ -41,13 +35,18 @@ getGame gameId msgType =
         }
 
 
-{-| Create the passed game on the backend.
+{-| Create the passed game on the backend to store it in the DB.
 game - Game struct to create
 msgType - the Msg to trigger on completion via Cmd
 -}
 createGame : Game -> (Result Http.Error CreateGameResponse -> msg) -> Cmd msg
 createGame game msgType =
     let
+        decodeResponse : Decoder CreateGameResponse
+        decodeResponse =
+            Decode.succeed CreateGameResponse
+                |> required "uid" Decode.int
+
         body =
             Json.Encode.object
                 [ ( "game", gameEncoder game ) ]
@@ -55,5 +54,28 @@ createGame game msgType =
     Http.post
         { url = prefix ++ "/"
         , body = Http.jsonBody body
-        , expect = Http.expectJson msgType decodeCreateGameResponse
+        , expect = Http.expectJson msgType decodeResponse
+        }
+
+
+{-| Update the stored Game in the DB with the pass value.
+gameId - ID of the DB Game table row to update
+game - new value of Game struct to update DB with
+msgType - the Msg to trigger on completion via Cmd
+-}
+updateGame : String -> Game -> (Result Http.Error Model.Game.Game -> msg) -> Cmd msg
+updateGame gameId game msgType =
+    let
+        body =
+            Json.Encode.object
+                [ ( "game", gameEncoder game ) ]
+
+        respDecoder : Decoder Model.Game.Game
+        respDecoder =
+            Decode.field "game" gameDecoder
+    in
+    Http.post
+        { url = prefix ++ "/" ++ gameId
+        , body = Http.jsonBody body
+        , expect = Http.expectJson msgType respDecoder
         }

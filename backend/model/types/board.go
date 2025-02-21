@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// / custom type to json encode since gorm doesn't like 2d array of Pieces
+// custom type to json encode since gorm doesn't like 2d array of Pieces
 type PlayArea [][]Piece
 
 func (p PlayArea) Value() (driver.Value, error) {

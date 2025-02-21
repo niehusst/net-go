@@ -1,15 +1,15 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, subscriptions, update, view)
 
-import API.Games exposing (getGame)
+import API.Games exposing (getGame, updateGame)
 import Array
 import Browser.Navigation as Nav
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
+import Http
 import Json.Decode exposing (Value)
 import Logic.Rules exposing (..)
-import Logic.Scoring exposing (scoreGame)
 import Model.Board as Board exposing (..)
 import Model.ColorChoice as ColorChoice exposing (..)
 import Model.Game as Game exposing (..)
@@ -28,16 +28,14 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | Resign
-    | CalculateGameScore Int
-    | FetchGame String -- gameId
     | DataReceived (WebData Game)
-    | ReceiveScoredGame Value
+    | ReceiveScoredGame Value -- JSON encoded Game
+    | UpdateGameResponse (Result Http.Error Game)
 
 
 type PlayState
     = Playing
     | CalculatingScore
-    | FinalScore Score.Score
 
 
 type alias Model =
@@ -51,6 +49,7 @@ type alias Model =
     , transportError : Maybe String
     , initialSeed : Int
     , playState : PlayState
+    , gameId : String
     }
 
 
@@ -81,11 +80,9 @@ startScoring model forfeitColor =
                         |> setIsOver True
             in
             ( { model
-                | playState = FinalScore forfeitScore
-                , clientGameData = Just completedGame
+                | clientGameData = Just completedGame
               }
-            , Cmd.none
-              -- TODO: send game scored game to backend!
+            , endTurn model
             )
 
         ( Just game, _ ) ->
@@ -110,21 +107,20 @@ view model =
     -- show a game if we have one; local or remote
     case gameFromModel model of
         Just game ->
-            case model.playState of
-                Playing ->
+            case ( game.isOver, model.playState ) of
+                ( True, _ ) ->
+                    scoreView game.score game.playerColor
+
+                ( False, Playing ) ->
                     gamePlayView game model
 
-                CalculatingScore ->
-                    -- TODO: this view is never showing... browser too busy?
-                    loadingView
-
-                FinalScore score ->
-                    scoreView score game.playerColor
+                ( False, CalculatingScore ) ->
+                    loadingView "Calculating final score..."
 
         Nothing ->
             case model.remoteGameData of
                 RemoteData.Loading ->
-                    loadingView
+                    loadingView "Loading game..."
 
                 RemoteData.Failure error ->
                     -- TODO: improve
@@ -136,10 +132,10 @@ view model =
                     text "Unknown Error. Please refresh."
 
 
-loadingView : Html Msg
-loadingView =
+loadingView : String -> Html Msg
+loadingView message =
     div [ class "flex flex-col items-center justify-center" ]
-        [ p [] [ text "Calculating final score..." ]
+        [ p [] [ text message ]
         , img [ src "/static/resources/loading-wheel.svg" ] []
         ]
 
@@ -409,13 +405,12 @@ handlePlayPass model =
             let
                 updatedGame =
                     playMove (Move.Pass (colorToPiece game.playerColor)) game
-                        |> setIsOver (isGameEnded game)
                         -- TODO remove color swap w/ networking
                         |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
                     -- check if game ended by Pass moves
-                    if updatedGame.isOver then
+                    if isGameEnded updatedGame then
                         startScoring model Nothing
 
                     else
@@ -442,21 +437,6 @@ handlePlayPass model =
             )
 
 
-handleCalculateGameScore : Model -> Int -> ( Model, Cmd Msg )
-handleCalculateGameScore model seed =
-    case gameFromModel model of
-        Nothing ->
-            -- game required to be loaded to handle this msg
-            ( model
-            , Cmd.none
-            )
-
-        Just game ->
-            ( model
-            , sendScoreGame (Game.gameEncoder game)
-            )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -478,14 +458,6 @@ update msg model =
                             Just game.playerColor
             in
             startScoring model resignedColor
-
-        CalculateGameScore seed ->
-            handleCalculateGameScore model seed
-
-        FetchGame gameId ->
-            ( model
-            , getGame gameId DataReceived
-            )
 
         DataReceived responseGame ->
             let
@@ -543,31 +515,40 @@ update msg model =
                         _ ->
                             Nothing
 
-                nextPlayState =
-                    case decodedGame of
-                        Ok game ->
-                            FinalScore game.score
-
-                        _ ->
-                            Playing
-
                 updatedModel =
                     { model
                         | clientGameData = newGameData
                         , transportError = transportError
-                        , playState = nextPlayState
                     }
             in
             ( updatedModel
             , endTurn updatedModel
             )
 
+        UpdateGameResponse resp ->
+            case resp of
+                Ok game ->
+                    ( { model
+                        | clientGameData = Just game
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | transportError = Just (stringFromHttpError error) }
+                    , Cmd.none
+                    )
+
 
 endTurn : Model -> Cmd Msg
 endTurn model =
-    -- TODO: placeholder turn swap w/o networking
-    -- TODO: send updated clientGameData to server to persist
-    Cmd.none
+    -- TODO: do turn swap
+    case gameFromModel model of
+        Just game ->
+            updateGame model.gameId game UpdateGameResponse
+
+        Nothing ->
+            Cmd.none
 
 
 
@@ -576,13 +557,13 @@ endTurn model =
 
 init : String -> ( Model, Cmd Msg )
 init gameId =
-    ( initialModel
+    ( initialModel gameId
     , getGame gameId DataReceived
     )
 
 
-initialModel : Model
-initialModel =
+initialModel : String -> Model
+initialModel gameId =
     { remoteGameData = RemoteData.Loading
     , clientGameData = Nothing
     , activeTurn = False -- this gets updated when remote data loads
@@ -590,6 +571,7 @@ initialModel =
     , transportError = Nothing
     , playState = Playing
     , initialSeed = 0
+    , gameId = gameId
     }
 
 
