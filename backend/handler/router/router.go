@@ -36,6 +36,7 @@ func SetRouter(p provider.Provider) {
 	gameGroup.Use(middleware.AuthUser(handler))
 	gameGroup.GET("/:id", handler.GetGame)
 	gameGroup.POST("/:id", handler.UpdateGame)
+	gameGroup.GET("/account/:id", handler.ListGamesByUser)
 	gameGroup.POST("/", handler.CreateGame)
 
 	// serve the Elm app HTML for any other route; the

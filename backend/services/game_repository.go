@@ -12,6 +12,7 @@ import (
 type IGameRepository interface {
 	IMigratable
 	FindByID(ctx context.Context, id uint) (*model.Game, error)
+	ListByUserID(ctx context.Context, userId uint) ([]model.Game, error)
 	Create(ctx context.Context, g *model.Game) error
 	Update(ctx context.Context, g *model.Game) error
 }
@@ -39,6 +40,12 @@ func (g *GameRepository) FindByID(ctx context.Context, id uint) (*model.Game, er
 	// Preload fills the fk references in the object
 	err := g.Db.Preload(clause.Associations).First(&game, id).Error
 	return &game, err
+}
+
+func (g *GameRepository) ListByUserID(ctx context.Context, userId uint) ([]model.Game, error) {
+	var games []model.Game
+	err := g.Db.Preload(clause.Associations).Where("white_player_id = ?", userId).Or("black_player_id = ?", userId).Find(&games).Error
+	return games, err
 }
 
 func (g *GameRepository) Create(ctx context.Context, game *model.Game) error {

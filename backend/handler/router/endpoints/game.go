@@ -15,6 +15,10 @@ type gameUri struct {
 	ID uint `uri:"id" binding:"required"`
 }
 
+type userGamesUri struct {
+	userID uint `uri:"id" binding:"required"`
+}
+
 type createGameRequest struct {
 	Game ElmGame `json:"game" binding:"required"`
 }
@@ -29,6 +33,20 @@ func parseGameIdUriParam(c *gin.Context) (*gameUri, error) {
 	if err := c.ShouldBindUri(&uriParams); err != nil {
 		log.Printf("Failed to parse game URI params: %v\n", err)
 		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for game ID")
+		c.JSON(badReqErr.Status(), gin.H{
+			"error": badReqErr.Error(),
+		})
+		return nil, err
+	}
+	return &uriParams, nil
+}
+
+func parseUserIdUriParam(c *gin.Context) (*userGamesUri, error) {
+	// bind uri params
+	var uriParams userGamesUri
+	if err := c.ShouldBindUri(&uriParams); err != nil {
+		log.Printf("Failed to parse user games URI params: %v\n", err)
+		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for games user ID")
 		c.JSON(badReqErr.Status(), gin.H{
 			"error": badReqErr.Error(),
 		})
@@ -150,6 +168,47 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	})
 }
 
+// GET /account/:id
+func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
+	// make sure we got authed user
+	user, err := getUserFromCtx(c)
+	if err != nil {
+		log.Printf("Expected to have authed user from middleware, but found none\n")
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	uriParams, err := parseUserIdUriParam(c)
+	if err != nil {
+		// JSON resp handled in helper func failure
+		return
+	}
+
+	games, err := rhandler.Provider.GameService.ListByUser(c, uriParams.userID)
+	if err != nil {
+		log.Printf("Error fetching games for user with id %d: %v\n", uriParams.userID, err)
+		internal := apperrors.NewInternal()
+		c.JSON(internal.Status(), gin.H{
+			"error": internal.Error(),
+		})
+		return
+	}
+
+	// return games in shape elm expects
+	resp := make([]ElmGame, len(games))
+	for i, game := range games {
+		var elmGame ElmGame
+		elmGame.fromGame(game, *user)
+		resp[i] = elmGame
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"games": resp,
+	})
+}
+
 // POST /
 func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	// make sure we got authed user
@@ -179,15 +238,6 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	}
 
 	if err := rhandler.Provider.GameService.Create(c, game); err != nil {
-		c.JSON(apperrors.Status(err), gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	// update user db entry to add new game to their list of games
-	user.Games = append(user.Games, *game)
-	if err := rhandler.Provider.UserService.Update(c, user); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})

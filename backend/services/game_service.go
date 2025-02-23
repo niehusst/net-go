@@ -14,6 +14,7 @@ import (
 type IGameService interface {
 	IMigratable
 	Get(ctx context.Context, id uint) (*model.Game, error)
+	ListByUser(ctx context.Context, userId uint) ([]model.Game, error)
 	Create(ctx context.Context, game *model.Game) error
 	Update(ctx context.Context, game *model.Game) error
 }
@@ -43,6 +44,15 @@ func (s *GameService) Get(ctx context.Context, id uint) (*model.Game, error) {
 		return game, apperrors.NewNotFound("Game", strconv.FormatUint(uint64(id), 10))
 	}
 	return game, err
+}
+
+func (s *GameService) ListByUser(ctx context.Context, userId uint) ([]model.Game, error) {
+	games, err := s.gameRepository.ListByUserID(ctx, userId)
+	if err != nil {
+		log.Printf("Error listing games: %v\n", err)
+		return games, apperrors.NewInternal()
+	}
+	return games, err
 }
 
 func (s *GameService) Create(ctx context.Context, game *model.Game) error {

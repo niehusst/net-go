@@ -34,6 +34,21 @@ func (m *MockGameRepository) FindByID(ctx context.Context, id uint) (*model.Game
 	return r0, r1
 }
 
+func (m *MockGameRepository) ListByUserID(ctx context.Context, userId uint) ([]model.Game, error) {
+	ret := m.Called(ctx, userId)
+
+	var r0 []model.Game
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).([]model.Game)
+	}
+
+	var r1 error
+	if ret.Get(1) != nil {
+		r1 = ret.Get(1).(error)
+	}
+	return r0, r1
+}
+
 func (m *MockGameRepository) Create(ctx context.Context, game *model.Game) error {
 	ret := m.Called(ctx, game)
 
