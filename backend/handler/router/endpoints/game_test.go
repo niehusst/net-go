@@ -38,7 +38,7 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	router.GET("/api/games/:id", rhandler.GetGame)
 	router.POST("/api/games/", rhandler.CreateGame)
 	router.POST("/api/games/:id", rhandler.UpdateGame)
-	router.GET("/api/games/account/:id", rhandler.ListGamesByUser)
+	router.GET("/api/games/", rhandler.ListGamesByUser)
 	return router
 }
 
@@ -497,7 +497,7 @@ func TestListGameIntegration(t *testing.T) {
 		router := buildGameRouter(mockGameService, nil, &user)
 
 		// do request
-		req, err := http.NewRequest(http.MethodGet, "/api/games/account/123", bytes.NewBuffer([]byte{}))
+		req, err := http.NewRequest(http.MethodGet, "/api/games/", bytes.NewBuffer([]byte{}))
 		assert.NoError(t, err)
 
 		router.ServeHTTP(rr, req)
@@ -534,7 +534,7 @@ func TestListGameIntegration(t *testing.T) {
 		router := buildGameRouter(mockGameService, nil, &user)
 
 		// do request
-		req, err := http.NewRequest(http.MethodGet, "/api/games/account/123", bytes.NewBuffer([]byte{}))
+		req, err := http.NewRequest(http.MethodGet, "/api/games/", bytes.NewBuffer([]byte{}))
 		assert.NoError(t, err)
 
 		router.ServeHTTP(rr, req)
@@ -548,27 +548,6 @@ func TestListGameIntegration(t *testing.T) {
 
 		mockGameService.AssertExpectations(t)
 	})
-	t.Run("incorrect URI fails as bad request", func(t *testing.T) {
-		mockGameService := new(mocks.MockGameService)
-		user := model.User{
-			Username: "tim",
-			Password: "pwnd",
-		}
-		user.ID = 123
-
-		// record responses
-		rr := httptest.NewRecorder()
-		router := buildGameRouter(mockGameService, nil, &user)
-
-		// do request
-		req, err := http.NewRequest(http.MethodGet, "/api/games/account/abc", bytes.NewBuffer([]byte{}))
-		assert.NoError(t, err)
-
-		router.ServeHTTP(rr, req)
-
-		assert.Equal(t, 400, rr.Code)
-		mockGameService.AssertNotCalled(t, "ListByUser")
-	})
 	t.Run("request is rejected when user is not set by middleware", func(t *testing.T) {
 		mockGameService := new(mocks.MockGameService)
 
@@ -577,7 +556,7 @@ func TestListGameIntegration(t *testing.T) {
 		router := buildGameRouter(mockGameService, nil, nil)
 
 		// do request
-		req, err := http.NewRequest(http.MethodGet, "/api/games/account/123", bytes.NewBuffer([]byte{}))
+		req, err := http.NewRequest(http.MethodGet, "/api/games/", bytes.NewBuffer([]byte{}))
 		assert.NoError(t, err)
 
 		router.ServeHTTP(rr, req)

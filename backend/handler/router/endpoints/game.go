@@ -15,10 +15,6 @@ type gameUri struct {
 	ID uint `uri:"id" binding:"required"`
 }
 
-type userGamesUri struct {
-	ID uint `uri:"id" binding:"required"`
-}
-
 type createGameRequest struct {
 	Game ElmGame `json:"game" binding:"required"`
 }
@@ -33,20 +29,6 @@ func parseGameIdUriParam(c *gin.Context) (*gameUri, error) {
 	if err := c.ShouldBindUri(&uriParams); err != nil {
 		log.Printf("Failed to parse game URI params: %v\n", err)
 		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for game ID")
-		c.JSON(badReqErr.Status(), gin.H{
-			"error": badReqErr.Error(),
-		})
-		return nil, err
-	}
-	return &uriParams, nil
-}
-
-func parseUserIdUriParam(c *gin.Context) (*userGamesUri, error) {
-	// bind uri params
-	var uriParams userGamesUri
-	if err := c.ShouldBindUri(&uriParams); err != nil {
-		log.Printf("Failed to parse user games URI params: %v\n", err)
-		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for games user ID")
 		c.JSON(badReqErr.Status(), gin.H{
 			"error": badReqErr.Error(),
 		})
@@ -168,7 +150,7 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	})
 }
 
-// GET /account/:id
+// GET /
 func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
@@ -180,15 +162,9 @@ func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
 		return
 	}
 
-	uriParams, err := parseUserIdUriParam(c)
+	games, err := rhandler.Provider.GameService.ListByUser(c, user.ID)
 	if err != nil {
-		// JSON resp handled in helper func failure
-		return
-	}
-
-	games, err := rhandler.Provider.GameService.ListByUser(c, uriParams.ID)
-	if err != nil {
-		log.Printf("Error fetching games for user with id %d: %v\n", uriParams.ID, err)
+		log.Printf("Error fetching games for user with id %d: %v\n", user.ID, err)
 		internal := apperrors.NewInternal()
 		c.JSON(internal.Status(), gin.H{
 			"error": internal.Error(),
