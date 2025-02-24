@@ -1,4 +1,4 @@
-module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame)
+module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame, listGamesByUser)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -34,6 +34,24 @@ getGame gameId msgType =
                 |> Http.expectJson (RemoteData.fromResult >> msgType)
         }
 
+{-| Fetch the list of all games that the requesting authed user is a member of.
+(either as the black player or the white player)
+
+msgType - the Msg type to trigger on completion via Cmd
+-}
+listGamesByUser : (RemoteData.WebData (List Model.Game.Game) -> msg) -> Cmd msg
+listGamesByUser msgType =
+    let
+        respDecoder : Decoder (List Model.Game.Game)
+        respDecoder =
+            Decode.field "games" (Decode.list gameDecoder)
+    in
+    Http.get
+        { url = prefix ++ "/account"
+        , expect =
+            respDecoder
+                |> Http.expectJson (RemoteData.fromResult >> msgType)
+        }
 
 {-| Create the passed game on the backend to store it in the DB.
 game - Game struct to create

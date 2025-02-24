@@ -16,6 +16,8 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
+import Page.JoinGame as JoinGame
+import Page.ContinueGame as ContinueGame
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import Url exposing (Url)
@@ -36,6 +38,8 @@ type Page
     | GamePlayPage GamePlay.Model
     | SignUpPage SignUp.Model
     | SignInPage SignIn.Model
+    | JoinGamePage JoinGame.Model
+    | ContinueGamePage ContinueGame.Model
 
 
 type Msg
@@ -47,6 +51,8 @@ type Msg
     | GamePlayPageMsg GamePlay.Msg
     | SignUpPageMsg SignUp.Msg
     | SignInPageMsg SignIn.Msg
+    | JoinGamePageMsg JoinGame.Msg
+    | ContinueGamePageMsg ContinueGame.Msg
 
 
 
@@ -97,6 +103,14 @@ viewCurrentPage model =
             SignIn.view pageModel
                 |> Html.map SignInPageMsg
 
+        JoinGamePage pageModel ->
+            JoinGame.view pageModel
+                |> Html.map JoinGamePageMsg
+
+        ContinueGamePage pageModel ->
+            ContinueGame.view pageModel
+                |> Html.map ContinueGamePageMsg
+
 
 viewTabTitle : Page -> String
 viewTabTitle page =
@@ -118,6 +132,12 @@ viewTabTitle page =
 
         SignInPage _ ->
             "Sign In"
+
+        JoinGamePage _ ->
+            "Join Game"
+
+        ContinueGamePage _ ->
+            "Continue Game"
 
 
 
@@ -229,6 +249,24 @@ update msg rawModel =
             , Cmd.map SignInPageMsg updatedCmd
             )
 
+        ( JoinGamePageMsg submsg, JoinGamePage pageModel ) ->
+            let
+                (updatedPageModel, updatedCmd ) =
+                    JoinGame.update submsg pageModel
+            in
+            ( {model | page = JoinGamePage updatedPageModel}
+            , Cmd.map JoinGamePageMsg updatedCmd
+            )
+
+        ( ContinueGamePageMsg submsg, ContinueGamePage pageModel ) ->
+            let
+                (updatedPageModel, updatedCmd ) =
+                    ContinueGame.update submsg pageModel
+            in
+            ( {model | page = ContinueGamePage updatedPageModel}
+            , Cmd.map ContinueGamePageMsg updatedCmd
+            )
+
         ( _, _ ) ->
             -- generic mismatch case handler
             ( model, Cmd.none )
@@ -326,6 +364,24 @@ initCurrentPage ( model, existingCmds ) =
                     , Cmd.map GamePlayPageMsg pageCmds
                     )
 
+                Route.JoinGame ->
+                    let
+                        (pageModel, pageCmds) =
+                            JoinGame.init
+                    in
+                    (JoinGamePage pageModel
+                    , Cmd.map JoinGamePageMsg pageCmds
+                    )
+
+                Route.ContinueGame ->
+                    let
+                        (pageModel, pageCmds) =
+                            ContinueGame.init
+                    in
+                    (ContinueGamePage pageModel
+                    , Cmd.map ContinueGamePageMsg pageCmds
+                    )
+
                 _ ->
                     loggedOutRoutes
 
@@ -365,6 +421,12 @@ subscriptions model =
             Sub.none
 
         SignInPage pageModel ->
+            Sub.none
+
+        JoinGamePage pageModel ->
+            Sub.none
+
+        ContinueGamePage pageModel ->
             Sub.none
 
 

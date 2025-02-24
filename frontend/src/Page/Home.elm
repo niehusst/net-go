@@ -19,31 +19,24 @@ type alias Model =
 
 view : Model -> Html Msg
 view model =
+    -- TODO: dont list buttons if logged out? since all require auth??? have diff unauthed UI for home?
     div [ class "flex items-center justify-center h-full" ]
         [ div [ class "flex flex-col h-full gap-4 items-center justify-center text-center" ]
             [ h1
                 [ class "text-3xl font-bold" ]
-                [ text "Play Go online with a friend!" ]
-            , p []
-                [ text "It's pretty "
-                , strong [] [ text "FUN." ]
-                , text <|
-                    """
-                        More functionality coming soon.
-                        """
-                ]
+                [ text "Play Go online with friends!" ]
             , a
                 [ href (routeToString Route.GameCreate)
                 , class "my-1"
                 ]
                 [ button [ class "btn" ] [ text "Create a game" ] ]
             , a
-                [ href "#"
+                [ href (routeToString Route.JoinGame)
                 , class "my-1"
                 ]
                 [ button [ class "btn" ] [ text "Join a game" ] ]
             , a
-                [ href "#"
+                [ href (routeToString Route.ContinueGame)
                 , class "my-1"
                 ]
                 [ button [ class "btn" ] [ text "Continue a game" ] ]

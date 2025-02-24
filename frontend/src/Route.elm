@@ -13,6 +13,8 @@ type Route
     | SignUp
     | SignIn
     | Logout
+    | JoinGame
+    | ContinueGame
 
 
 matchRoute : Parser (Route -> a) a
@@ -24,6 +26,8 @@ matchRoute =
         , map SignUp (s "signup")
         , map SignIn (s "signin")
         , map Logout (s "logout")
+        , map JoinGame (s "join")
+        , map ContinueGame (s "continue")
         ]
 
 
@@ -66,3 +70,9 @@ routeToString route =
 
         Logout ->
             "/logout"
+
+        JoinGame ->
+            "/join"
+
+        ContinueGame ->
+            "/continue"
