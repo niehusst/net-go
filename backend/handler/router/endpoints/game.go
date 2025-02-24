@@ -16,7 +16,7 @@ type gameUri struct {
 }
 
 type userGamesUri struct {
-	userID uint `uri:"id" binding:"required"`
+	ID uint `uri:"id" binding:"required"`
 }
 
 type createGameRequest struct {
@@ -186,9 +186,9 @@ func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
 		return
 	}
 
-	games, err := rhandler.Provider.GameService.ListByUser(c, uriParams.userID)
+	games, err := rhandler.Provider.GameService.ListByUser(c, uriParams.ID)
 	if err != nil {
-		log.Printf("Error fetching games for user with id %d: %v\n", uriParams.userID, err)
+		log.Printf("Error fetching games for user with id %d: %v\n", uriParams.ID, err)
 		internal := apperrors.NewInternal()
 		c.JSON(internal.Status(), gin.H{
 			"error": internal.Error(),
@@ -302,6 +302,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 		c.JSON(forbiddenError.Status(), gin.H{
 			"error": forbiddenError.Error(),
 		})
+		return
 	}
 
 	if err := rhandler.Provider.GameService.Update(c, game); err != nil {

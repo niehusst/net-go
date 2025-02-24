@@ -37,6 +37,8 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	// (couldnt use SetRouter directly w/o import cycle)
 	router.GET("/api/games/:id", rhandler.GetGame)
 	router.POST("/api/games/", rhandler.CreateGame)
+	router.POST("/api/games/:id", rhandler.UpdateGame)
+	router.GET("/api/games/account/:id", rhandler.ListGamesByUser)
 	return router
 }
 
@@ -48,6 +50,7 @@ func TestGetGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		game := model.Game{
 			Board: types.Board{
 				Size: types.Full,
@@ -91,6 +94,7 @@ func TestGetGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
 			On(
@@ -120,6 +124,7 @@ func TestGetGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 
 		// record responses
 		rr := httptest.NewRecorder()
@@ -160,6 +165,7 @@ func TestCreateGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		game := model.Game{
 			Board: types.Board{
 				Size: types.Full,
@@ -235,13 +241,16 @@ func TestUpdateGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		game := model.Game{
 			Board: types.Board{
 				Size: types.Full,
 				Map:  [][]types.Piece{},
 			},
-			Score:       types.Score{},
-			BlackPlayer: user,
+			History:       make([]types.Move, 0),
+			Score:         types.Score{},
+			BlackPlayer:   user,
+			BlackPlayerId: user.ID,
 		}
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
@@ -256,7 +265,6 @@ func TestUpdateGameIntegration(t *testing.T) {
 				"Update",
 				mock.AnythingOfType("*gin.Context"),
 				mock.AnythingOfType("*model.Game"),
-				uint(123),
 			).
 			Return(nil)
 
@@ -299,6 +307,7 @@ func TestUpdateGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
 			On(
@@ -340,6 +349,7 @@ func TestUpdateGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		game := model.Game{
 			Board: types.Board{
 				Size: types.Full,
@@ -389,6 +399,7 @@ func TestUpdateGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 
 		// record responses
 		rr := httptest.NewRecorder()
@@ -408,7 +419,7 @@ func TestUpdateGameIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// do request
-		req, err := http.NewRequest(http.MethodPost, "/api/games/123", bytes.NewBuffer(mockReqBody))
+		req, err := http.NewRequest(http.MethodPost, "/api/games/abc", bytes.NewBuffer(mockReqBody))
 		assert.NoError(t, err)
 
 		router.ServeHTTP(rr, req)
@@ -475,7 +486,7 @@ func TestListGameIntegration(t *testing.T) {
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
 			On(
-				"ListByUserID",
+				"ListByUser",
 				mock.AnythingOfType("*gin.Context"),
 				uint(123),
 			).
@@ -508,14 +519,15 @@ func TestListGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
 			On(
-				"ListByUserID",
+				"ListByUser",
 				mock.AnythingOfType("*gin.Context"),
 				uint(123),
 			).
-			Return([]model.Game{})
+			Return([]model.Game{}, nil)
 
 		// record responses
 		rr := httptest.NewRecorder()
@@ -542,6 +554,7 @@ func TestListGameIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user.ID = 123
 
 		// record responses
 		rr := httptest.NewRecorder()
@@ -554,7 +567,7 @@ func TestListGameIntegration(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		assert.Equal(t, 400, rr.Code)
-		mockGameService.AssertNotCalled(t, "ListByUserID")
+		mockGameService.AssertNotCalled(t, "ListByUser")
 	})
 	t.Run("request is rejected when user is not set by middleware", func(t *testing.T) {
 		mockGameService := new(mocks.MockGameService)
@@ -570,6 +583,6 @@ func TestListGameIntegration(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		assert.Equal(t, 401, rr.Code)
-		mockGameService.AssertNotCalled(t, "ListByUserID")
+		mockGameService.AssertNotCalled(t, "ListByUser")
 	})
 }
