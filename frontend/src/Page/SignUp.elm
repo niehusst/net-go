@@ -12,6 +12,7 @@ import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
+import View.Loading exposing (viewLoading)
 
 
 type alias Model =
@@ -64,8 +65,7 @@ viewBody model =
                 viewForm model
 
             RemoteData.Loading ->
-                -- TODO: spinner or something + css
-                text "Loading..."
+                viewLoading "Loading..."
 
             RemoteData.Success msg ->
                 -- this will likely never be shown

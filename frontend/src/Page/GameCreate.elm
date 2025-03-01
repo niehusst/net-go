@@ -3,7 +3,7 @@ module Page.GameCreate exposing (FormData, Model, Msg(..), init, update, view)
 import API.Games exposing (CreateGameResponse, createGame)
 import Browser.Navigation as Nav
 import CmdExtra exposing (message)
-import Error
+import View.Error exposing (viewHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -73,7 +73,7 @@ view model =
     div [ class "flex flex-col items-center justify-center p-9" ]
         [ h2 [ class "text-xl" ] [ text "Game Settings" ]
         , viewGameSettings model.formData
-        , Error.viewHttpError model.httpError
+        , viewHttpError model.httpError
         ]
 
 
