@@ -13,6 +13,7 @@ import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import View.Loading exposing (viewLoading)
+import View.Error exposing (viewErrorBanner)
 
 
 type alias Model =
@@ -74,19 +75,9 @@ viewBody model =
             RemoteData.Failure error ->
                 div []
                     [ viewForm model
-                    , viewBanner error
+                    , viewErrorBanner <| "Error: " ++ (stringForAuthError error)
                     ]
         ]
-
-
-viewBanner : Http.Error -> Html Msg
-viewBanner error =
-    let
-        errString =
-            stringForAuthError error
-    in
-    div [ class "bg-red-500 text-white font-bold py-2 px-4 rounded" ]
-        [ text <| "Error: " ++ errString ]
 
 
 viewForm : Model -> Html Msg
