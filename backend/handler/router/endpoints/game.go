@@ -48,12 +48,15 @@ func getUserFromCtx(c *gin.Context) (*model.User, error) {
 
 // this follows the definition of Game in the Elm frontend
 type ElmGame struct {
-	BoardSize   types.BoardSize   `json:"boardSize" binding:"required"`
-	Board       []types.Piece     `json:"board" binding:"required"`
-	History     []types.Move      `json:"history" binding:"required"`
-	IsOver      bool              `json:"isOver"`
-	Score       types.Score       `json:"score" binding:"required"`
-	PlayerColor types.ColorChoice `json:"playerColor" binding:"required"`
+	BoardSize       types.BoardSize   `json:"boardSize" binding:"required"`
+	Board           []types.Piece     `json:"board" binding:"required"`
+	History         []types.Move      `json:"history" binding:"required"`
+	IsOver          bool              `json:"isOver" binding:"required"`
+	Score           types.Score       `json:"score" binding:"required"`
+	PlayerColor     types.ColorChoice `json:"playerColor" binding:"required"`
+	WhitePlayerName string            `json:"whitePlayerName" binding:"required"`
+	BlackPlayerName string            `json:"blackPlayerName" binding:"required"`
+	ID              string            `json:"id" binding:"optional"`
 }
 
 /**
@@ -76,6 +79,11 @@ func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
 		Score:   r.Score,
 	}
 
+	if r.ID != nil {
+		if parsedId, err := strconv.ParseUint(r.ID, 10, 64); err == nil {
+			game.ID = uint(parsedId)
+		}
+	}
 	if r.PlayerColor == types.Black {
 		game.BlackPlayerId = authedUser.ID
 		game.BlackPlayer = *authedUser
@@ -103,6 +111,9 @@ func (r *ElmGame) fromGame(g model.Game, authedUser model.User) {
 	r.History = g.History
 	r.IsOver = g.IsOver
 	r.Score = g.Score
+	r.ID = strconv.FormatUint(uint64(g.ID), 10)
+	r.BlackPlayerName = g.BlackPlayer.Username
+	r.WhitePlayerName = g.WhitePlayer.Username
 	if g.WhitePlayerId == authedUser.ID {
 		r.PlayerColor = types.White
 	} else {

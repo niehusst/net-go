@@ -21,6 +21,7 @@ type alias Game =
     , score : Score
     , whitePlayerName : String
     , blackPlayerName : String
+    , id : Maybe String
     }
 
 
@@ -34,6 +35,7 @@ newGame size color komi blackName whiteName =
     , score = Score.initWithKomi komi
     , blackPlayerName = blackName
     , whitePlayerName = whiteName
+    , id = Nothing
     }
 
 
@@ -232,6 +234,7 @@ gameDecoder =
         |> required "score" Score.scoreDecoder
         |> required "blackPlayerName" string
         |> required "whitePlayerName" string
+        |> required "id" (nullable string)
 
 
 gameEncoder : Game -> Encode.Value
@@ -245,4 +248,5 @@ gameEncoder game =
         , ( "score", Score.scoreEncoder game.score )
         , ( "blackPlayerName", Encode.string game.blackPlayerName )
         , ( "whitePlayerName", Encode.string game.whitePlayerName )
+        , ( "id", (Maybe.map Encode.string >> Maybe.withDefault Encode.null) game.id)
         ]
