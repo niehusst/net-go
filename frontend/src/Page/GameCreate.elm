@@ -20,6 +20,7 @@ type Msg
     = StoreBoardSize String
     | StoreColorChoice String
     | StoreKomi String
+    | StoreOpponentName String
     | CreateGame -- http req msgs for creating game in db
     | GameCreated (Result Http.Error CreateGameResponse)
 
@@ -35,8 +36,12 @@ type alias FormData =
     { boardSize : BoardSize
     , colorChoice : ColorChoice
     , komi : Float
+    , opponentName : String
     }
 
+setOpponentName : String -> FormData -> FormData
+setOpponentName name data =
+    { data | opponentName = name }
 
 setSize : BoardSize -> FormData -> FormData
 setSize size data =
@@ -55,12 +60,28 @@ setKomi komi data =
 
 formDataToGame : FormData -> Game
 formDataToGame formData =
+    let
+        -- TODO: get curr user username
+        username = "TODO"
+
+        (whitePlayerName, blackPlayerName) =
+            case formData.colorChoice of
+                White ->
+                    (username, formData.opponentName)
+
+                Black ->
+                    (formData.opponentName, username)
+
+    in
     { boardSize = formData.boardSize
     , board = Board.emptyBoard formData.boardSize
     , history = []
     , playerColor = formData.colorChoice
     , isOver = False
     , score = Score.initWithKomi formData.komi
+    , whitePlayerName = whitePlayerName
+    , blackPlayerName = blackPlayerName
+    , id = Nothing -- no db id yet; that will gen on backend
     }
 
 
@@ -127,6 +148,17 @@ viewGameSettings data =
                     ]
                     []
                 ]
+            , div []
+                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Komi" ]
+                , input
+                    [ onInput StoreOpponentName
+                    , type_ "text"
+                    , class "w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 border border-gray-300 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    , Html.Attributes.required True
+                    , value data.opponentName
+                    ]
+                    []
+                ]
             , button
                 [ class "btn"
                 , onClick CreateGame
@@ -143,6 +175,11 @@ viewGameSettings data =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        StoreOpponentName nameStr ->
+            ( { model | formData = setOpponentName nameStr model.formData }
+            , Cmd.none
+            )
+
         StoreKomi komiStr ->
             let
                 value =
@@ -229,6 +266,7 @@ initialModel navKey =
         { boardSize = Full
         , colorChoice = Black
         , komi = 6.5 -- current Japanese regulation komi
+        , opponentName = ""
         }
     , navKey = navKey
     , httpError = Nothing

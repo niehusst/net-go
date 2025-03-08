@@ -24,7 +24,7 @@ viewHeader session =
 viewMenu : Session -> List (Html msg)
 viewMenu session =
     case session of
-        Session.LoggedIn _ ->
+        Session.LoggedIn _ _ ->
             [ linkTo Route.Logout [ text "Sign out" ]
             ]
 

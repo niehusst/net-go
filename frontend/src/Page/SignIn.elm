@@ -6,20 +6,18 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onSubmit)
 import Http
-import Json.Decode as Decode
-import Json.Decode.Pipeline
-import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
+import API.Accounts exposing (sendSigninReq, AuthRequestData, AuthResponseData)
 
 
 type alias Model =
     { username : String
     , password : String
-    , formResponse : WebData SigninResponseData
+    , formResponse : WebData AuthResponseData
     , session : Session
     }
 
@@ -28,20 +26,9 @@ type Msg
     = SaveUsername String
     | SavePassword String
     | SendHttpSigninReq
-    | ReceiveHttpSigninResp (WebData SigninResponseData)
+    | ReceiveHttpSigninResp (WebData AuthResponseData)
     | UpdateSession Session
 
-
-type alias SigninResponseData =
-    { uid : Int
-    }
-
-
-type alias SigninRequestData r =
-    { r
-        | username : String
-        , password : String
-    }
 
 
 
@@ -125,30 +112,6 @@ stringForAuthError error =
             stringFromHttpError error
 
 
-signinDecoder : Decode.Decoder SigninResponseData
-signinDecoder =
-    Decode.succeed SigninResponseData
-        |> Json.Decode.Pipeline.required "uid" Decode.int
-
-
-signinEncoder : SigninRequestData r -> Encode.Value
-signinEncoder reqData =
-    Encode.object
-        [ ( "username", Encode.string reqData.username )
-        , ( "password", Encode.string reqData.password )
-        ]
-
-
-sendSigninReq : SigninRequestData r -> Cmd Msg
-sendSigninReq reqData =
-    Http.post
-        { url = "/api/accounts/signin"
-        , body = Http.jsonBody (signinEncoder reqData)
-        , expect =
-            signinDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSigninResp)
-        }
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -165,13 +128,18 @@ update msg model =
 
         SendHttpSigninReq ->
             ( { model | formResponse = RemoteData.Loading }
-            , sendSigninReq model
+            , sendSigninReq model ReceiveHttpSigninResp
             )
 
-        ReceiveHttpSigninResp (RemoteData.Success _) ->
-            -- TODO: save auth state somewhere; cookie?
+        ReceiveHttpSigninResp (RemoteData.Success respData) ->
+            let
+                userData =
+                    { id = respData.uid
+                    , username = respData.username
+                    }
+            in
             ( model
-            , message (UpdateSession (Session.toLoggedIn model.session))
+            , message (UpdateSession (Session.toLoggedIn userData model.session ))
             )
 
         ReceiveHttpSigninResp response ->

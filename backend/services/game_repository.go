@@ -49,6 +49,7 @@ func (g *GameRepository) ListByUserID(ctx context.Context, userId uint) ([]model
 }
 
 func (g *GameRepository) Create(ctx context.Context, game *model.Game) error {
+	// TODO: make sure player name maps correctly
 	err := g.Db.Create(game).Error
 	return err
 }

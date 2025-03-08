@@ -278,11 +278,11 @@ update msg rawModel =
 
 {-| Takes a boolean flag on init indicating whether the ngo\_auth\_set cookie is set.
 -}
-init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init : Maybe Session.UserData -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init maybeUserData url navKey =
     let
         session =
-            Session.fromCookie flags navKey
+            Session.fromCookie maybeUserData navKey
 
         model =
             { page = NotFoundPage
@@ -387,7 +387,7 @@ initCurrentPage ( model, existingCmds ) =
 
         ( currentPage, mappedCmds ) =
             case model.session of
-                Session.LoggedIn _ ->
+                Session.LoggedIn _ _ ->
                     authOnlyRoutes
 
                 Session.LoggedOut _ ->
@@ -434,7 +434,7 @@ subscriptions model =
 -- MAIN --
 
 
-main : Program Bool Model Msg
+main : Program (Maybe Session.UserData) Model Msg
 main =
     Browser.application
         { init = init

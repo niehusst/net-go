@@ -389,7 +389,7 @@ playUntilGameComplete startingColor boardData initialSeed =
             100 * 2
 
         initialGame =
-            setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0)
+            setBoard boardData.board (Game.newGame boardData.boardSize startingColor 0 "" "")
 
         findValidPosition : List Int -> Game -> Maybe Move
         findValidPosition positions game =

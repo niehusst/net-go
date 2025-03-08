@@ -56,7 +56,7 @@ type ElmGame struct {
 	PlayerColor     types.ColorChoice `json:"playerColor" binding:"required"`
 	WhitePlayerName string            `json:"whitePlayerName" binding:"required"`
 	BlackPlayerName string            `json:"blackPlayerName" binding:"required"`
-	ID              string            `json:"id" binding:"optional"`
+	ID              string            `json:"id,omitempty"`
 }
 
 /**
@@ -79,7 +79,7 @@ func (r ElmGame) toGame(authedUser *model.User) (*model.Game, error) {
 		Score:   r.Score,
 	}
 
-	if r.ID != nil {
+	if r.ID != "" {
 		if parsedId, err := strconv.ParseUint(r.ID, 10, 64); err == nil {
 			game.ID = uint(parsedId)
 		}

@@ -10,7 +10,7 @@ import (
 )
 
 const AuthCookieKey = "ngo_auth"
-const AuthCookieSetKey = "ngo_auth_set"
+const ViewerDataCookieKey = "ngo_viewer_data"
 
 func createAuthCookie(userId uint, sessionToken string) string {
 	return strconv.FormatUint(uint64(userId), 10) + "::" + sessionToken
@@ -52,8 +52,8 @@ func SetAuthCookiesInResponse(user model.User, c *gin.Context) {
 	)
 	// flag cookie for client side to check whether or not to make auth test requests
 	c.SetCookie(
-		AuthCookieSetKey,
-		"true",
+		ViewerDataCookieKey,
+		fmt.Sprintf("{\"id\": %d, \"username\": \"%s\"}", user.ID, user.Username),
 		oneMonthSeconds,
 		"/",
 		constants.GetDomain(),
@@ -76,7 +76,7 @@ func DeleteAuthCookiesInResponse(c *gin.Context) {
 	)
 	// flag cookie for client side to check whether or not to make auth test requests
 	c.SetCookie(
-		AuthCookieSetKey,
+		ViewerDataCookieKey,
 		"",
 		deleteNow,
 		"/",

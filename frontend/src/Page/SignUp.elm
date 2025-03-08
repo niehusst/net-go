@@ -14,13 +14,14 @@ import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
+import API.Accounts exposing (sendSignupReq, AuthRequestData, AuthResponseData)
 
 
 type alias Model =
     { username : String
     , password : String
     , confirmPassword : String
-    , formResponse : WebData SignupResponseData
+    , formResponse : WebData AuthResponseData
     , session : Session
     }
 
@@ -30,20 +31,8 @@ type Msg
     | SavePassword String
     | SaveConfirmPassword String
     | SendHttpSignupReq
-    | ReceiveHttpSignupResp (WebData SignupResponseData)
+    | ReceiveHttpSignupResp (WebData AuthResponseData)
     | UpdateSession Session
-
-
-type alias SignupResponseData =
-    { ok : Bool
-    }
-
-
-type alias SignupRequestData r =
-    { r
-        | username : String
-        , password : String
-    }
 
 
 
@@ -137,30 +126,6 @@ stringForAuthError error =
             stringFromHttpError error
 
 
-signupDecoder : Decode.Decoder SignupResponseData
-signupDecoder =
-    Decode.succeed SignupResponseData
-        |> Json.Decode.Pipeline.required "ok" Decode.bool
-
-
-signupEncoder : SignupRequestData r -> Encode.Value
-signupEncoder reqData =
-    Encode.object
-        [ ( "username", Encode.string reqData.username )
-        , ( "password", Encode.string reqData.password )
-        ]
-
-
-sendSignupReq : SignupRequestData r -> Cmd Msg
-sendSignupReq reqData =
-    Http.post
-        { url = "/api/accounts/signup"
-        , body = Http.jsonBody (signupEncoder reqData)
-        , expect =
-            signupDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSignupResp)
-        }
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -188,13 +153,18 @@ update msg model =
 
             else
                 ( { model | formResponse = RemoteData.Loading }
-                , sendSignupReq model
+                , sendSignupReq model ReceiveHttpSignupResp
                 )
 
-        ReceiveHttpSignupResp (RemoteData.Success _) ->
-            -- TODO: save auth state somewhere; cookie?
+        ReceiveHttpSignupResp (RemoteData.Success respData) ->
+            let
+                userData =
+                    { id = respData.uid
+                    , username = respData.username
+                    }
+            in
             ( model
-            , message (UpdateSession (Session.toLoggedIn model.session))
+            , message (UpdateSession (Session.toLoggedIn userData model.session))
             )
 
         ReceiveHttpSignupResp response ->
