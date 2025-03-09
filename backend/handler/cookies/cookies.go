@@ -50,10 +50,10 @@ func SetAuthCookiesInResponse(user model.User, c *gin.Context) {
 		false,
 		true, // httpOnly
 	)
-	// flag cookie for client side to check whether or not to make auth test requests
+	// viewer data cookie for client side to check whether or not to make auth test requests
 	c.SetCookie(
 		ViewerDataCookieKey,
-		fmt.Sprintf("{\"id\": %d, \"username\": \"%s\"}", user.ID, user.Username),
+		fmt.Sprintf("{\"id\":%d,\"username\":\"%s\"}", user.ID, user.Username),
 		oneMonthSeconds,
 		"/",
 		constants.GetDomain(),

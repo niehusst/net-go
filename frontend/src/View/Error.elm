@@ -21,7 +21,7 @@ viewHttpError maybeHttpError =
 viewErrorBanner : String -> Html msg
 viewErrorBanner message =
     div
-        [ class "bg-red-300 rounded px-4 p-2" ]
+        [ class "w-full bg-red-300 rounded px-4 p-2" ]
         [ p [ class "font-bold" ]
             [ text message ]
         ]

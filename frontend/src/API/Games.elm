@@ -47,7 +47,7 @@ listGamesByUser msgType =
             Decode.field "games" (Decode.list gameDecoder)
     in
     Http.get
-        { url = prefix ++ "/account"
+        { url = prefix
         , expect =
             respDecoder
                 |> Http.expectJson (RemoteData.fromResult >> msgType)

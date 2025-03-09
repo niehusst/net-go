@@ -28,13 +28,13 @@ joinableGameView : Game -> Html Msg
 joinableGameView game =
     case game.id of
         Just gameId ->
-            div [ class "w-full border border-gray-600 rounded p-2" ]
-                [ div [ class "flex flex-row justify-around" ]
-                      [ p [] [ text <| game.blackPlayerName ++ " (B)" ]
+            div [ class "container border border-gray-600 rounded p-2 drop-shadow" ]
+                [ div [ class "flex flex-row justify-center gap-3" ]
+                      [ p [ class "font-bold" ] [ text <| game.blackPlayerName ++ " (B)" ]
                       , p [] [ text "vs." ]
-                      , p [] [ text <| game.whitePlayerName ++ " (W)" ]
+                      , p [ class "font-bold" ] [ text <| game.whitePlayerName ++ " (W)" ]
                       ]
-                , div [ class "mt-8 flex flex-row gap-1" ]
+                , div [ class "mt-8 flex flex-row justify-center gap-1" ]
                     [ a [ href (Route.routeToString (Route.GamePlay gameId)) ]
                           [ button [ class "btn" ] [ text "Accept" ]
                           ]
@@ -50,23 +50,20 @@ joinableGameView game =
 view : Model -> Html Msg
 view model =
     let
-        viewErr =
-            case model.errorMessage of
-                Just errMsg ->
-                    viewErrorBanner errMsg
-                Nothing ->
-                    text ""
-
         viewContent =
-            case model.unjoinedGames of
-                Just games ->
-                    div [ class "flex flex-col gap-2 justify-center items-center" ]
+            case (model.unjoinedGames, model.errorMessage) of
+                (Just games, _) ->
+                    div [ class "w-full flex flex-col gap-4 justify-center items-center" ]
                         (List.map (joinableGameView) games)
-                Nothing ->
+
+                (Nothing, Nothing) ->
                     viewLoading "Loading..."
+
+                (Nothing, Just errMsg) ->
+                    viewErrorBanner errMsg
     in
     div [ class "w-full flex flex-col p-2 gap-3 justify-center items-center" ]
-        [ viewErr
+        [ h2 [ class "text-2xl" ] [ text "Games invites" ]
         , viewContent
         ]
 

@@ -276,7 +276,7 @@ update msg rawModel =
 -- INIT --
 
 
-{-| Takes a boolean flag on init indicating whether the ngo\_auth\_set cookie is set.
+{-| Takes a nullable json obj from the ngo_viewer_data cookie.
 -}
 init : Maybe Session.UserData -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init maybeUserData url navKey =
