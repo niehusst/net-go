@@ -15,6 +15,7 @@ type IGameRepository interface {
 	ListByUserID(ctx context.Context, userId uint) ([]model.Game, error)
 	Create(ctx context.Context, g *model.Game) error
 	Update(ctx context.Context, g *model.Game) error
+	Delete(ctx context.Context, gameID uint) error
 }
 
 /* implementation */
@@ -49,13 +50,17 @@ func (g *GameRepository) ListByUserID(ctx context.Context, userId uint) ([]model
 }
 
 func (g *GameRepository) Create(ctx context.Context, game *model.Game) error {
-	// TODO: make sure player name maps correctly
 	err := g.Db.Create(game).Error
 	return err
 }
 
 func (g *GameRepository) Update(ctx context.Context, game *model.Game) error {
 	err := g.Db.Save(game).Error
+	return err
+}
+
+func (g *GameRepository) Delete(ctx context.Context, gameID uint) error {
+	err := g.Db.Delete(&model.Game{}, gameID).Error
 	return err
 }
 

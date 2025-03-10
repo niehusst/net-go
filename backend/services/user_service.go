@@ -15,6 +15,7 @@ import (
 type IUserService interface {
 	IMigratable
 	Get(ctx context.Context, id uint) (*model.User, error)
+	FindByUsername(ctx context.Context, username string) (*model.User, error)
 	Signup(ctx context.Context, username string, password string) (*model.User, error)
 	Signin(ctx context.Context, username string, password string) (*model.User, error)
 	UpdateSessionToken(ctx context.Context, user *model.User) error
@@ -72,11 +73,9 @@ func (s *UserService) Signup(ctx context.Context, username string, password stri
 // fetch user from db, if present
 // always returns 404 err on any failure for secrecy
 func (s *UserService) Signin(ctx context.Context, username string, password string) (*model.User, error) {
-	// fetch user from db w/ username
-	user, err := s.userRepository.FindByUsername(ctx, username)
+	user, err := s.FindByUsername(ctx, username)
 	if err != nil {
-		log.Printf("Error fetching user: %v\n", err)
-		return user, apperrors.NewNotFound("User", username)
+		return user, err
 	}
 
 	matching, err := comparePasswords(user.Password, password)
@@ -84,11 +83,20 @@ func (s *UserService) Signin(ctx context.Context, username string, password stri
 		log.Printf("Error comparing passwords: %v\n", err)
 	}
 	if !matching || err != nil {
-		// wrong password
+		// wrong password, but return 404 for security
 		return user, apperrors.NewNotFound("User", username)
 	}
 
 	// successful signin
+	return user, nil
+}
+
+func (s *UserService) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+	user, err := s.userRepository.FindByUsername(ctx, username)
+	if err != nil {
+		log.Printf("Error fetching user: %v\n", err)
+		return user, apperrors.NewNotFound("User", username)
+	}
 	return user, nil
 }
 

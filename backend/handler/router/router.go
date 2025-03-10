@@ -38,6 +38,7 @@ func SetRouter(p provider.Provider) {
 	gameGroup.GET("/", handler.ListGamesByUser)
 	gameGroup.POST("/:id", handler.UpdateGame)
 	gameGroup.POST("/", handler.CreateGame)
+	gameGroup.DELETE("/:id", handler.DeleteGame)
 
 	// serve the Elm app HTML for any other route; the
 	// Elm SPA will handle its own routing internally

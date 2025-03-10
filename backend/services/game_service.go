@@ -15,6 +15,7 @@ type IGameService interface {
 	IMigratable
 	Get(ctx context.Context, id uint) (*model.Game, error)
 	ListByUser(ctx context.Context, userId uint) ([]model.Game, error)
+	Delete(ctx context.Context, gameID uint) error
 	Create(ctx context.Context, game *model.Game) error
 	Update(ctx context.Context, game *model.Game) error
 }
@@ -67,6 +68,14 @@ func (s *GameService) Update(ctx context.Context, game *model.Game) error {
 	if err := s.gameRepository.Update(ctx, game); err != nil {
 		log.Printf("Error updating game: %v\n", err)
 		return apperrors.NewInternal()
+	}
+	return nil
+}
+
+func (s *GameService) Delete(ctx context.Context, gameID uint) error {
+	if err := s.gameRepository.Delete(ctx, gameID); err != nil {
+		log.Printf("Error deleting game: %v\n", err)
+		return apperrors.NewNotFound("Game", strconv.FormatUint(uint64(gameID), 10))
 	}
 	return nil
 }

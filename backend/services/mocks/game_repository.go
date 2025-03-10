@@ -71,6 +71,17 @@ func (m *MockGameRepository) Update(ctx context.Context, game *model.Game) error
 	return r0
 }
 
+func (m *MockGameRepository) Delete(ctx context.Context, gameID uint) error {
+	ret := m.Called(ctx, gameID)
+
+	var r0 error
+	if v0 := ret.Get(0); v0 != nil {
+		r0 = v0.(error)
+	}
+
+	return r0
+}
+
 func (m *MockGameRepository) MigrateAll() error {
 	// this will never need testing
 	return nil
