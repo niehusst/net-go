@@ -378,6 +378,9 @@ func (rhandler RouteHandler) DeleteGame(c *gin.Context) {
 		return
 	}
 
+	// TODO: might also be nice to check if game has no moves for at least 1 user before deletion
+	// (so that in progress games cant be rage deleted)
+
 	if err := rhandler.Provider.GameService.Delete(c, uriParams.ID); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),

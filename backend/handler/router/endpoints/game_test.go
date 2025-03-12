@@ -39,6 +39,7 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	router.POST("/api/games/", rhandler.CreateGame)
 	router.POST("/api/games/:id", rhandler.UpdateGame)
 	router.GET("/api/games/", rhandler.ListGamesByUser)
+	router.DELETE("/api/games/:id", rhandler.DeleteGame)
 	return router
 }
 
@@ -713,5 +714,136 @@ func TestListGameIntegration(t *testing.T) {
 
 		assert.Equal(t, 401, rr.Code)
 		mockGameService.AssertNotCalled(t, "ListByUser")
+	})
+}
+
+func TestDeleteGameIntegration(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("success", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		game := model.Game{
+			Board: types.Board{
+				Size: types.Full,
+				Map:  [][]types.Piece{},
+			},
+			Score:         types.Score{},
+			BlackPlayer:   user,
+			BlackPlayerId: user.ID,
+		}
+		mockGameService := new(mocks.MockGameService)
+		mockGameService.
+			On(
+				"Get",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(&game, nil)
+		mockGameService.
+			On(
+				"Delete",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(nil)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil, &user)
+
+		// do request
+		req, err := http.NewRequest(http.MethodDelete, "/api/games/123", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 204, rr.Code)
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("non-existent game cant be deleted", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		mockGameService := new(mocks.MockGameService)
+		mockGameService.
+			On(
+				"Get",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(nil, errors.New("game not found"))
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil, &user)
+
+		// do request
+		req, err := http.NewRequest(http.MethodDelete, "/api/games/123", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 404, rr.Code)
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("games requesting user isnt part of cant be deleted", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		game := model.Game{
+			Board: types.Board{
+				Size: types.Full,
+				Map:  [][]types.Piece{},
+			},
+			Score: types.Score{},
+		}
+		mockGameService := new(mocks.MockGameService)
+		mockGameService.
+			On(
+				"Get",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(&game, nil)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil, &user)
+
+		// do request
+		req, err := http.NewRequest(http.MethodDelete, "/api/games/123", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 403, rr.Code)
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("request is rejected when user is not set by middleware", func(t *testing.T) {
+		mockGameService := new(mocks.MockGameService)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil, nil)
+
+		// do request
+		req, err := http.NewRequest(http.MethodDelete, "/api/games/123", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		assert.Equal(t, 401, rr.Code)
+		mockGameService.AssertNotCalled(t, "Delete")
 	})
 }
