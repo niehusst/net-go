@@ -3,8 +3,9 @@ module Page.JoinGame exposing (Model, Msg, view, update, init)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Http
 import Model.Game exposing (Game, getLastMove)
-import API.Games exposing (listGamesByUser)
+import API.Games exposing (listGamesByUser, deleteGame)
 import RemoteData exposing (WebData)
 import Route
 import View.Loading exposing (viewLoading)
@@ -13,7 +14,8 @@ import Error exposing (stringFromHttpError)
 
 type Msg
     = DataReceived (WebData (List Game))
-    | RejectGameClick
+    | RejectGameClick String -- clicked game ID
+    | GameDeleted (Result Http.Error ())
 
 
 type alias Model =
@@ -39,7 +41,7 @@ joinableGameView game =
                           [ button [ class "btn" ] [ text "Accept" ]
                           ]
                     , button [ class "btn-base bg-red-500 text-white hover:bg-red-700"
-                             , onClick RejectGameClick
+                             , onClick <| RejectGameClick gameId
                              ] [ text "Reject" ]
                     ]
                 ]
@@ -72,9 +74,21 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RejectGameClick ->
-            -- TODO: req backend to delete game (should there be conditions for deletion being allowed?)
-            (model, Cmd.none)
+        GameDeleted (Result.Ok _) ->
+            -- TODO: filter deleted games from the list? or just reload?
+            ( model
+            , Cmd.none
+            )
+
+        GameDeleted (Result.Err err) ->
+            ( { model | errorMessage = Just <| stringFromHttpError err }
+            , Cmd.none
+            )
+
+        RejectGameClick gameId ->
+            ( model
+            , deleteGame gameId GameDeleted
+            )
 
         DataReceived webdata ->
             let

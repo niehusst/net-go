@@ -1,4 +1,4 @@
-module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame, listGamesByUser)
+module API.Games exposing (CreateGameResponse, createGame, getGame, updateGame, listGamesByUser, deleteGame)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -96,4 +96,23 @@ updateGame gameId game msgType =
         { url = prefix ++ "/" ++ gameId
         , body = Http.jsonBody body
         , expect = Http.expectJson msgType respDecoder
+        }
+
+{-| Deletes a game from backend by path param ID. Requesting user must be
+a player in the game requested for deletion.
+
+gameId - ID of game to delete
+msgType - the Msg type to trigger on completion via Cmd
+-}
+deleteGame : String -> (Result Http.Error () -> msg) -> Cmd msg
+deleteGame gameId msgType =
+    Http.request
+        { url = prefix ++ "/" ++ gameId
+        , method = "DELETE"
+        , headers = []
+        , body = Http.emptyBody
+        , expect =
+            Http.expectWhatever msgType
+        , timeout = Nothing
+        , tracker = Nothing
         }
