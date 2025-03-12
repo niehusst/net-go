@@ -166,6 +166,11 @@ func TestCreateGameIntegration(t *testing.T) {
 			Password: "pwnd",
 		}
 		user.ID = 123
+		opponentUser := model.User{
+			Username: "tom",
+			Password: "watever",
+		}
+		opponentUser.ID = 456
 		game := model.Game{
 			Board: types.Board{
 				Size: types.Full,
@@ -173,6 +178,7 @@ func TestCreateGameIntegration(t *testing.T) {
 			},
 			Score:       types.Score{},
 			BlackPlayer: user,
+			WhitePlayer: opponentUser,
 		}
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
@@ -182,20 +188,30 @@ func TestCreateGameIntegration(t *testing.T) {
 				mock.AnythingOfType("*model.Game"),
 			).
 			Return(nil)
+		mockUserService := new(mocks.MockUserService)
+		mockUserService.
+			On(
+				"FindByUsername",
+				mock.AnythingOfType("*gin.Context"),
+				"tom",
+			).
+			Return(&opponentUser, nil)
 
 		// record responses
 		rr := httptest.NewRecorder()
-		router := buildGameRouter(mockGameService, nil, &user)
+		router := buildGameRouter(mockGameService, mockUserService, &user)
 
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "tim",
+				WhitePlayerName: "tom",
 			},
 		})
 		assert.NoError(t, err)
@@ -212,6 +228,129 @@ func TestCreateGameIntegration(t *testing.T) {
 		})
 		assert.Equal(t, 201, rr.Code)
 		assert.Equal(t, expectedResp, rr.Body.Bytes())
+
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("when game players do not include requesting user, reject", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		mockGameService := new(mocks.MockGameService)
+		mockUserService := new(mocks.MockUserService)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, mockUserService, &user)
+
+		// create mock req
+		mockReqBody, err := json.Marshal(gin.H{
+			"game": ElmGame{
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "foo",
+				WhitePlayerName: "bar",
+			},
+		})
+		assert.NoError(t, err)
+
+		// do request
+		req, err := http.NewRequest(http.MethodPost, "/api/games/", bytes.NewBuffer(mockReqBody))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 401, rr.Code)
+
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("when requesting user color choice doesnt match player color id, reject", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		mockGameService := new(mocks.MockGameService)
+		mockUserService := new(mocks.MockUserService)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, mockUserService, &user)
+
+		// create mock req
+		mockReqBody, err := json.Marshal(gin.H{
+			"game": ElmGame{
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "foo",
+				WhitePlayerName: "tim",
+			},
+		})
+		assert.NoError(t, err)
+
+		// do request
+		req, err := http.NewRequest(http.MethodPost, "/api/games/", bytes.NewBuffer(mockReqBody))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 401, rr.Code)
+
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("when requested opponent username not found, reject", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		mockGameService := new(mocks.MockGameService)
+		mockUserService := new(mocks.MockUserService)
+		mockUserService.
+			On(
+				"FindByUsername",
+				mock.AnythingOfType("*gin.Context"),
+				"tom",
+			).Return(nil, errors.New("user not found by username"))
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, mockUserService, &user)
+
+		// create mock req
+		mockReqBody, err := json.Marshal(gin.H{
+			"game": ElmGame{
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "tim",
+				WhitePlayerName: "tom",
+			},
+		})
+		assert.NoError(t, err)
+
+		// do request
+		req, err := http.NewRequest(http.MethodPost, "/api/games/", bytes.NewBuffer(mockReqBody))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 404, rr.Code)
 
 		mockGameService.AssertExpectations(t)
 	})
@@ -249,9 +388,10 @@ func TestUpdateGameIntegration(t *testing.T) {
 			},
 			History:       make([]types.Move, 0),
 			Score:         types.Score{},
-			BlackPlayer:   user,
-			BlackPlayerId: user.ID,
+			WhitePlayer:   user,
+			WhitePlayerId: user.ID,
 		}
+		game.ID = 123
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
 			On(
@@ -275,12 +415,14 @@ func TestUpdateGameIntegration(t *testing.T) {
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.White,
+				BlackPlayerName: "sally",
+				WhitePlayerName: "tim",
 			},
 		})
 		assert.NoError(t, err)
@@ -324,12 +466,14 @@ func TestUpdateGameIntegration(t *testing.T) {
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "sally",
+				WhitePlayerName: "tim",
 			},
 		})
 		assert.NoError(t, err)
@@ -373,12 +517,14 @@ func TestUpdateGameIntegration(t *testing.T) {
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "sally",
+				WhitePlayerName: "tim",
 			},
 		})
 		assert.NoError(t, err)
@@ -408,12 +554,14 @@ func TestUpdateGameIntegration(t *testing.T) {
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "sally",
+				WhitePlayerName: "tim",
 			},
 		})
 		assert.NoError(t, err)
@@ -437,12 +585,14 @@ func TestUpdateGameIntegration(t *testing.T) {
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
 			"game": ElmGame{
-				BoardSize:   types.Full,
-				Board:       make([]types.Piece, 0),
-				History:     make([]types.Move, 0),
-				IsOver:      false,
-				Score:       types.Score{},
-				PlayerColor: types.Black,
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "tim",
+				WhitePlayerName: "sally",
 			},
 		})
 		assert.NoError(t, err)

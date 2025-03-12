@@ -51,7 +51,7 @@ type ElmGame struct {
 	BoardSize       types.BoardSize   `json:"boardSize" binding:"required"`
 	Board           []types.Piece     `json:"board" binding:"required"`
 	History         []types.Move      `json:"history" binding:"required"`
-	IsOver          bool              `json:"isOver" binding:"required"`
+	IsOver          bool              `json:"isOver"`
 	Score           types.Score       `json:"score" binding:"required"`
 	PlayerColor     types.ColorChoice `json:"playerColor" binding:"required"`
 	WhitePlayerName string            `json:"whitePlayerName" binding:"required"`
@@ -226,10 +226,10 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 
 	// fetch user info to populate game struct fk user IDs
 	var opponentUsername string
-	if user.Username == req.Game.BlackPlayerName {
+	if user.Username == req.Game.BlackPlayerName && req.Game.PlayerColor == types.Black {
 		game.BlackPlayerId = user.ID
 		opponentUsername = req.Game.WhitePlayerName
-	} else if user.Username == req.Game.WhitePlayerName {
+	} else if user.Username == req.Game.WhitePlayerName && req.Game.PlayerColor == types.White {
 		game.WhitePlayerId = user.ID
 		opponentUsername = req.Game.BlackPlayerName
 	} else {
