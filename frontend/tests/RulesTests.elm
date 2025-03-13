@@ -51,6 +51,9 @@ blackGame =
     , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0
+    , whitePlayerName = "ted"
+    , blackPlayerName = "bill"
+    , id = Nothing
     }
 
 
@@ -65,6 +68,9 @@ whiteGame =
     , playerColor = White
     , isOver = False
     , score = Score.initWithKomi 0
+    , whitePlayerName = "ted"
+    , blackPlayerName = "bill"
+    , id = Nothing
     }
 
 
