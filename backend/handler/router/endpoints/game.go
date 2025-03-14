@@ -234,7 +234,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 		opponentUsername = req.Game.BlackPlayerName
 	} else {
 		log.Printf("Requesting user not a member of the proposed game to create\n")
-		err := apperrors.NewUnauthorized()
+		err := apperrors.NewForbidden()
 		c.JSON(err.Status(), gin.H{
 			"error": err.Error(),
 		})

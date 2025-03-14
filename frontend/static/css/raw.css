@@ -40,6 +40,10 @@ html, body {
   background-color: var(--accent3);
 }
 
+.text-accent1 {
+  color: var(--accent1);
+}
+
 .text-accent3 {
   color: var(--accent3);
 }

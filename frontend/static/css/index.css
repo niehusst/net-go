@@ -602,6 +602,11 @@ video {
   margin-bottom: 0.5rem;
 }
 
+.my-3 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
@@ -720,11 +725,6 @@ video {
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
-}
-
-.border-gray-600 {
-  --tw-border-opacity: 1;
-  border-color: rgb(75 85 99 / var(--tw-border-opacity));
 }
 
 .border-red-500 {
@@ -957,6 +957,10 @@ html, body {
 
 .bg-accent3 {
   background-color: var(--accent3);
+}
+
+.text-accent1 {
+  color: var(--accent1);
 }
 
 .text-accent3 {

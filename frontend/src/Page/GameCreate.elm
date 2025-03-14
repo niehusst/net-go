@@ -4,6 +4,7 @@ import API.Games exposing (CreateGameResponse, createGame)
 import Browser.Navigation as Nav
 import CmdExtra exposing (message)
 import View.Error exposing (viewHttpError)
+import Session
 import Html exposing (..)
 import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -28,6 +29,7 @@ type Msg
 type alias Model =
     { formData : FormData
     , navKey : Nav.Key
+    , userData : Session.UserData
     , httpError : Maybe Http.Error
     }
 
@@ -58,11 +60,10 @@ setKomi komi data =
     { data | komi = komi }
 
 
-formDataToGame : FormData -> Game
-formDataToGame formData =
+formDataToGame : FormData -> Session.UserData -> Game
+formDataToGame formData userData =
     let
-        -- TODO: get curr user username
-        username = "TODO"
+        username = userData.username
 
         (whitePlayerName, blackPlayerName) =
             case formData.colorChoice of
@@ -91,10 +92,10 @@ formDataToGame formData =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex flex-col items-center justify-center p-9" ]
+    div [ class "flex flex-col items-center justify-center p-9 gap-3" ]
         [ h2 [ class "text-xl" ] [ text "Game Settings" ]
-        , viewGameSettings model.formData
         , viewHttpError model.httpError
+        , viewGameSettings model.formData
         ]
 
 
@@ -149,7 +150,7 @@ viewGameSettings data =
                     []
                 ]
             , div []
-                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Komi" ]
+                [ label [ class "block text-sm font-medium text-gray-900" ] [ text "Opponent username" ]
                 , input
                     [ onInput StoreOpponentName
                     , type_ "text"
@@ -235,7 +236,7 @@ update msg model =
 
         CreateGame ->
             ( { model | httpError = Nothing }
-            , createGame (formDataToGame model.formData) GameCreated
+            , createGame (formDataToGame model.formData model.userData) GameCreated
             )
 
         GameCreated (Ok createdResponse) ->
@@ -253,15 +254,15 @@ update msg model =
 -- INIT --
 
 
-init : Nav.Key -> ( Model, Cmd Msg )
-init navKey =
-    ( initialModel navKey
+init : Nav.Key -> Session.UserData -> ( Model, Cmd Msg )
+init navKey userData =
+    ( initialModel navKey userData
     , Cmd.none
     )
 
 
-initialModel : Nav.Key -> Model
-initialModel navKey =
+initialModel : Nav.Key -> Session.UserData -> Model
+initialModel navKey userData =
     { formData =
         { boardSize = Full
         , colorChoice = Black
@@ -269,5 +270,6 @@ initialModel navKey =
         , opponentName = ""
         }
     , navKey = navKey
+    , userData = userData
     , httpError = Nothing
     }

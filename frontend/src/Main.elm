@@ -344,12 +344,12 @@ initCurrentPage ( model, existingCmds ) =
                     , pushUrl Route.SignIn (Session.navKey model.session)
                     )
 
-        authOnlyRoutes =
+        authOnlyRoutes userData =
             case model.route of
                 Route.GameCreate ->
                     let
                         ( pageModel, pageCmds ) =
-                            GameCreate.init model.navKey
+                            GameCreate.init model.navKey userData
                     in
                     ( GameCreatePage pageModel
                     , Cmd.map GameCreatePageMsg pageCmds
@@ -387,10 +387,10 @@ initCurrentPage ( model, existingCmds ) =
 
         ( currentPage, mappedCmds ) =
             case model.session of
-                Session.LoggedIn _ _ ->
-                    authOnlyRoutes
+                Session.LoggedIn navKey userData ->
+                    authOnlyRoutes userData
 
-                Session.LoggedOut _ ->
+                Session.LoggedOut navKey ->
                     loggedOutRoutes
     in
     ( { model | page = currentPage }
