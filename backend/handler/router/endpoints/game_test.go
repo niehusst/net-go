@@ -306,7 +306,7 @@ func TestCreateGameIntegration(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		// validate
-		assert.Equal(t, 401, rr.Code)
+		assert.Equal(t, 403, rr.Code)
 
 		mockGameService.AssertExpectations(t)
 	})
