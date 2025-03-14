@@ -218,7 +218,8 @@ func TestSignupIntegration(t *testing.T) {
 
 		// verify response
 		respBody, err := json.Marshal(gin.H{
-			"ok": true,
+			"uid":      uid,
+			"username": u.Username,
 		})
 		assert.NoError(t, err)
 

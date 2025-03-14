@@ -1,5 +1,6 @@
 module Page.SignUp exposing (Model, Msg(..), init, update, view)
 
+import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSignupReq)
 import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
@@ -12,13 +13,15 @@ import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
+import View.Error exposing (viewErrorBanner)
+import View.Loading exposing (viewLoading)
 
 
 type alias Model =
     { username : String
     , password : String
     , confirmPassword : String
-    , formResponse : WebData SignupResponseData
+    , formResponse : WebData AuthResponseData
     , session : Session
     }
 
@@ -28,20 +31,8 @@ type Msg
     | SavePassword String
     | SaveConfirmPassword String
     | SendHttpSignupReq
-    | ReceiveHttpSignupResp (WebData SignupResponseData)
+    | ReceiveHttpSignupResp (WebData AuthResponseData)
     | UpdateSession Session
-
-
-type alias SignupResponseData =
-    { ok : Bool
-    }
-
-
-type alias SignupRequestData r =
-    { r
-        | username : String
-        , password : String
-    }
 
 
 
@@ -64,8 +55,7 @@ viewBody model =
                 viewForm model
 
             RemoteData.Loading ->
-                -- TODO: spinner or something + css
-                text "Loading..."
+                viewLoading "Loading..."
 
             RemoteData.Success msg ->
                 -- this will likely never be shown
@@ -74,19 +64,9 @@ viewBody model =
             RemoteData.Failure error ->
                 div []
                     [ viewForm model
-                    , viewBanner error
+                    , viewErrorBanner <| "Error: " ++ stringForAuthError error
                     ]
         ]
-
-
-viewBanner : Http.Error -> Html Msg
-viewBanner error =
-    let
-        errString =
-            stringForAuthError error
-    in
-    div [ class "bg-red-500 text-white font-bold py-2 px-4 rounded" ]
-        [ text <| "Error: " ++ errString ]
 
 
 viewForm : Model -> Html Msg
@@ -146,31 +126,6 @@ stringForAuthError error =
             stringFromHttpError error
 
 
-signupDecoder : Decode.Decoder SignupResponseData
-signupDecoder =
-    Decode.succeed SignupResponseData
-        |> Json.Decode.Pipeline.required "ok" Decode.bool
-
-
-signupEncoder : SignupRequestData r -> Encode.Value
-signupEncoder reqData =
-    Encode.object
-        [ ( "username", Encode.string reqData.username )
-        , ( "password", Encode.string reqData.password )
-        ]
-
-
-sendSignupReq : SignupRequestData r -> Cmd Msg
-sendSignupReq reqData =
-    Http.post
-        { url = "/api/accounts/signup"
-        , body = Http.jsonBody (signupEncoder reqData)
-        , expect =
-            signupDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSignupResp)
-        }
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -197,13 +152,18 @@ update msg model =
 
             else
                 ( { model | formResponse = RemoteData.Loading }
-                , sendSignupReq model
+                , sendSignupReq model ReceiveHttpSignupResp
                 )
 
-        ReceiveHttpSignupResp (RemoteData.Success _) ->
-            -- TODO: save auth state somewhere; cookie?
+        ReceiveHttpSignupResp (RemoteData.Success respData) ->
+            let
+                userData =
+                    { id = respData.uid
+                    , username = respData.username
+                    }
+            in
             ( model
-            , message (UpdateSession (Session.toLoggedIn model.session))
+            , message (UpdateSession (Session.toLoggedIn userData model.session))
             )
 
         ReceiveHttpSignupResp response ->

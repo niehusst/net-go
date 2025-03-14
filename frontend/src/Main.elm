@@ -10,9 +10,11 @@ import Model.Board as Board
 import Model.ColorChoice as ColorChoice
 import Model.Game as Game
 import Page
+import Page.ContinueGame as ContinueGame
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.Home as Home
+import Page.JoinGame as JoinGame
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
@@ -36,6 +38,8 @@ type Page
     | GamePlayPage GamePlay.Model
     | SignUpPage SignUp.Model
     | SignInPage SignIn.Model
+    | JoinGamePage JoinGame.Model
+    | ContinueGamePage ContinueGame.Model
 
 
 type Msg
@@ -47,6 +51,8 @@ type Msg
     | GamePlayPageMsg GamePlay.Msg
     | SignUpPageMsg SignUp.Msg
     | SignInPageMsg SignIn.Msg
+    | JoinGamePageMsg JoinGame.Msg
+    | ContinueGamePageMsg ContinueGame.Msg
 
 
 
@@ -97,6 +103,14 @@ viewCurrentPage model =
             SignIn.view pageModel
                 |> Html.map SignInPageMsg
 
+        JoinGamePage pageModel ->
+            JoinGame.view pageModel
+                |> Html.map JoinGamePageMsg
+
+        ContinueGamePage pageModel ->
+            ContinueGame.view pageModel
+                |> Html.map ContinueGamePageMsg
+
 
 viewTabTitle : Page -> String
 viewTabTitle page =
@@ -118,6 +132,12 @@ viewTabTitle page =
 
         SignInPage _ ->
             "Sign In"
+
+        JoinGamePage _ ->
+            "Join Game"
+
+        ContinueGamePage _ ->
+            "Continue Game"
 
 
 
@@ -229,6 +249,24 @@ update msg rawModel =
             , Cmd.map SignInPageMsg updatedCmd
             )
 
+        ( JoinGamePageMsg submsg, JoinGamePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    JoinGame.update submsg pageModel
+            in
+            ( { model | page = JoinGamePage updatedPageModel }
+            , Cmd.map JoinGamePageMsg updatedCmd
+            )
+
+        ( ContinueGamePageMsg submsg, ContinueGamePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    ContinueGame.update submsg pageModel
+            in
+            ( { model | page = ContinueGamePage updatedPageModel }
+            , Cmd.map ContinueGamePageMsg updatedCmd
+            )
+
         ( _, _ ) ->
             -- generic mismatch case handler
             ( model, Cmd.none )
@@ -238,13 +276,13 @@ update msg rawModel =
 -- INIT --
 
 
-{-| Takes a boolean flag on init indicating whether the ngo\_auth\_set cookie is set.
+{-| Takes a nullable json obj from the ngo\_viewer\_data cookie.
 -}
-init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init : Maybe Session.UserData -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init maybeUserData url navKey =
     let
         session =
-            Session.fromCookie flags navKey
+            Session.fromCookie maybeUserData navKey
 
         model =
             { page = NotFoundPage
@@ -306,12 +344,12 @@ initCurrentPage ( model, existingCmds ) =
                     , pushUrl Route.SignIn (Session.navKey model.session)
                     )
 
-        authOnlyRoutes =
+        authOnlyRoutes userData =
             case model.route of
                 Route.GameCreate ->
                     let
                         ( pageModel, pageCmds ) =
-                            GameCreate.init model.navKey
+                            GameCreate.init model.navKey userData
                     in
                     ( GameCreatePage pageModel
                     , Cmd.map GameCreatePageMsg pageCmds
@@ -326,15 +364,33 @@ initCurrentPage ( model, existingCmds ) =
                     , Cmd.map GamePlayPageMsg pageCmds
                     )
 
+                Route.JoinGame ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            JoinGame.init
+                    in
+                    ( JoinGamePage pageModel
+                    , Cmd.map JoinGamePageMsg pageCmds
+                    )
+
+                Route.ContinueGame ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            ContinueGame.init
+                    in
+                    ( ContinueGamePage pageModel
+                    , Cmd.map ContinueGamePageMsg pageCmds
+                    )
+
                 _ ->
                     loggedOutRoutes
 
         ( currentPage, mappedCmds ) =
             case model.session of
-                Session.LoggedIn _ ->
-                    authOnlyRoutes
+                Session.LoggedIn navKey userData ->
+                    authOnlyRoutes userData
 
-                Session.LoggedOut _ ->
+                Session.LoggedOut navKey ->
                     loggedOutRoutes
     in
     ( { model | page = currentPage }
@@ -367,12 +423,18 @@ subscriptions model =
         SignInPage pageModel ->
             Sub.none
 
+        JoinGamePage pageModel ->
+            Sub.none
+
+        ContinueGamePage pageModel ->
+            Sub.none
+
 
 
 -- MAIN --
 
 
-main : Program Bool Model Msg
+main : Program (Maybe Session.UserData) Model Msg
 main =
     Browser.application
         { init = init

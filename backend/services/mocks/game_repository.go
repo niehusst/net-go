@@ -34,6 +34,21 @@ func (m *MockGameRepository) FindByID(ctx context.Context, id uint) (*model.Game
 	return r0, r1
 }
 
+func (m *MockGameRepository) ListByUserID(ctx context.Context, userId uint) ([]model.Game, error) {
+	ret := m.Called(ctx, userId)
+
+	var r0 []model.Game
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).([]model.Game)
+	}
+
+	var r1 error
+	if ret.Get(1) != nil {
+		r1 = ret.Get(1).(error)
+	}
+	return r0, r1
+}
+
 func (m *MockGameRepository) Create(ctx context.Context, game *model.Game) error {
 	ret := m.Called(ctx, game)
 
@@ -51,6 +66,17 @@ func (m *MockGameRepository) Update(ctx context.Context, game *model.Game) error
 	var r0 error = nil
 	if ret.Get(0) != nil {
 		r0 = ret.Get(0).(error)
+	}
+
+	return r0
+}
+
+func (m *MockGameRepository) Delete(ctx context.Context, gameID uint) error {
+	ret := m.Called(ctx, gameID)
+
+	var r0 error
+	if v0 := ret.Get(0); v0 != nil {
+		r0 = v0.(error)
 	}
 
 	return r0

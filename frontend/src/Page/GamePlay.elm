@@ -22,6 +22,8 @@ import Route exposing (routeToString)
 import ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
+import View.Error exposing (viewErrorBanner)
+import View.Loading exposing (viewLoading)
 
 
 type Msg
@@ -115,29 +117,20 @@ view model =
                     gamePlayView game model
 
                 ( False, CalculatingScore ) ->
-                    loadingView "Calculating final score..."
+                    viewLoading "Calculating final score..."
 
         Nothing ->
             case model.remoteGameData of
                 RemoteData.Loading ->
-                    loadingView "Loading game..."
+                    viewLoading "Loading game..."
 
                 RemoteData.Failure error ->
-                    -- TODO: improve
-                    text ("Error fetching game: " ++ stringFromHttpError error)
+                    viewErrorBanner ("Error fetching game: " ++ stringFromHttpError error)
 
                 _ ->
                     -- RemoteData.NotAsked + RemoteData.Success
                     -- niether of which should ever happen/reach here
-                    text "Unknown Error. Please refresh."
-
-
-loadingView : String -> Html Msg
-loadingView message =
-    div [ class "flex flex-col items-center justify-center" ]
-        [ p [] [ text message ]
-        , img [ src "/static/resources/loading-wheel.svg" ] []
-        ]
+                    viewErrorBanner "Unknown Error. Please refresh."
 
 
 scoreView : Score.Score -> ColorChoice -> Html Msg
@@ -196,11 +189,7 @@ viewAlert model =
                     text ""
 
                 Just errorMessage ->
-                    div
-                        [ class "bg-red-300 rounded p-2" ]
-                        [ p [ class "font-bold" ]
-                            [ text ("Invalid move: " ++ errorMessage) ]
-                        ]
+                    viewErrorBanner ("Invalid move: " ++ errorMessage)
     in
     div
         []

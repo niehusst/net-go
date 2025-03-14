@@ -23,6 +23,18 @@ You can run the server on localhost by running in the terminal (also from projec
 go run main.go
 ```
 
+## Debugging
+
+I've been using [delve](https://github.com/go-delve/delve) for debugging in go.
+Once it's installed, you can debug a test if you know the package name of the test;
+as far as I know, you can't debug all tests at once. e.g.
+
+``` sh
+dlv test net-go/server/backend/handler/router/endpoints
+```
+
+Once using delve, you can do `help [cmd]` to get more info on debugger tools.
+
 ## Database
 
 I've decided to use a sqlite database since it's easy and open-source (creative commons, but whatever).

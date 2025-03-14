@@ -20,21 +20,21 @@ suite =
                 \_ ->
                     let
                         game =
-                            newGame Full Black 0.0
+                            newGame Full Black 0.0 "" ""
                     in
                     Expect.equal True (isActiveTurn game)
             , test "white player not active turn in new game" <|
                 \_ ->
                     let
                         game =
-                            newGame Full White 0.0
+                            newGame Full White 0.0 "" ""
                     in
                     Expect.equal False (isActiveTurn game)
             , test "game with history determines correct active turn" <|
                 \_ ->
                     let
                         game =
-                            newGame Full Black 0.0
+                            newGame Full Black 0.0 "" ""
                                 |> addMoveToHistory (Play BlackStone 0)
                                 |> addMoveToHistory (Play WhiteStone 1)
                                 |> addMoveToHistory (Play BlackStone 5)
@@ -44,7 +44,7 @@ suite =
                 \_ ->
                     let
                         game =
-                            newGame Full Black 0.0
+                            newGame Full Black 0.0 "" ""
                                 |> addMoveToHistory (Play BlackStone 0)
                                 |> addMoveToHistory (Pass WhiteStone)
                     in
@@ -53,7 +53,7 @@ suite =
                 \_ ->
                     let
                         game =
-                            newGame Full White 0.0
+                            newGame Full White 0.0 "" ""
                                 |> addMoveToHistory (Play BlackStone 0)
                                 |> addMoveToHistory (Pass WhiteStone)
                                 |> addMoveToHistory (Pass BlackStone)
@@ -63,7 +63,7 @@ suite =
                 \_ ->
                     let
                         game =
-                            newGame Full White 0.0
+                            newGame Full White 0.0 "" ""
                                 |> addMoveToHistory (Pass BlackStone)
                     in
                     Expect.equal True (isActiveTurn game)
@@ -73,7 +73,7 @@ suite =
                 \_ ->
                     let
                         game =
-                            newGame Full White 0.0
+                            newGame Full White 0.0 "" ""
                                 |> addMoveToHistory (Play BlackStone 0)
                                 |> addMoveToHistory (Pass WhiteStone)
                                 |> addMoveToHistory (Pass BlackStone)

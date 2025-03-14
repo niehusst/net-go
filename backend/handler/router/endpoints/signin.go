@@ -45,6 +45,7 @@ func (rhandler RouteHandler) Signin(c *gin.Context) {
 	cookies.SetAuthCookiesInResponse(*user, c)
 
 	c.JSON(http.StatusOK, gin.H{
-		"uid": user.ID,
+		"uid":      user.ID,
+		"username": user.Username,
 	})
 }

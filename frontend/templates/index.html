@@ -14,11 +14,13 @@
       // load Web Worker
       const worker = new Worker("/static/js/worker.js");
 
-      const authCookieSet = document.cookie
+      const authCookieJsonStr = document.cookie
                                   .split("; ")
-                                  .find((row) => row.startsWith("ngo_auth_set="))
+                                  .find((row) => row.startsWith("ngo_viewer_data="))
                                   ?.split("=")[1];
-      const app = Elm.Main.init({ flags: authCookieSet !== undefined });
+
+      const authCookieData = JSON.parse(decodeURIComponent(authCookieJsonStr || null));
+      const app = Elm.Main.init({ flags: authCookieData });
 
       // listen for calls to `sendScoreGame` and pass along to web worker
       app.ports.sendScoreGame.subscribe(function (game) {

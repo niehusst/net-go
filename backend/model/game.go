@@ -30,8 +30,8 @@ type Game struct {
 	Board         types.Board `gorm:"embedded;embeddedPrefix:board_"`
 	IsOver        bool
 	Score         types.Score `gorm:"embedded;embeddedPrefix:score_"`
-	BlackPlayerId uint
-	WhitePlayerId uint
-	BlackPlayer   User `gorm:"foreignKey:BlackPlayerId;"`
-	WhitePlayer   User `gorm:"foreignKey:WhitePlayerId;"`
+	BlackPlayerId uint        `gorm:"index"`
+	WhitePlayerId uint        `gorm:"index"`
+	BlackPlayer   User        `gorm:"foreignKey:BlackPlayerId;"`
+	WhitePlayer   User        `gorm:"foreignKey:WhitePlayerId;"`
 }

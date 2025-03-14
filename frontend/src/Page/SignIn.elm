@@ -1,23 +1,23 @@
 module Page.SignIn exposing (Model, Msg(..), init, update, view)
 
+import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSigninReq)
 import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onSubmit)
 import Http
-import Json.Decode as Decode
-import Json.Decode.Pipeline
-import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
+import View.Error exposing (viewErrorBanner)
+import View.Loading exposing (viewLoading)
 
 
 type alias Model =
     { username : String
     , password : String
-    , formResponse : WebData SigninResponseData
+    , formResponse : WebData AuthResponseData
     , session : Session
     }
 
@@ -26,20 +26,8 @@ type Msg
     = SaveUsername String
     | SavePassword String
     | SendHttpSigninReq
-    | ReceiveHttpSigninResp (WebData SigninResponseData)
+    | ReceiveHttpSigninResp (WebData AuthResponseData)
     | UpdateSession Session
-
-
-type alias SigninResponseData =
-    { uid : Int
-    }
-
-
-type alias SigninRequestData r =
-    { r
-        | username : String
-        , password : String
-    }
 
 
 
@@ -62,8 +50,7 @@ viewBody model =
                 viewForm model
 
             RemoteData.Loading ->
-                -- TODO: spinner or something + css
-                text "Loading..."
+                viewLoading "Loading..."
 
             RemoteData.Success msg ->
                 -- this will likely never be shown
@@ -72,19 +59,9 @@ viewBody model =
             RemoteData.Failure error ->
                 div [ class "flex flex-col justify-center items-center" ]
                     [ viewForm model
-                    , viewBanner error
+                    , viewErrorBanner <| "Error: " ++ stringForAuthError error
                     ]
         ]
-
-
-viewBanner : Http.Error -> Html Msg
-viewBanner error =
-    let
-        errString =
-            stringForAuthError error
-    in
-    div [ class "bg-red-500 text-white font-bold py-2 px-4 rounded" ]
-        [ text <| "Error: " ++ errString ]
 
 
 viewForm : Model -> Html Msg
@@ -134,31 +111,6 @@ stringForAuthError error =
             stringFromHttpError error
 
 
-signinDecoder : Decode.Decoder SigninResponseData
-signinDecoder =
-    Decode.succeed SigninResponseData
-        |> Json.Decode.Pipeline.required "uid" Decode.int
-
-
-signinEncoder : SigninRequestData r -> Encode.Value
-signinEncoder reqData =
-    Encode.object
-        [ ( "username", Encode.string reqData.username )
-        , ( "password", Encode.string reqData.password )
-        ]
-
-
-sendSigninReq : SigninRequestData r -> Cmd Msg
-sendSigninReq reqData =
-    Http.post
-        { url = "/api/accounts/signin"
-        , body = Http.jsonBody (signinEncoder reqData)
-        , expect =
-            signinDecoder
-                |> Http.expectJson (RemoteData.fromResult >> ReceiveHttpSigninResp)
-        }
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -174,13 +126,18 @@ update msg model =
 
         SendHttpSigninReq ->
             ( { model | formResponse = RemoteData.Loading }
-            , sendSigninReq model
+            , sendSigninReq model ReceiveHttpSigninResp
             )
 
-        ReceiveHttpSigninResp (RemoteData.Success _) ->
-            -- TODO: save auth state somewhere; cookie?
+        ReceiveHttpSigninResp (RemoteData.Success respData) ->
+            let
+                userData =
+                    { id = respData.uid
+                    , username = respData.username
+                    }
+            in
             ( model
-            , message (UpdateSession (Session.toLoggedIn model.session))
+            , message (UpdateSession (Session.toLoggedIn userData model.session))
             )
 
         ReceiveHttpSigninResp response ->

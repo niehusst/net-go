@@ -1,19 +1,25 @@
-module Session exposing (Session(..), fromCookie, init, navKey, toLoggedIn, toLoggedOut)
+module Session exposing (Session(..), UserData, fromCookie, init, navKey, toLoggedIn, toLoggedOut)
 
 -- yoinked from https://github.com/rtfeldman/elm-spa-example/blob/master/src/Session.elm
 
 import Browser.Navigation as Nav
 
 
+type alias UserData =
+    { id : Int
+    , username : String
+    }
+
+
 type Session
-    = LoggedIn Nav.Key
+    = LoggedIn Nav.Key UserData
     | LoggedOut Nav.Key
 
 
 navKey : Session -> Nav.Key
 navKey session =
     case session of
-        LoggedIn key ->
+        LoggedIn key _ ->
             key
 
         LoggedOut key ->
@@ -25,18 +31,19 @@ init key =
     LoggedOut key
 
 
-fromCookie : Bool -> Nav.Key -> Session
-fromCookie isAuthed key =
-    if isAuthed then
-        LoggedIn key
+fromCookie : Maybe UserData -> Nav.Key -> Session
+fromCookie maybeData key =
+    case maybeData of
+        Just userData ->
+            LoggedIn key userData
 
-    else
-        LoggedOut key
+        Nothing ->
+            LoggedOut key
 
 
-toLoggedIn : Session -> Session
-toLoggedIn session =
-    LoggedIn (navKey session)
+toLoggedIn : UserData -> Session -> Session
+toLoggedIn userData session =
+    LoggedIn (navKey session) userData
 
 
 toLoggedOut : Session -> Session

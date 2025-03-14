@@ -12,7 +12,6 @@ import Model.Score as Score exposing (..)
 import Random
 import Test exposing (..)
 
--- TODO: use test fuzzing seed??
 initialSeed = 42069
 
 white =
@@ -160,6 +159,9 @@ game =
     , playerColor = Black
     , isOver = False
     , score = Score.initWithKomi 0.0
+    , whitePlayerName = "ted"
+    , blackPlayerName = "bill"
+    , id = Nothing
     }
 
 suite : Test
