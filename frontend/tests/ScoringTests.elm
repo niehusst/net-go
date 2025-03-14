@@ -2,7 +2,6 @@ module ScoringTests exposing (..)
 
 import Array
 import Expect exposing (Expectation)
-import Fuzz
 import Logic.Scoring exposing (..)
 import Model.Board as Board exposing (BoardSize(..), setPieceAt)
 import Model.ColorChoice exposing (ColorChoice(..))
