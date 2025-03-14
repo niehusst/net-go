@@ -58,10 +58,6 @@ ongoingGameView game =
             text ""
 
 
-
--- this should never happen
-
-
 view : Model -> Html Msg
 view model =
     let
