@@ -15,7 +15,7 @@ import Error exposing (stringFromHttpError)
 type Msg
     = DataReceived (WebData (List Game))
     | RejectGameClick String -- clicked game ID
-    | GameDeleted (Result Http.Error ())
+    | GameDeleted String (Result Http.Error ())
 
 
 type alias Model =
@@ -30,8 +30,9 @@ joinableGameView : Game -> Html Msg
 joinableGameView game =
     case game.id of
         Just gameId ->
-            div [ class "container border border-gray-600 rounded p-2 drop-shadow" ]
-                [ div [ class "flex flex-row justify-center gap-3" ]
+            div [ class "container border border-gray-300 rounded p-2 shadow" ]
+                [ h2 [ class "text-lg" ] [ text <| "ID#" ++ gameId ]
+                , div [ class "flex flex-row justify-center gap-3" ]
                       [ p [ class "font-bold" ] [ text <| game.blackPlayerName ++ " (B)" ]
                       , p [] [ text "vs." ]
                       , p [ class "font-bold" ] [ text <| game.whitePlayerName ++ " (W)" ]
@@ -52,20 +53,28 @@ joinableGameView game =
 view : Model -> Html Msg
 view model =
     let
+        viewError =
+            case model.errorMessage of
+                Just errMsg ->
+                    viewErrorBanner errMsg
+
+                Nothing ->
+                    text ""
         viewContent =
-            case (model.unjoinedGames, model.errorMessage) of
-                (Just games, _) ->
+            case ( model.remoteData, model.unjoinedGames ) of
+                (RemoteData.Loading, _) ->
+                    viewLoading "Loading..."
+
+                (_, Just games) ->
                     div [ class "w-full flex flex-col gap-4 justify-center items-center" ]
                         (List.map (joinableGameView) games)
 
-                (Nothing, Nothing) ->
-                    viewLoading "Loading..."
-
-                (Nothing, Just errMsg) ->
-                    viewErrorBanner errMsg
+                (_, _) ->
+                    text ""
     in
     div [ class "w-full flex flex-col p-2 gap-3 justify-center items-center" ]
         [ h2 [ class "text-2xl" ] [ text "Games invites" ]
+        , viewError
         , viewContent
         ]
 
@@ -74,20 +83,36 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GameDeleted (Result.Ok _) ->
-            -- TODO: filter deleted games from the list? or just reload?
-            ( model
+        GameDeleted gameId (Result.Ok _) ->
+            let
+                filteredGames =
+                    case model.unjoinedGames of
+                        Just games ->
+                            Just <|
+                                List.filter
+                                    (\game ->
+                                         case game.id of
+                                             Just id ->
+                                                id /= gameId
+                                             Nothing ->
+                                                True
+                                    )
+                                    games
+                        Nothing ->
+                            Nothing
+            in
+            ( { model | unjoinedGames = filteredGames }
             , Cmd.none
             )
 
-        GameDeleted (Result.Err err) ->
+        GameDeleted gameId (Result.Err err) ->
             ( { model | errorMessage = Just <| stringFromHttpError err }
             , Cmd.none
             )
 
         RejectGameClick gameId ->
-            ( model
-            , deleteGame gameId GameDeleted
+            ( { model | errorMessage = Nothing }
+            , deleteGame gameId (GameDeleted gameId)
             )
 
         DataReceived webdata ->
@@ -105,13 +130,15 @@ update msg model =
                         RemoteData.Success allGames ->
                             Just <| List.filter
                                 (\game ->
-                                     -- find color of user (match curr user id against game player ids? but not part of elm game...).
-                                     -- filter out games where lastMove[PLayerColor] == Nothing
+                                     -- filter out games where the player has made a move
+                                     -- or where the game is already over.
+                                     -- Keep fresh games user has not played in yet.
                                      case getLastMove game of
                                          Just _ ->
-                                            True
-                                         Nothing ->
                                             False
+
+                                         Nothing ->
+                                            not game.isOver
                                 )
                                 allGames
 
@@ -119,7 +146,8 @@ update msg model =
                             Nothing
             in
             ({ model
-             | errorMessage = newErrorMessage
+             | remoteData = webdata
+             , errorMessage = newErrorMessage
              , unjoinedGames = newUnjoinedGames
              }
             , Cmd.none)
