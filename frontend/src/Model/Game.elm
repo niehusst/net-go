@@ -248,5 +248,5 @@ gameEncoder game =
         , ( "score", Score.scoreEncoder game.score )
         , ( "blackPlayerName", Encode.string game.blackPlayerName )
         , ( "whitePlayerName", Encode.string game.whitePlayerName )
-        , ( "id", (Maybe.map Encode.string >> Maybe.withDefault Encode.null) game.id)
+        , ( "id", (Maybe.map Encode.string >> Maybe.withDefault Encode.null) game.id )
         ]

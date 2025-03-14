@@ -1,5 +1,6 @@
 module Page.SignUp exposing (Model, Msg(..), init, update, view)
 
+import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSignupReq)
 import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
@@ -12,9 +13,8 @@ import Json.Encode as Encode
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
-import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
-import API.Accounts exposing (sendSignupReq, AuthRequestData, AuthResponseData)
+import View.Loading exposing (viewLoading)
 
 
 type alias Model =
@@ -64,7 +64,7 @@ viewBody model =
             RemoteData.Failure error ->
                 div []
                     [ viewForm model
-                    , viewErrorBanner <| "Error: " ++ (stringForAuthError error)
+                    , viewErrorBanner <| "Error: " ++ stringForAuthError error
                     ]
         ]
 
@@ -124,7 +124,6 @@ stringForAuthError error =
 
         _ ->
             stringFromHttpError error
-
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

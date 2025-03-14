@@ -22,8 +22,8 @@ import Route exposing (routeToString)
 import ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
-import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
+import View.Loading exposing (viewLoading)
 
 
 type Msg

@@ -10,14 +10,14 @@ import Model.Board as Board
 import Model.ColorChoice as ColorChoice
 import Model.Game as Game
 import Page
+import Page.ContinueGame as ContinueGame
 import Page.GameCreate as GameCreate
 import Page.GamePlay as GamePlay
 import Page.Home as Home
+import Page.JoinGame as JoinGame
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
-import Page.JoinGame as JoinGame
-import Page.ContinueGame as ContinueGame
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import Url exposing (Url)
@@ -251,19 +251,19 @@ update msg rawModel =
 
         ( JoinGamePageMsg submsg, JoinGamePage pageModel ) ->
             let
-                (updatedPageModel, updatedCmd ) =
+                ( updatedPageModel, updatedCmd ) =
                     JoinGame.update submsg pageModel
             in
-            ( {model | page = JoinGamePage updatedPageModel}
+            ( { model | page = JoinGamePage updatedPageModel }
             , Cmd.map JoinGamePageMsg updatedCmd
             )
 
         ( ContinueGamePageMsg submsg, ContinueGamePage pageModel ) ->
             let
-                (updatedPageModel, updatedCmd ) =
+                ( updatedPageModel, updatedCmd ) =
                     ContinueGame.update submsg pageModel
             in
-            ( {model | page = ContinueGamePage updatedPageModel}
+            ( { model | page = ContinueGamePage updatedPageModel }
             , Cmd.map ContinueGamePageMsg updatedCmd
             )
 
@@ -276,7 +276,7 @@ update msg rawModel =
 -- INIT --
 
 
-{-| Takes a nullable json obj from the ngo_viewer_data cookie.
+{-| Takes a nullable json obj from the ngo\_viewer\_data cookie.
 -}
 init : Maybe Session.UserData -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init maybeUserData url navKey =
@@ -366,19 +366,19 @@ initCurrentPage ( model, existingCmds ) =
 
                 Route.JoinGame ->
                     let
-                        (pageModel, pageCmds) =
+                        ( pageModel, pageCmds ) =
                             JoinGame.init
                     in
-                    (JoinGamePage pageModel
+                    ( JoinGamePage pageModel
                     , Cmd.map JoinGamePageMsg pageCmds
                     )
 
                 Route.ContinueGame ->
                     let
-                        (pageModel, pageCmds) =
+                        ( pageModel, pageCmds ) =
                             ContinueGame.init
                     in
-                    (ContinueGamePage pageModel
+                    ( ContinueGamePage pageModel
                     , Cmd.map ContinueGamePageMsg pageCmds
                     )
 

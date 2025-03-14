@@ -3,8 +3,6 @@ module Page.GameCreate exposing (FormData, Model, Msg(..), init, update, view)
 import API.Games exposing (CreateGameResponse, createGame)
 import Browser.Navigation as Nav
 import CmdExtra exposing (message)
-import View.Error exposing (viewHttpError)
-import Session
 import Html exposing (..)
 import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -15,6 +13,8 @@ import Model.Game as Game exposing (Game)
 import Model.Score as Score
 import RemoteData
 import Route exposing (Route, pushUrl)
+import Session
+import View.Error exposing (viewHttpError)
 
 
 type Msg
@@ -41,9 +41,11 @@ type alias FormData =
     , opponentName : String
     }
 
+
 setOpponentName : String -> FormData -> FormData
 setOpponentName name data =
     { data | opponentName = name }
+
 
 setSize : BoardSize -> FormData -> FormData
 setSize size data =
@@ -63,16 +65,16 @@ setKomi komi data =
 formDataToGame : FormData -> Session.UserData -> Game
 formDataToGame formData userData =
     let
-        username = userData.username
+        username =
+            userData.username
 
-        (whitePlayerName, blackPlayerName) =
+        ( whitePlayerName, blackPlayerName ) =
             case formData.colorChoice of
                 White ->
-                    (username, formData.opponentName)
+                    ( username, formData.opponentName )
 
                 Black ->
-                    (formData.opponentName, username)
-
+                    ( formData.opponentName, username )
     in
     { boardSize = formData.boardSize
     , board = Board.emptyBoard formData.boardSize

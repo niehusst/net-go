@@ -1,16 +1,17 @@
-module Page.JoinGame exposing (Model, Msg, view, update, init)
+module Page.JoinGame exposing (Model, Msg, init, update, view)
 
+import API.Games exposing (deleteGame, listGamesByUser)
+import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove)
-import API.Games exposing (listGamesByUser, deleteGame)
 import RemoteData exposing (WebData)
 import Route
-import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
-import Error exposing (stringFromHttpError)
+import View.Loading exposing (viewLoading)
+
 
 type Msg
     = DataReceived (WebData (List Game))
@@ -24,7 +25,10 @@ type alias Model =
     , errorMessage : Maybe String
     }
 
+
+
 -- VIEW --
+
 
 joinableGameView : Game -> Html Msg
 joinableGameView game =
@@ -33,21 +37,28 @@ joinableGameView game =
             div [ class "container border border-gray-300 rounded p-2 shadow" ]
                 [ h2 [ class "text-lg" ] [ text <| "ID#" ++ gameId ]
                 , div [ class "flex flex-row justify-center gap-3" ]
-                      [ p [ class "font-bold" ] [ text <| game.blackPlayerName ++ " (B)" ]
-                      , p [] [ text "vs." ]
-                      , p [ class "font-bold" ] [ text <| game.whitePlayerName ++ " (W)" ]
-                      ]
+                    [ p [ class "font-bold" ] [ text <| game.blackPlayerName ++ " (B)" ]
+                    , p [] [ text "vs." ]
+                    , p [ class "font-bold" ] [ text <| game.whitePlayerName ++ " (W)" ]
+                    ]
                 , div [ class "mt-8 flex flex-row justify-center gap-1" ]
                     [ a [ href (Route.routeToString (Route.GamePlay gameId)) ]
-                          [ button [ class "btn" ] [ text "Accept" ]
-                          ]
-                    , button [ class "btn-base bg-red-500 text-white hover:bg-red-700"
-                             , onClick <| RejectGameClick gameId
-                             ] [ text "Reject" ]
+                        [ button [ class "btn" ] [ text "Accept" ]
+                        ]
+                    , button
+                        [ class "btn-base bg-red-500 text-white hover:bg-red-700"
+                        , onClick <| RejectGameClick gameId
+                        ]
+                        [ text "Reject" ]
                     ]
                 ]
+
         Nothing ->
-            text "" -- this should never happen
+            text ""
+
+
+
+-- this should never happen
 
 
 view : Model -> Html Msg
@@ -60,16 +71,17 @@ view model =
 
                 Nothing ->
                     text ""
+
         viewContent =
             case ( model.remoteData, model.unjoinedGames ) of
-                (RemoteData.Loading, _) ->
+                ( RemoteData.Loading, _ ) ->
                     viewLoading "Loading..."
 
-                (_, Just games) ->
+                ( _, Just games ) ->
                     div [ class "w-full flex flex-col gap-4 justify-center items-center" ]
-                        (List.map (joinableGameView) games)
+                        (List.map joinableGameView games)
 
-                (_, _) ->
+                ( _, _ ) ->
                     text ""
     in
     div [ class "w-full flex flex-col p-2 gap-3 justify-center items-center" ]
@@ -78,7 +90,10 @@ view model =
         , viewContent
         ]
 
+
+
 -- UPDATE --
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -91,13 +106,15 @@ update msg model =
                             Just <|
                                 List.filter
                                     (\game ->
-                                         case game.id of
-                                             Just id ->
+                                        case game.id of
+                                            Just id ->
                                                 id /= gameId
-                                             Nothing ->
+
+                                            Nothing ->
                                                 True
                                     )
                                     games
+
                         Nothing ->
                             Nothing
             in
@@ -128,37 +145,42 @@ update msg model =
                 newUnjoinedGames =
                     case webdata of
                         RemoteData.Success allGames ->
-                            Just <| List.filter
-                                (\game ->
-                                     -- filter out games where the player has made a move
-                                     -- or where the game is already over.
-                                     -- Keep fresh games user has not played in yet.
-                                     case getLastMove game of
-                                         Just _ ->
-                                            False
+                            Just <|
+                                List.filter
+                                    (\game ->
+                                        -- filter out games where the player has made a move
+                                        -- or where the game is already over.
+                                        -- Keep fresh games user has not played in yet.
+                                        case getLastMove game of
+                                            Just _ ->
+                                                False
 
-                                         Nothing ->
-                                            not game.isOver
-                                )
-                                allGames
+                                            Nothing ->
+                                                not game.isOver
+                                    )
+                                    allGames
 
                         _ ->
                             Nothing
             in
-            ({ model
-             | remoteData = webdata
-             , errorMessage = newErrorMessage
-             , unjoinedGames = newUnjoinedGames
-             }
-            , Cmd.none)
+            ( { model
+                | remoteData = webdata
+                , errorMessage = newErrorMessage
+                , unjoinedGames = newUnjoinedGames
+              }
+            , Cmd.none
+            )
+
+
 
 -- INIT --
 
-init : (Model, Cmd Msg)
+
+init : ( Model, Cmd Msg )
 init =
     ( { remoteData = RemoteData.Loading
-    , errorMessage = Nothing
-    , unjoinedGames = Nothing
-    }
+      , errorMessage = Nothing
+      , unjoinedGames = Nothing
+      }
     , listGamesByUser DataReceived
     )

@@ -1,16 +1,17 @@
-module Page.ContinueGame exposing (Model, Msg, view, update, init)
+module Page.ContinueGame exposing (Model, Msg, init, update, view)
 
+import API.Games exposing (deleteGame, listGamesByUser)
+import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove, isActiveTurn)
-import API.Games exposing (listGamesByUser, deleteGame)
 import RemoteData exposing (WebData)
 import Route
-import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
-import Error exposing (stringFromHttpError)
+import View.Loading exposing (viewLoading)
+
 
 type Msg
     = DataReceived (WebData (List Game))
@@ -22,7 +23,10 @@ type alias Model =
     , errorMessage : Maybe String
     }
 
+
+
 -- VIEW --
+
 
 ongoingGameView : Game -> Html Msg
 ongoingGameView game =
@@ -30,25 +34,33 @@ ongoingGameView game =
         nextTurnAlert =
             if isActiveTurn game then
                 p [ class "my-3 text-center text-lg text-accent1 font-bold underline" ]
-                  [ text "It's your turn!" ]
+                    [ text "It's your turn!" ]
+
             else
                 text ""
     in
     case game.id of
         Just gameId ->
-            a [ class "container border border-gray-300 rounded p-2 shadow"
-              , href (Route.routeToString (Route.GamePlay gameId))
-              ]
-              [ h2 [ class "text-large" ] [ text <| "ID#" ++ gameId ]
-              , div [ class "flex flex-row justify-center gap-3" ]
+            a
+                [ class "container border border-gray-300 rounded p-2 shadow"
+                , href (Route.routeToString (Route.GamePlay gameId))
+                ]
+                [ h2 [ class "text-large" ] [ text <| "ID#" ++ gameId ]
+                , div [ class "flex flex-row justify-center gap-3" ]
                     [ p [ class "font-bold" ] [ text <| game.blackPlayerName ++ " (B)" ]
                     , p [] [ text "vs." ]
                     , p [ class "font-bold" ] [ text <| game.whitePlayerName ++ " (W)" ]
                     ]
-              , nextTurnAlert
-              ]
+                , nextTurnAlert
+                ]
+
         Nothing ->
-            text "" -- this should never happen
+            text ""
+
+
+
+-- this should never happen
+
 
 view : Model -> Html Msg
 view model =
@@ -60,16 +72,17 @@ view model =
 
                 Nothing ->
                     text ""
+
         viewContent =
             case ( model.remoteData, model.ongoingGames ) of
-                (RemoteData.Loading, _) ->
+                ( RemoteData.Loading, _ ) ->
                     viewLoading "Loading..."
 
-                (_, Just games) ->
+                ( _, Just games ) ->
                     div [ class "w-full flex flex-col gap-4 justify-center items-center" ]
-                        (List.map (ongoingGameView) games)
+                        (List.map ongoingGameView games)
 
-                (_, _) ->
+                ( _, _ ) ->
                     text ""
     in
     div [ class "w-full flex flex-col p-2 gap-3 justify-center items-center" ]
@@ -78,7 +91,10 @@ view model =
         , viewContent
         ]
 
+
+
 -- UPDATE --
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -96,32 +112,37 @@ update msg model =
                 newOngoingGames =
                     case webdata of
                         RemoteData.Success allGames ->
-                            Just <| List.filter
-                                (\game ->
-                                     -- filter out games where the player hasnt made a move
-                                     -- or where the game is already over.
-                                     case getLastMove game of
-                                         Just _ ->
-                                            not game.isOver
+                            Just <|
+                                List.filter
+                                    (\game ->
+                                        -- filter out games where the player hasnt made a move
+                                        -- or where the game is already over.
+                                        case getLastMove game of
+                                            Just _ ->
+                                                not game.isOver
 
-                                         Nothing ->
-                                            False
-                                )
-                                allGames
+                                            Nothing ->
+                                                False
+                                    )
+                                    allGames
 
                         _ ->
                             Nothing
             in
-            ({ model
-             | remoteData = webdata
-             , errorMessage = newErrorMessage
-             , ongoingGames = newOngoingGames
-             }
-            , Cmd.none)
+            ( { model
+                | remoteData = webdata
+                , errorMessage = newErrorMessage
+                , ongoingGames = newOngoingGames
+              }
+            , Cmd.none
+            )
+
+
 
 -- INIT --
 
-init : (Model, Cmd Msg)
+
+init : ( Model, Cmd Msg )
 init =
     ( { remoteData = RemoteData.Loading
       , ongoingGames = Nothing

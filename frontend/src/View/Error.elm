@@ -1,9 +1,10 @@
-module View.Error exposing (viewHttpError, viewErrorBanner)
+module View.Error exposing (viewErrorBanner, viewHttpError)
 
+import Error exposing (stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
-import Error exposing (stringFromHttpError)
+
 
 viewHttpError : Maybe Http.Error -> Html msg
 viewHttpError maybeHttpError =
@@ -17,6 +18,7 @@ viewHttpError maybeHttpError =
 
         Nothing ->
             text ""
+
 
 viewErrorBanner : String -> Html msg
 viewErrorBanner message =

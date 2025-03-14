@@ -1,4 +1,4 @@
-module API.Accounts exposing (doLogout, sendSigninReq, sendSignupReq, AuthRequestData, AuthResponseData)
+module API.Accounts exposing (AuthRequestData, AuthResponseData, doLogout, sendSigninReq, sendSignupReq)
 
 import Http
 import Json.Decode as Decode
@@ -20,6 +20,7 @@ doLogout msgType =
         { url = prefix ++ "/signout"
         , expect = Http.expectWhatever msgType
         }
+
 
 type alias AuthResponseData =
     { uid : Int

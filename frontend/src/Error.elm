@@ -30,4 +30,3 @@ stringFromHttpError error =
 
         Http.BadBody msg ->
             "Bad body: " ++ msg
-

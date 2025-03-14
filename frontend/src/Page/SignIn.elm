@@ -1,5 +1,6 @@
 module Page.SignIn exposing (Model, Msg(..), init, update, view)
 
+import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSigninReq)
 import CmdExtra exposing (message)
 import Error exposing (stringFromHttpError)
 import Html exposing (..)
@@ -9,9 +10,8 @@ import Http
 import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
-import View.Loading exposing (viewLoading)
 import View.Error exposing (viewErrorBanner)
-import API.Accounts exposing (sendSigninReq, AuthRequestData, AuthResponseData)
+import View.Loading exposing (viewLoading)
 
 
 type alias Model =
@@ -28,7 +28,6 @@ type Msg
     | SendHttpSigninReq
     | ReceiveHttpSigninResp (WebData AuthResponseData)
     | UpdateSession Session
-
 
 
 
@@ -60,7 +59,7 @@ viewBody model =
             RemoteData.Failure error ->
                 div [ class "flex flex-col justify-center items-center" ]
                     [ viewForm model
-                    , viewErrorBanner <| "Error: " ++ (stringForAuthError error)
+                    , viewErrorBanner <| "Error: " ++ stringForAuthError error
                     ]
         ]
 
@@ -112,7 +111,6 @@ stringForAuthError error =
             stringFromHttpError error
 
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -139,7 +137,7 @@ update msg model =
                     }
             in
             ( model
-            , message (UpdateSession (Session.toLoggedIn userData model.session ))
+            , message (UpdateSession (Session.toLoggedIn userData model.session))
             )
 
         ReceiveHttpSigninResp response ->

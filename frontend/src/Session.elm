@@ -1,13 +1,15 @@
-module Session exposing (Session(..), fromCookie, init, navKey, toLoggedIn, toLoggedOut, UserData)
+module Session exposing (Session(..), UserData, fromCookie, init, navKey, toLoggedIn, toLoggedOut)
 
 -- yoinked from https://github.com/rtfeldman/elm-spa-example/blob/master/src/Session.elm
 
 import Browser.Navigation as Nav
 
+
 type alias UserData =
     { id : Int
     , username : String
     }
+
 
 type Session
     = LoggedIn Nav.Key UserData
