@@ -294,7 +294,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 	}
 
 	// transform input into game model
-	game, err := req.Game.toGame(user)
+	newGameValues, err := req.Game.toGame(user)
 	if err != nil {
 		log.Printf("Failed to construct game model from request data\n")
 		c.JSON(apperrors.Status(err), gin.H{
@@ -302,8 +302,6 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 		})
 		return
 	}
-	// reassign game ID since it's not part of the JSON payload from client
-	game.ID = uriParams.ID
 
 	// fetch current value from DB
 	currentGame, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
@@ -325,7 +323,8 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 		return
 	}
 
-	if err := rhandler.Provider.GameService.Update(c, game); err != nil {
+	currentGame.UpdateLegalValues(*newGameValues)
+	if err := rhandler.Provider.GameService.Update(c, currentGame); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -334,7 +333,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 
 	// return game in shape elm expects
 	var respGame ElmGame
-	respGame.fromGame(*game, *user)
+	respGame.fromGame(*currentGame, *user)
 	c.JSON(http.StatusOK, gin.H{
 		"game": respGame,
 	})

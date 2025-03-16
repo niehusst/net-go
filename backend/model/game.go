@@ -35,3 +35,14 @@ type Game struct {
 	BlackPlayer   User        `gorm:"foreignKey:BlackPlayerId;"`
 	WhitePlayer   User        `gorm:"foreignKey:WhitePlayerId;"`
 }
+
+/**
+ * Update receiver game with only the legally updatable values
+ * from passed `updateGame` values.
+ */
+func (recGame *Game) UpdateLegalValues(updateGame Game) {
+	recGame.History = updateGame.History
+	recGame.Board.Map = updateGame.Board.Map
+	recGame.IsOver = updateGame.IsOver
+	recGame.Score = updateGame.Score
+}
