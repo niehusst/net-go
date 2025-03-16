@@ -169,19 +169,19 @@ gamePlayView game model =
             if Game.isActiveTurn game then
                 div [ class "flex gap-4" ]
                     [ button
-                          [ class "btn"
-                          , onClick PlayPass
-                          ]
-                          [ text "Pass" ]
+                        [ class "btn"
+                        , onClick PlayPass
+                        ]
+                        [ text "Pass" ]
                     , button
-                          [ class "btn-base bg-red-500 text-white border-solid border-2 border-red-500 hover:bg-white hover:text-red-500"
-                          , onClick PlayResign
-                          ]
-                          [ text "Resign" ]
+                        [ class "btn-base bg-red-500 text-white border-solid border-2 border-red-500 hover:bg-white hover:text-red-500"
+                        , onClick PlayResign
+                        ]
+                        [ text "Resign" ]
                     ]
+
             else
                 text ""
-
     in
     div [ class "p-5 flex flex-col gap-4" ]
         [ viewWaitForOpponent model.activeTurn
@@ -448,28 +448,28 @@ update msg model =
             { mdl | invalidMoveAlert = Just "Wait for your turn" }
     in
     case ( msg, isAllowedToPlay ) of
-        (PlayPiece index, False) ->
+        ( PlayPiece index, False ) ->
             ( makeWaitYourTurnError model
             , Cmd.none
             )
 
-        (PlayPass, False) ->
+        ( PlayPass, False ) ->
             ( makeWaitYourTurnError model
             , Cmd.none
             )
 
-        (PlayResign, False) ->
+        ( PlayResign, False ) ->
             ( makeWaitYourTurnError model
             , Cmd.none
             )
 
-        (PlayPiece index, True) ->
+        ( PlayPiece index, True ) ->
             handlePlayPiece model index
 
-        (PlayPass, True) ->
+        ( PlayPass, True ) ->
             handlePlayPass model
 
-        (PlayResign, True) ->
+        ( PlayResign, True ) ->
             let
                 resignedColor =
                     case gameFromModel model of
@@ -482,7 +482,7 @@ update msg model =
             in
             startScoring model resignedColor
 
-        (DataReceived responseGame, _) ->
+        ( DataReceived responseGame, _ ) ->
             let
                 activeTurn =
                     case responseGame of
@@ -517,7 +517,7 @@ update msg model =
             , Cmd.none
             )
 
-        (ReceiveScoredGame encodedGame, _) ->
+        ( ReceiveScoredGame encodedGame, _ ) ->
             let
                 decodedGame =
                     decodeGameFromValue encodedGame
@@ -548,7 +548,7 @@ update msg model =
             , endTurn updatedModel
             )
 
-        (UpdateGameResponse resp, _) ->
+        ( UpdateGameResponse resp, _ ) ->
             case resp of
                 Ok game ->
                     ( { model
