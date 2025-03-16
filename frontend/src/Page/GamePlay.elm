@@ -80,11 +80,14 @@ startScoring model forfeitColor =
                 completedGame =
                     setScore forfeitScore game
                         |> setIsOver True
+
+                updatedModel =
+                    { model
+                        | clientGameData = Just completedGame
+                    }
             in
-            ( { model
-                | clientGameData = Just completedGame
-              }
-            , endTurn model
+            ( updatedModel
+            , endTurn updatedModel
             )
 
         ( Just game, _ ) ->
@@ -370,8 +373,6 @@ handlePlayPiece model index =
                         { model
                             | clientGameData =
                                 playMove move game
-                                    -- TODO: remove color swap w/ networking
-                                    |> setPlayerColor (colorInverse game.playerColor)
                                     |> Just
                             , activeTurn = not model.activeTurn
                             , invalidMoveAlert = Nothing
@@ -394,8 +395,6 @@ handlePlayPass model =
             let
                 updatedGame =
                     playMove (Move.Pass (colorToPiece game.playerColor)) game
-                        -- TODO remove color swap w/ networking
-                        |> setPlayerColor (colorInverse game.playerColor)
 
                 ( updatedModel, command ) =
                     -- check if game ended by Pass moves
