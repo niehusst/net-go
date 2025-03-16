@@ -25,7 +25,7 @@ func (rhandler RouteHandler) Signin(c *gin.Context) {
 	if err != nil {
 		log.Printf("Failed to signin user: %v\n", err)
 		c.JSON(apperrors.Status(err), gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -36,7 +36,7 @@ func (rhandler RouteHandler) Signin(c *gin.Context) {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
 			"ok":    false,
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

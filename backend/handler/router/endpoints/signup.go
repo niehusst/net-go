@@ -26,10 +26,9 @@ func (rhandler RouteHandler) Signup(c *gin.Context) {
 	user, err := rhandler.Provider.UserService.Signup(c, req.Username, req.Password)
 	if err != nil {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
-		// TODO: i probably shouldnt send the full err back to client
 		c.JSON(apperrors.Status(err), gin.H{
 			"ok":    false,
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -40,7 +39,7 @@ func (rhandler RouteHandler) Signup(c *gin.Context) {
 		log.Printf("Failed to sign up user: %v\n", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
 			"ok":    false,
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
