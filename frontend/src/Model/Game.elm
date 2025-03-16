@@ -232,8 +232,8 @@ gameDecoder =
         |> required "playerColor" ColorChoice.colorDecoder
         |> required "isOver" bool
         |> required "score" Score.scoreDecoder
-        |> required "blackPlayerName" string
         |> required "whitePlayerName" string
+        |> required "blackPlayerName" string
         |> required "id" (nullable string)
 
 
