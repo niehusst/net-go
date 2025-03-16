@@ -29,7 +29,7 @@ import View.Loading exposing (viewLoading)
 type Msg
     = PlayPiece Int
     | PlayPass
-    | Resign
+    | PlayResign
     | DataReceived (WebData Game)
     | ReceiveScoredGame Value -- JSON encoded Game
     | UpdateGameResponse (Result Http.Error Game)
@@ -164,22 +164,30 @@ scoreView score playerColor =
 
 gamePlayView : Game -> Model -> Html Msg
 gamePlayView game model =
+    let
+        viewPlayOptions =
+            if Game.isActiveTurn game then
+                div [ class "flex gap-4" ]
+                    [ button
+                          [ class "btn"
+                          , onClick PlayPass
+                          ]
+                          [ text "Pass" ]
+                    , button
+                          [ class "btn-base bg-red-500 text-white border-solid border-2 border-red-500 hover:bg-white hover:text-red-500"
+                          , onClick PlayResign
+                          ]
+                          [ text "Resign" ]
+                    ]
+            else
+                text ""
+
+    in
     div [ class "p-5 flex flex-col gap-4" ]
         [ viewWaitForOpponent model.activeTurn
         , viewBuildBoard game
         , viewAlert model
-        , div [ class "flex gap-4" ]
-            [ button
-                [ class "btn"
-                , onClick PlayPass
-                ]
-                [ text "Pass" ]
-            , button
-                [ class "btn-base bg-red-500 text-white border-solid border-2 border-red-500 hover:bg-white hover:text-red-500"
-                , onClick Resign
-                ]
-                [ text "Resign" ]
-            ]
+        , viewPlayOptions
         ]
 
 
@@ -427,14 +435,41 @@ handlePlayPass model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        PlayPiece index ->
+    let
+        isAllowedToPlay =
+            case gameFromModel model of
+                Just game ->
+                    Game.isActiveTurn game
+
+                Nothing ->
+                    False
+
+        makeWaitYourTurnError mdl =
+            { mdl | invalidMoveAlert = Just "Wait for your turn" }
+    in
+    case ( msg, isAllowedToPlay ) of
+        (PlayPiece index, False) ->
+            ( makeWaitYourTurnError model
+            , Cmd.none
+            )
+
+        (PlayPass, False) ->
+            ( makeWaitYourTurnError model
+            , Cmd.none
+            )
+
+        (PlayResign, False) ->
+            ( makeWaitYourTurnError model
+            , Cmd.none
+            )
+
+        (PlayPiece index, True) ->
             handlePlayPiece model index
 
-        PlayPass ->
+        (PlayPass, True) ->
             handlePlayPass model
 
-        Resign ->
+        (PlayResign, True) ->
             let
                 resignedColor =
                     case gameFromModel model of
@@ -447,7 +482,7 @@ update msg model =
             in
             startScoring model resignedColor
 
-        DataReceived responseGame ->
+        (DataReceived responseGame, _) ->
             let
                 activeTurn =
                     case responseGame of
@@ -482,7 +517,7 @@ update msg model =
             , Cmd.none
             )
 
-        ReceiveScoredGame encodedGame ->
+        (ReceiveScoredGame encodedGame, _) ->
             let
                 decodedGame =
                     decodeGameFromValue encodedGame
@@ -513,7 +548,7 @@ update msg model =
             , endTurn updatedModel
             )
 
-        UpdateGameResponse resp ->
+        (UpdateGameResponse resp, _) ->
             case resp of
                 Ok game ->
                     ( { model
@@ -530,7 +565,6 @@ update msg model =
 
 endTurn : Model -> Cmd Msg
 endTurn model =
-    -- TODO: do turn swap
     case gameFromModel model of
         Just game ->
             updateGame model.gameId game UpdateGameResponse
