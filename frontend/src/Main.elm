@@ -305,7 +305,7 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Logout ->
                     let
                         ( pageModel, pageCmds ) =
-                            Home.init
+                            Home.init model.session
                     in
                     ( HomePage pageModel
                     , doLogout LogoutResponse
@@ -332,7 +332,7 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Home ->
                     let
                         ( pageModel, pageCmds ) =
-                            Home.init
+                            Home.init model.session
                     in
                     ( HomePage pageModel
                     , Cmd.map HomePageMsg pageCmds
