@@ -34,25 +34,26 @@ view model =
                         [ href (routeToString Route.ContinueGame) ]
                         [ button [ class "btn" ] [ text "Continue a game" ] ]
                     ]
+
                 LoggedOut _ ->
-                    [ p [] [ text "Log into your account to play!"]
-                    , div [ class "flex justify-center gap-3"]
+                    [ p [] [ text "Log into your account to play!" ]
+                    , div [ class "flex justify-center gap-3" ]
                         [ a
                             [ href (routeToString Route.SignIn) ]
-                            [ button [class "btn"] [text "Sign in"] ]
+                            [ button [ class "btn" ] [ text "Sign in" ] ]
                         , a
                             [ href (routeToString Route.SignUp) ]
-                            [ button [class "btn"] [text "Sign up"] ]
+                            [ button [ class "btn" ] [ text "Sign up" ] ]
                         ]
                     ]
-
     in
     div [ class "flex items-center justify-center h-full" ]
         [ div [ class "flex flex-col h-full gap-4 items-center justify-center text-center" ]
-            ((h1
+            (h1
                 [ class "text-3xl font-bold mb-5" ]
-                [ text "Play Go online with friends!" ])
-             :: pageContent)
+                [ text "Play Go online with friends!" ]
+                :: pageContent
+            )
         ]
 
 
