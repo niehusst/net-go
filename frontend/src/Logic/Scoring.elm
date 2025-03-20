@@ -114,7 +114,6 @@ territoryScore game seed =
 countSurroundedTerritory : BoardData r -> Score -> Score
 countSurroundedTerritory boardData initialScore =
     let
-        -- TODO: this is a lot of case nesting. break into smaller funcs or compress cases?
         kernel : List Int -> Set Int -> Score -> ( Set Int, Score )
         kernel positions seen score =
             case positions of
