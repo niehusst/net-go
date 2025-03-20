@@ -212,17 +212,17 @@ suite =
                                 |> scoreToString
                     in
                     Expect.equal expectedScore actualScore
-            --, test "false life removed from board" <|
-            --    \_ ->
-            --        let
-            --            expectedScore =
-            --                "W+24"
+            , test "false life removed from board" <|
+                \_ ->
+                    let
+                        expectedScore =
+                            "W+24"
 
-            --            actualScore =
-            --                scoreGame { game | board = falseLife } initialSeed
-            --                    |> scoreToString
-            --        in
-            --        Expect.equal expectedScore actualScore
+                        actualScore =
+                            scoreGame { game | board = falseLife } initialSeed
+                                |> scoreToString
+                    in
+                    Expect.equal expectedScore actualScore
             , test "komi score can tip balance" <|
                 \_ ->
                     let
