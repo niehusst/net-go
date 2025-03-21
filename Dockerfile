@@ -1,30 +1,58 @@
-FROM golang:alpine as builder
-WORKDIR /root
+### build go server binary ###
+FROM golang:1.23 AS go-builder
+WORKDIR /app
 
-### download deps ###
-# (done separately first to optimize docker layer caching)
-
-# download elm transpiler deps
-COPY package.json package-lock.json .
-RUN npm ci
+# Install Node.js to use npm scripts in Go stage + gcc for clibs compilation
+RUN apt-get update && apt-get install -y nodejs npm
 
 # download go deps
+# cgo required for go sqlite compilation to work; but this 
+# requires glibc to be dynamic lib while building, requiring
+# final image to have glibc available
+ENV CGO_ENABLED=1 
 COPY go.mod go.sum .
 RUN go mod download
 
-### build client and server ###
-
-COPY . .
-
-RUN npm run make-elm-prod
-
 # compile go app to file called 'run'
+COPY package.json main.go .
+COPY backend/ ./backend/
 ENV GIN_MODE=release
 RUN npm run make-go
 
-### setup server configs ###
 
-RUN apk --no-cache add ca-certificates
+### build elm SPA ###
+FROM node:23-alpine AS elm-builder
+WORKDIR /app
+
+# download elm binary + deps
+RUN apk add --no-cache curl
+RUN curl -fsSL https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz \
+    | gunzip > /usr/local/bin/elm && chmod +x /usr/local/bin/elm
+# RUN npm install -g elm@0.19.1
+
+COPY package.json package-lock.json .
+RUN npm ci
+
+COPY tailwind.config.js minify_elm.sh elm.json .
+COPY frontend/ ./frontend/
+RUN npm run make-elm-prod
+
+
+### setup server configs and copy build artifacts ###
+#FROM alpine:latest
+# required to use glibc dylib compiled binary
+FROM frolvlad/alpine-glibc:latest
+WORKDIR /root
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=elm-builder /app/frontend/templates/ ./frontend/templates/
+COPY --from=elm-builder /app/frontend/static/ ./frontend/static/
+COPY --from=go-builder /app/run .
+COPY .env.prod .env
+
+# TODO: proper db setup
+RUN touch netgo.gorm.db
 
 EXPOSE 8080
 CMD ["./run"]
