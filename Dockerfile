@@ -1,32 +1,30 @@
 FROM golang:alpine as builder
+WORKDIR /root
 
-WORKDIR /go/src/app
+### download deps ###
+# (done separately first to optimize docker layer caching)
 
-# Get Reflex for live reload in dev
-#ENV GO111MODULE=on
-#RUN go get github.com/cespare/reflex
-
-COPY go.mod .
-COPY go.sum .
+# download elm transpiler deps
+COPY package.json package-lock.json .
+RUN npm ci
 
 # download go deps
+COPY go.mod go.sum .
 RUN go mod download
+
+### build client and server ###
 
 COPY . .
 
-# copy over static site files to serve
-COPY frontend/templates/ .
-COPY frontend/static/ .
+RUN npm run make-elm-prod
 
 # compile go app to file called 'run'
-RUN go build -o ./run .
+ENV GIN_MODE=release
+RUN npm run make-go
 
-#FROM alpine:latest
+### setup server configs ###
+
 RUN apk --no-cache add ca-certificates
-#WORKDIR /root/
-
-#Copy executable from builder
-#COPY --from=builder /go/src/app/run .
 
 EXPOSE 8080
 CMD ["./run"]

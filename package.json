@@ -10,14 +10,19 @@
     "format-elm": "npx elm-format frontend/src/ --yes",
     "format-go": "go fmt .",
     "make": "npm run make-elm ; npm run make-go ; npm run make-css",
-    "make-elm": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js && elm make frontend/src/ScoringWorker.elm --output frontend/static/js/scoring-worker.js",
-    "make-go": "go build main.go",
+    "make-elm-main": "elm make frontend/src/Main.elm --output frontend/static/js/elm.js",
+    "make-elm-worker": "elm make frontend/src/ScoringWorker.elm --output frontend/static/js/scoring-worker.js",
+    "make-elm": "npm run make-elm-main && make-elm-worker",
+    "make-elm-minify": "./minify_elm.sh",
+    "make-elm-prod": "npm run make-elm-main -- --optimize && npm run make-elm-worker -- --optimize && npm run make-elm-minify",
+    "make-go": "go build -o ./run main.go",
     "make-css": "npx tailwindcss -i ./frontend/static/css/raw.css -o ./frontend/static/css/index.css",
     "clean": "go clean -cache"
   },
   "devDependencies": {
     "elm-format": "^0.8.5",
     "elm-test": "^0.19.1-revision11",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.14",
+    "uglify-js": "^3.19.3"
   }
 }

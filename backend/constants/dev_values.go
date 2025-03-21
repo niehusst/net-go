@@ -30,3 +30,11 @@ func GetDomain() string {
 	// TODO: swap localhost here w/ real server domain name
 	return getEnvWithDefault("DOMAIN", "localhost")
 }
+
+func GetPort() string {
+	return getEnvWithDefault("PORT", "8080")
+}
+
+func GetDatabaseURL() string {
+	return getEnvWithDefault("DATABASE_URL", "netgo.gorm.db")
+}

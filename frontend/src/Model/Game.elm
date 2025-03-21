@@ -138,8 +138,7 @@ getLastMove game =
             getLastMoveBlack game
 
 
-{-| Debugging helper function for visualizing the board in tests
--}
+{- Debugging helper function for visualizing the board in tests
 printBoard : Game -> Game
 printBoard game =
     let
@@ -180,6 +179,7 @@ printBoard game =
                 kernel g rest
     in
     kernel game game.board
+-}
 
 
 {-| The last move made should be made by the opponent
