@@ -138,47 +138,48 @@ getLastMove game =
             getLastMoveBlack game
 
 
+
 {- Debugging helper function for visualizing the board in tests
-printBoard : Game -> Game
-printBoard game =
-    let
-        mapper p =
-            case p of
-                Piece.None ->
-                    "_"
+   printBoard : Game -> Game
+   printBoard game =
+       let
+           mapper p =
+               case p of
+                   Piece.None ->
+                       "_"
 
-                Piece.BlackStone ->
-                    "X"
+                   Piece.BlackStone ->
+                       "X"
 
-                Piece.WhiteStone ->
-                    "O"
+                   Piece.WhiteStone ->
+                       "O"
 
-        kernel : Game -> Board -> Game
-        kernel g board =
-            if Array.isEmpty board then
-                let
-                    _ =
-                        Debug.log "<sep>" ""
-                in
-                g
+           kernel : Game -> Board -> Game
+           kernel g board =
+               if Array.isEmpty board then
+                   let
+                       _ =
+                           Debug.log "<sep>" ""
+                   in
+                   g
 
-            else
-                let
-                    len =
-                        Board.boardSizeToInt game.boardSize
+               else
+                   let
+                       len =
+                           Board.boardSizeToInt game.boardSize
 
-                    row =
-                        Array.slice 0 len board
+                       row =
+                           Array.slice 0 len board
 
-                    rest =
-                        Array.slice len (Array.length board) board
+                       rest =
+                           Array.slice len (Array.length board) board
 
-                    _ =
-                        Debug.log "" (Array.map mapper row)
-                in
-                kernel g rest
-    in
-    kernel game game.board
+                       _ =
+                           Debug.log "" (Array.map mapper row)
+                   in
+                   kernel g rest
+       in
+       kernel game game.board
 -}
 
 
