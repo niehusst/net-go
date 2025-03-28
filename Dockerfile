@@ -36,6 +36,7 @@ RUN npm ci
 COPY tailwind.config.js minify_elm.sh elm.json .
 COPY frontend/ ./frontend/
 RUN npm run make-elm-prod
+RUN npm run make-css
 
 
 ### setup server configs and copy build artifacts ###
