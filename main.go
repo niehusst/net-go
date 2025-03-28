@@ -17,13 +17,13 @@ import (
 )
 
 func main() {
-	port := ":8080" // TODO: change for prod?
-	log.Println("Starting server...\nListening at port", port)
 	constants.LoadEnv()
+	port := ":" + constants.GetPort()
+	log.Println("Starting server...\nListening at port", port)
 
 	// create service provider
 	baseRepoDeps := services.BaseRepoDeps{
-		DbString: "netgo.gorm.db",
+		DbString: constants.GetDatabaseURL(),
 		Config:   &gorm.Config{},
 	}
 	userDeps := services.UserServiceDeps{

@@ -30,8 +30,9 @@ repl-temp-*
 # node deps for elm
 node_modules
 
-# dont commit the db containging passwords etc
+# dont commit the db
 netgo.gorm.db
+
 
 # i dont want js to be dominant project language on gh... yeah i'm like that
 elm.js
@@ -39,3 +40,4 @@ scoring-worker.js
 
 # hide env file secrets
 .env
+.env.prod
