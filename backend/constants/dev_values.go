@@ -27,8 +27,7 @@ func GetDevMode() bool {
 }
 
 func GetDomain() string {
-	// TODO: swap localhost here w/ real server domain name
-	return getEnvWithDefault("DOMAIN", "localhost")
+	return getEnvWithDefault("DOMAIN", "playonlinego.xyz")
 }
 
 func GetPort() string {
