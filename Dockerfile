@@ -3,11 +3,11 @@ FROM golang:1.23 AS go-builder
 WORKDIR /app
 
 # Install Node.js to use npm scripts in Go stage + gcc for clibs compilation
-RUN apt-get update && apt-get install -y nodejs npm
+RUN apt-get install -y nodejs npm
 
 # download go deps
 # cgo required for go sqlite compilation to work; but this 
-# requires glibc to be dynamic lib while building, requiring
+# requires glibc dylib to exist while building, requiring
 # final image to have glibc available
 ENV CGO_ENABLED=1 
 COPY go.mod go.sum .
