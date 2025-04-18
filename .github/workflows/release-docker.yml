@@ -28,9 +28,9 @@ jobs:
       # build and push docker image to ghcr
       - run: docker build -t ${{ env.IMAGE_NAME }}:latest -t ${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }} .
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - run: |
-        docker push ghcr.io/${{ env.IMAGE_NAME }}:latest
-        docker push ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }}
+      - run: |-
+          docker push ghcr.io/${{ env.IMAGE_NAME }}:latest
+          docker push ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }}
 
       - uses: niehusst/shared-actions/release-github@dist
         with:
