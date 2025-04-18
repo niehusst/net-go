@@ -1,0 +1,39 @@
+name: Deploy
+description: deploy the specified tag of the niehusst/net-go ghcr docker image to my VPS
+
+inputs:
+  tag:
+    description: docker tag to deploy
+    required: true
+  ssh_user:
+    description: ssh username
+    required: true
+  ssh_host:
+    description: ssh host IP
+    required: true
+  ssh_key:
+    description: ssh private key
+    required: true
+  ssh_known_hosts_b64:
+    description: base64 encoded ssh known_hosts file content identifying ssh_host
+    required true
+  auth_token:
+    description: docker auth token for ghcr login
+    required: true
+  docker_user:
+    description: ghcr docker username
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: ${{ github.action_path }}/run.bash
+      shell: bash
+      env:
+        TAG_NAME: ${{ inputs.tag }}
+        SSH_USER: ${{ inputs.ssh_user }}
+        SSH_HOST: ${{ inputs.ssh_host }}
+        SSH_PRIVATE_KEY: ${{ inputs.ssh_key }}
+        SSH_KNOWN_HOSTS_B64: ${{ inputs.ssh_known_hosts_b64 }}
+        DOCKER_USER: ${{ inputs.docker.user }}
+        AUTH_TOKEN: ${{ inputs.auth_token }}

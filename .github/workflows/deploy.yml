@@ -1,0 +1,29 @@
+name: 'Deploy website'
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'docker tag name'
+        required: true
+        type: string
+        default: latest
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: ./.github/actions/deploy
+        with:
+          tag: ${{ inputs.tag_name }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_known_hosts_b64: ${{ secrets.SSH_KNOWN_HOSTS_B64 }}
+          auth_token: ${{ secrets.GITHUB_TOKEN }}
+          docker_user: ${{ github.actor }}
