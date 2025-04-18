@@ -1,14 +1,22 @@
 name: PR Checks
 
 on:
-  pull_request
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
+  title-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: niehusst/shared-actions/pr-title-check@dist
+
   lint-go:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: |-
           npm run format-go
@@ -22,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: |-
           npm run format-elm
@@ -37,7 +45,7 @@ jobs:
     timeout-minutes: 5
     needs: lint-go
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: npm run test-go
 
@@ -46,7 +54,7 @@ jobs:
     timeout-minutes: 5
     needs: lint-elm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: npm install -g elm
       - run: npm run test-elm
