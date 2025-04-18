@@ -15,8 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      # needed for ghcr docker push access
       packages: write
-      contents: read
+      # needed for github release creation
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
