@@ -26,6 +26,7 @@ jobs:
         uses: niehusst/shared-actions/get-release-info@dist
 
       # build and push docker image to ghcr
+      - run: echo "${{ secrets.ENV_PROD_B64 }}" | base64 -d > .env.prod
       - run: docker build -t ${{ env.IMAGE_NAME }}:latest -t ${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }} .
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - run: |-
