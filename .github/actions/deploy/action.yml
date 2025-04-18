@@ -35,5 +35,5 @@ runs:
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_PRIVATE_KEY: ${{ inputs.ssh_key }}
         SSH_KNOWN_HOSTS_B64: ${{ inputs.ssh_known_hosts_b64 }}
-        DOCKER_USER: ${{ inputs.docker.user }}
+        DOCKER_USER: ${{ inputs.docker_user }}
         AUTH_TOKEN: ${{ inputs.auth_token }}
