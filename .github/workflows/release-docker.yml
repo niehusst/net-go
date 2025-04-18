@@ -1,0 +1,49 @@
+name: 'Release docker image'
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ${{ github.actor }}/net-go
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+      - id: info
+        uses: niehusst/shared-actions/get-release-info@dist
+
+      # build and push docker image to ghcr
+      - run: docker build -t ${{ env.IMAGE_NAME }}:latest -t ${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }} .
+      - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: |
+        docker push ghcr.io/${{ env.IMAGE_NAME }}:latest
+        docker push ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.info.outputs.version }}
+
+      - uses: niehusst/shared-actions/release-github@dist
+        with:
+          name: ${{ steps.info.outputs.version }}
+          tag: ${{ steps.info.outputs.tag }}
+          body_base64: ${{ steps.info.outputs.changelog_base64 }}
+      
+      - uses: ./.github/actions/deploy
+        with:
+          tag: latest
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_known_hosts_b64: ${{ secrets.SSH_KNOWN_HOSTS_B64 }}
+          auth_token: ${{ secrets.GITHUB_TOKEN }}
+          docker_user: ${{ github.actor }}
