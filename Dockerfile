@@ -3,7 +3,7 @@ FROM golang:1.23 AS go-builder
 WORKDIR /app
 
 # Install Node.js to use npm scripts in Go stage + gcc for clibs compilation
-RUN apt-get install -y nodejs npm
+RUN apt-get update && apt-get install -y nodejs npm
 
 # download go deps
 # cgo required for go sqlite compilation to work; but this 
