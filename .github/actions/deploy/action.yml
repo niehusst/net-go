@@ -16,7 +16,7 @@ inputs:
     required: true
   ssh_known_hosts_b64:
     description: base64 encoded ssh known_hosts file content identifying ssh_host
-    required true
+    required: true
   auth_token:
     description: docker auth token for ghcr login
     required: true
