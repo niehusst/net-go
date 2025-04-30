@@ -7,7 +7,7 @@ docker build --network=host \
 docker run -d \
   --name net_go \
   -p 8080:8080 \
-  -v netgo.gorm.db:/root \
+  -v netgo_db:/root \
   netgo:latest
 
 # kill with:

@@ -1,4 +1,3 @@
-
 ### build go server binary ###
 FROM golang:1.23 AS go-builder
 WORKDIR /app
