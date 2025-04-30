@@ -44,16 +44,14 @@ RUN npm run make-css
 # required to use glibc dylib compiled binary
 FROM frolvlad/alpine-glibc:latest
 WORKDIR /root
+ARG ENV_FILE=".env.prod"
 
 RUN apk add --no-cache ca-certificates
 
 COPY --from=elm-builder /app/frontend/templates/ ./frontend/templates/
 COPY --from=elm-builder /app/frontend/static/ ./frontend/static/
 COPY --from=go-builder /app/run .
-COPY .env.prod .env
-
-# TODO: proper db setup
-RUN touch netgo.gorm.db
+COPY ${ENV_FILE} .env
 
 EXPOSE 8080
 CMD ["./run"]
