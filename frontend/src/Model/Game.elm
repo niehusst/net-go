@@ -68,74 +68,36 @@ addMoveToHistory move game =
     { game | history = move :: game.history }
 
 
-getLastMoveWhite : Game -> Maybe Move
-getLastMoveWhite game =
-    let
-        kernel : List Move -> Maybe Move
-        kernel history =
-            case history of
-                [] ->
-                    Nothing
-
-                move :: historyTail ->
-                    let
-                        playerPiece =
-                            case move of
-                                Pass piece ->
-                                    piece
-
-                                Play piece _ ->
-                                    piece
-                    in
-                    case playerPiece of
-                        WhiteStone ->
-                            Just move
-
-                        _ ->
-                            kernel historyTail
-    in
-    kernel game.history
-
-
-getLastMoveBlack : Game -> Maybe Move
-getLastMoveBlack game =
-    let
-        kernel : List Move -> Maybe Move
-        kernel history =
-            case history of
-                [] ->
-                    Nothing
-
-                move :: historyTail ->
-                    let
-                        playerPiece =
-                            case move of
-                                Pass piece ->
-                                    piece
-
-                                Play piece _ ->
-                                    piece
-                    in
-                    case playerPiece of
-                        BlackStone ->
-                            Just move
-
-                        _ ->
-                            kernel historyTail
-    in
-    kernel game.history
-
-
 {-| Get last move made by the player matching `playerColor`
 -}
-getLastMove : Game -> Maybe Move
-getLastMove game =
-    case game.playerColor of
-        ColorChoice.White ->
-            getLastMoveWhite game
+getLastMove : Game -> ColorChoice -> Maybe Move
+getLastMove game targetColor =
+    let
+        targetPiece =
+            ColorChoice.colorToPiece targetColor
 
-        ColorChoice.Black ->
-            getLastMoveBlack game
+        kernel : List Move -> Maybe Move
+        kernel history =
+            case history of
+                [] ->
+                    Nothing
+
+                move :: historyTail ->
+                    let
+                        playerPiece =
+                            case move of
+                                Pass piece ->
+                                    piece
+
+                                Play piece _ ->
+                                    piece
+                    in
+                    if targetPiece == playerPiece then
+                            Just move
+                    else
+                            kernel historyTail
+    in
+    kernel game.history
 
 
 

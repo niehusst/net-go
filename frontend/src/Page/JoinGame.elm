@@ -147,7 +147,7 @@ update msg model =
                                         -- filter out games where the player has made a move
                                         -- or where the game is already over.
                                         -- Keep fresh games user has not played in yet.
-                                        case getLastMove game of
+                                        case getLastMove game game.playerColor of
                                             Just _ ->
                                                 False
 

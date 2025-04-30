@@ -113,7 +113,7 @@ update msg model =
                                     (\game ->
                                         -- filter out games where the player hasnt made a move
                                         -- or where the game is already over.
-                                        case getLastMove game of
+                                        case getLastMove game game.playerColor of
                                             Just _ ->
                                                 not game.isOver
 
