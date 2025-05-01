@@ -257,6 +257,14 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 		game.BlackPlayerId = opponentUser.ID
 	}
 
+	if game.BlackPlayerId == game.WhitePlayerId {
+		err := apperrors.NewBadRequest("Cannot create game against yourself")
+		c.JSON(err.Status(), gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	if err := rhandler.Provider.GameService.Create(c, game); err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),

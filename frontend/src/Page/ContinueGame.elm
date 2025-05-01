@@ -7,18 +7,19 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove, isActiveTurn)
-import RemoteData exposing (WebData)
+import Error exposing (CustomWebData)
+import RemoteData
 import Route
 import View.Error exposing (viewErrorBanner)
 import View.Loading exposing (viewLoading)
 
 
 type Msg
-    = DataReceived (WebData (List Game))
+    = DataReceived (CustomWebData (List Game))
 
 
 type alias Model =
-    { remoteData : WebData (List Game)
+    { remoteData : CustomWebData (List Game)
     , ongoingGames : Maybe (List Game)
     , errorMessage : Maybe String
     }

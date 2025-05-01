@@ -93,9 +93,10 @@ getLastMove game targetColor =
                                     piece
                     in
                     if targetPiece == playerPiece then
-                            Just move
+                        Just move
+
                     else
-                            kernel historyTail
+                        kernel historyTail
     in
     kernel game.history
 

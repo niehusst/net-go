@@ -271,6 +271,45 @@ func TestCreateGameIntegration(t *testing.T) {
 
 		mockGameService.AssertExpectations(t)
 	})
+	t.Run("when both player ids match, reject", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		mockGameService := new(mocks.MockGameService)
+		mockUserService := new(mocks.MockUserService)
+
+		// record responses
+		rr := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, mockUserService, &user)
+
+		// create mock req
+		mockReqBody, err := json.Marshal(gin.H{
+			"game": ElmGame{
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.Black,
+				BlackPlayerName: "tim",
+				WhitePlayerName: "tim",
+			},
+		})
+		assert.NoError(t, err)
+
+		// do request
+		req, err := http.NewRequest(http.MethodPost, "/api/games/", bytes.NewBuffer(mockReqBody))
+		assert.NoError(t, err)
+
+		router.ServeHTTP(rr, req)
+
+		// validate
+		assert.Equal(t, 400, rr.Code)
+
+		mockGameService.AssertExpectations(t)
+	})
 	t.Run("when requesting user color choice doesnt match player color id, reject", func(t *testing.T) {
 		user := model.User{
 			Username: "tim",
