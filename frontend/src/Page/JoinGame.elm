@@ -1,26 +1,26 @@
 module Page.JoinGame exposing (Model, Msg, init, update, view)
 
 import API.Games exposing (deleteGame, listGamesByUser)
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, newErrorResp, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove)
-import RemoteData exposing (WebData)
+import RemoteData
 import Route
 import View.Error exposing (viewErrorBanner)
 import View.Loading exposing (viewLoading)
 
 
 type Msg
-    = DataReceived (WebData (List Game))
+    = DataReceived (CustomWebData (List Game))
     | RejectGameClick String -- clicked game ID
     | GameDeleted String (Result Http.Error ())
 
 
 type alias Model =
-    { remoteData : WebData (List Game)
+    { remoteData : CustomWebData (List Game)
     , unjoinedGames : Maybe (List Game)
     , errorMessage : Maybe String
     }
@@ -119,7 +119,7 @@ update msg model =
             )
 
         GameDeleted gameId (Result.Err err) ->
-            ( { model | errorMessage = Just <| stringFromHttpError err }
+            ( { model | errorMessage = Just <| stringFromHttpError <| newErrorResp err Nothing }
             , Cmd.none
             )
 

@@ -1,4 +1,4 @@
-module Error exposing (stringFromHttpError, CustomWebData, ErrorResponse, expectJsonWithError)
+module Error exposing (CustomWebData, HttpErrorResponse, expectJsonWithError, newErrorResp, stringFromHttpError)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -6,16 +6,16 @@ import RemoteData exposing (RemoteData)
 
 
 type alias CustomWebData a =
-    RemoteData ErrorResponse a
+    RemoteData HttpErrorResponse a
 
 
-type alias ErrorResponse =
+type alias HttpErrorResponse =
     { httpError : Http.Error
     , errorMessage : Maybe String
     }
 
 
-newErrorResp : Http.Error -> Maybe String -> ErrorResponse
+newErrorResp : Http.Error -> Maybe String -> HttpErrorResponse
 newErrorResp httpError message =
     { httpError = httpError
     , errorMessage = message
@@ -27,7 +27,7 @@ errorDecoder =
     Decode.field "error" Decode.string
 
 
-expectJsonWithError : (Result ErrorResponse a -> msg) -> Decoder a -> Http.Expect msg
+expectJsonWithError : (Result HttpErrorResponse a -> msg) -> Decoder a -> Http.Expect msg
 expectJsonWithError toMsg decoder =
     Http.expectStringResponse toMsg <|
         \response ->
@@ -62,7 +62,7 @@ expectJsonWithError toMsg decoder =
                             Err <| newErrorResp (Http.BadBody (Decode.errorToString err)) Nothing
 
 
-stringFromHttpError : ErrorResponse -> String
+stringFromHttpError : HttpErrorResponse -> String
 stringFromHttpError error =
     case error.httpError of
         Http.BadUrl msg ->
@@ -80,10 +80,14 @@ stringFromHttpError error =
                     case error.errorMessage of
                         Just err ->
                             err
+
                         Nothing ->
                             case errCode of
                                 500 ->
                                     "Internal server error."
+
+                                400 ->
+                                    "Submitted data was invalid."
 
                                 401 ->
                                     "Authentication failure. Please sign in."
@@ -91,8 +95,8 @@ stringFromHttpError error =
                                 403 ->
                                     "Authentication failure. You're not allowed to do that."
 
-                                400 ->
-                                    "Submitted data was invalid."
+                                404 ->
+                                    "Unable to find that data."
 
                                 _ ->
                                     "Oops! An error occured."
@@ -100,4 +104,4 @@ stringFromHttpError error =
             String.fromInt errCode ++ " ERROR: " ++ msg
 
         Http.BadBody msg ->
-            "Bad body: " ++ msg
+            "Response could not be parsed: " ++ msg

@@ -3,6 +3,7 @@ module Page.GameCreate exposing (FormData, Model, Msg(..), init, update, view)
 import API.Games exposing (CreateGameResponse, createGame)
 import Browser.Navigation as Nav
 import CmdExtra exposing (message)
+import Error exposing (HttpErrorResponse)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, min, selected, step, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -11,7 +12,6 @@ import Model.Board as Board exposing (BoardSize(..), boardSizeToInt, boardSizeTo
 import Model.ColorChoice exposing (ColorChoice(..), colorToString, stringToColor)
 import Model.Game as Game exposing (Game)
 import Model.Score as Score
-import RemoteData
 import Route exposing (Route, pushUrl)
 import Session
 import View.Error exposing (viewHttpError)
@@ -23,14 +23,14 @@ type Msg
     | StoreKomi String
     | StoreOpponentName String
     | CreateGame -- http req msgs for creating game in db
-    | GameCreated (Result Http.Error CreateGameResponse)
+    | GameCreated (Result HttpErrorResponse CreateGameResponse)
 
 
 type alias Model =
     { formData : FormData
     , navKey : Nav.Key
     , userData : Session.UserData
-    , httpError : Maybe Http.Error
+    , httpError : Maybe HttpErrorResponse
     }
 
 

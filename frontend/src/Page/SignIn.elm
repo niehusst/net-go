@@ -2,12 +2,12 @@ module Page.SignIn exposing (Model, Msg(..), init, update, view)
 
 import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSigninReq)
 import CmdExtra exposing (message)
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, HttpErrorResponse, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onSubmit)
 import Http
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (RemoteData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import View.Error exposing (viewErrorBanner)
@@ -17,7 +17,7 @@ import View.Loading exposing (viewLoading)
 type alias Model =
     { username : String
     , password : String
-    , formResponse : WebData AuthResponseData
+    , formResponse : CustomWebData AuthResponseData
     , session : Session
     }
 
@@ -26,7 +26,7 @@ type Msg
     = SaveUsername String
     | SavePassword String
     | SendHttpSigninReq
-    | ReceiveHttpSigninResp (WebData AuthResponseData)
+    | ReceiveHttpSigninResp (CustomWebData AuthResponseData)
     | UpdateSession Session
 
 
@@ -101,9 +101,9 @@ viewForm model =
 -- UPDATE --
 
 
-stringForAuthError : Http.Error -> String
+stringForAuthError : HttpErrorResponse -> String
 stringForAuthError error =
-    case error of
+    case error.httpError of
         Http.BadStatus _ ->
             "Failed to signin for that username and password."
 

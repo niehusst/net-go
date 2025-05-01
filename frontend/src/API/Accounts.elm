@@ -1,10 +1,11 @@
 module API.Accounts exposing (AuthRequestData, AuthResponseData, doLogout, sendSigninReq, sendSignupReq)
 
+import Error exposing (CustomWebData, HttpErrorResponse, expectJsonWithError)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (RemoteData)
 
 
 prefix =
@@ -50,23 +51,23 @@ authEncoder reqData =
         ]
 
 
-sendSigninReq : AuthRequestData r -> (RemoteData.WebData AuthResponseData -> msg) -> Cmd msg
+sendSigninReq : AuthRequestData r -> (CustomWebData AuthResponseData -> msg) -> Cmd msg
 sendSigninReq reqData receiveMsg =
     Http.post
         { url = prefix ++ "/signin"
         , body = Http.jsonBody (authEncoder reqData)
         , expect =
             authDecoder
-                |> Http.expectJson (RemoteData.fromResult >> receiveMsg)
+                |> expectJsonWithError (RemoteData.fromResult >> receiveMsg)
         }
 
 
-sendSignupReq : AuthRequestData r -> (RemoteData.WebData AuthResponseData -> msg) -> Cmd msg
+sendSignupReq : AuthRequestData r -> (CustomWebData AuthResponseData -> msg) -> Cmd msg
 sendSignupReq reqData receiveMsg =
     Http.post
         { url = prefix ++ "/signup"
         , body = Http.jsonBody (authEncoder reqData)
         , expect =
             authDecoder
-                |> Http.expectJson (RemoteData.fromResult >> receiveMsg)
+                |> expectJsonWithError (RemoteData.fromResult >> receiveMsg)
         }

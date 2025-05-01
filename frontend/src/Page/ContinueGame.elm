@@ -1,13 +1,12 @@
 module Page.ContinueGame exposing (Model, Msg, init, update, view)
 
 import API.Games exposing (deleteGame, listGamesByUser)
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove, isActiveTurn)
-import Error exposing (CustomWebData)
 import RemoteData
 import Route
 import View.Error exposing (viewErrorBanner)
