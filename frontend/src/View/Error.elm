@@ -1,12 +1,11 @@
 module View.Error exposing (viewErrorBanner, viewHttpError)
 
-import Error exposing (stringFromHttpError)
+import Error exposing (HttpErrorResponse, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Http
 
 
-viewHttpError : Maybe Http.Error -> Html msg
+viewHttpError : Maybe HttpErrorResponse -> Html msg
 viewHttpError maybeHttpError =
     case maybeHttpError of
         Just httpError ->

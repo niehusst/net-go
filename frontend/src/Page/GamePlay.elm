@@ -3,7 +3,7 @@ module Page.GamePlay exposing (Model, Msg, init, isInnerCell, subscriptions, upd
 import API.Games exposing (getGame, updateGame)
 import Array
 import Browser.Navigation as Nav
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, HttpErrorResponse, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
@@ -17,7 +17,7 @@ import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
 import Random
-import RemoteData exposing (WebData)
+import RemoteData
 import Route exposing (routeToString)
 import ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import Svg exposing (circle, svg)
@@ -30,9 +30,9 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | PlayResign
-    | DataReceived (WebData Game)
+    | DataReceived (CustomWebData Game)
     | ReceiveScoredGame Value -- JSON encoded Game
-    | UpdateGameResponse (Result Http.Error Game)
+    | UpdateGameResponse (Result HttpErrorResponse Game)
 
 
 type PlayState
@@ -41,7 +41,7 @@ type PlayState
 
 
 type alias Model =
-    { remoteGameData : WebData Game
+    { remoteGameData : CustomWebData Game
 
     -- for showing client side changes immediately while they are
     -- being propogated to backend

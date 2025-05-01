@@ -1,24 +1,24 @@
 module Page.ContinueGame exposing (Model, Msg, init, update, view)
 
 import API.Games exposing (deleteGame, listGamesByUser)
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Model.Game exposing (Game, getLastMove, isActiveTurn)
-import RemoteData exposing (WebData)
+import RemoteData
 import Route
 import View.Error exposing (viewErrorBanner)
 import View.Loading exposing (viewLoading)
 
 
 type Msg
-    = DataReceived (WebData (List Game))
+    = DataReceived (CustomWebData (List Game))
 
 
 type alias Model =
-    { remoteData : WebData (List Game)
+    { remoteData : CustomWebData (List Game)
     , ongoingGames : Maybe (List Game)
     , errorMessage : Maybe String
     }
@@ -113,7 +113,7 @@ update msg model =
                                     (\game ->
                                         -- filter out games where the player hasnt made a move
                                         -- or where the game is already over.
-                                        case getLastMove game of
+                                        case getLastMove game game.playerColor of
                                             Just _ ->
                                                 not game.isOver
 

@@ -1,5 +1,6 @@
 module API.Games exposing (CreateGameResponse, createGame, deleteGame, getGame, listGamesByUser, updateGame)
 
+import Error exposing (CustomWebData, HttpErrorResponse, expectJsonWithError)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -20,7 +21,7 @@ type alias CreateGameResponse =
 gameId - ID of game to fetch
 msgType - the Msg type to trigger on completion via Cmd
 -}
-getGame : String -> (RemoteData.WebData Model.Game.Game -> msg) -> Cmd msg
+getGame : String -> (CustomWebData Model.Game.Game -> msg) -> Cmd msg
 getGame gameId msgType =
     let
         respDecoder : Decoder Model.Game.Game
@@ -31,7 +32,7 @@ getGame gameId msgType =
         { url = prefix ++ "/" ++ gameId
         , expect =
             respDecoder
-                |> Http.expectJson (RemoteData.fromResult >> msgType)
+                |> expectJsonWithError (RemoteData.fromResult >> msgType)
         }
 
 
@@ -41,7 +42,7 @@ getGame gameId msgType =
 msgType - the Msg type to trigger on completion via Cmd
 
 -}
-listGamesByUser : (RemoteData.WebData (List Model.Game.Game) -> msg) -> Cmd msg
+listGamesByUser : (CustomWebData (List Model.Game.Game) -> msg) -> Cmd msg
 listGamesByUser msgType =
     let
         respDecoder : Decoder (List Model.Game.Game)
@@ -52,7 +53,7 @@ listGamesByUser msgType =
         { url = prefix
         , expect =
             respDecoder
-                |> Http.expectJson (RemoteData.fromResult >> msgType)
+                |> expectJsonWithError (RemoteData.fromResult >> msgType)
         }
 
 
@@ -60,7 +61,7 @@ listGamesByUser msgType =
 game - Game struct to create
 msgType - the Msg to trigger on completion via Cmd
 -}
-createGame : Game -> (Result Http.Error CreateGameResponse -> msg) -> Cmd msg
+createGame : Game -> (Result HttpErrorResponse CreateGameResponse -> msg) -> Cmd msg
 createGame game msgType =
     let
         decodeResponse : Decoder CreateGameResponse
@@ -75,7 +76,7 @@ createGame game msgType =
     Http.post
         { url = prefix ++ "/"
         , body = Http.jsonBody body
-        , expect = Http.expectJson msgType decodeResponse
+        , expect = expectJsonWithError msgType decodeResponse
         }
 
 
@@ -84,7 +85,7 @@ gameId - ID of the DB Game table row to update
 game - new value of Game struct to update DB with
 msgType - the Msg to trigger on completion via Cmd
 -}
-updateGame : String -> Game -> (Result Http.Error Model.Game.Game -> msg) -> Cmd msg
+updateGame : String -> Game -> (Result HttpErrorResponse Model.Game.Game -> msg) -> Cmd msg
 updateGame gameId game msgType =
     let
         body =
@@ -98,7 +99,7 @@ updateGame gameId game msgType =
     Http.post
         { url = prefix ++ "/" ++ gameId
         , body = Http.jsonBody body
-        , expect = Http.expectJson msgType respDecoder
+        , expect = expectJsonWithError msgType respDecoder
         }
 
 

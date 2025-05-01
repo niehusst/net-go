@@ -2,7 +2,7 @@ module Page.SignUp exposing (Model, Msg(..), init, update, view)
 
 import API.Accounts exposing (AuthRequestData, AuthResponseData, sendSignupReq)
 import CmdExtra exposing (message)
-import Error exposing (stringFromHttpError)
+import Error exposing (CustomWebData, HttpErrorResponse, stringFromHttpError)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onSubmit)
@@ -10,7 +10,7 @@ import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline
 import Json.Encode as Encode
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (RemoteData)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import View.Error exposing (viewErrorBanner)
@@ -21,7 +21,8 @@ type alias Model =
     { username : String
     , password : String
     , confirmPassword : String
-    , formResponse : WebData AuthResponseData
+    , formResponse : CustomWebData AuthResponseData
+    , clientError : Maybe String
     , session : Session
     }
 
@@ -31,7 +32,7 @@ type Msg
     | SavePassword String
     | SaveConfirmPassword String
     | SendHttpSignupReq
-    | ReceiveHttpSignupResp (WebData AuthResponseData)
+    | ReceiveHttpSignupResp (CustomWebData AuthResponseData)
     | UpdateSession Session
 
 
@@ -47,12 +48,25 @@ view model =
         ]
 
 
+viewError : Maybe String -> Html Msg
+viewError maybeErrText =
+    case maybeErrText of
+        Just errText ->
+            viewErrorBanner <| "ERROR: " ++ errText
+
+        Nothing ->
+            text ""
+
+
 viewBody : Model -> Html Msg
 viewBody model =
     div [ class "w-full max-w-xs flex flex-col" ]
         [ case model.formResponse of
             RemoteData.NotAsked ->
-                viewForm model
+                div []
+                    [ viewForm model
+                    , viewError model.clientError
+                    ]
 
             RemoteData.Loading ->
                 viewLoading "Loading..."
@@ -64,7 +78,7 @@ viewBody model =
             RemoteData.Failure error ->
                 div []
                     [ viewForm model
-                    , viewErrorBanner <| "Error: " ++ stringForAuthError error
+                    , viewErrorBanner <| stringForAuthError error
                     ]
         ]
 
@@ -116,9 +130,9 @@ viewForm model =
 -- UPDATE --
 
 
-stringForAuthError : Http.Error -> String
+stringForAuthError : HttpErrorResponse -> String
 stringForAuthError error =
-    case error of
+    case error.httpError of
         Http.BadStatus _ ->
             "Failed to signup for that username and password. Note: passwords must be between 8 and 30 characters."
 
@@ -146,12 +160,15 @@ update msg model =
 
         SendHttpSignupReq ->
             if model.password /= model.confirmPassword then
-                ( { model | formResponse = RemoteData.Failure (Http.BadBody "Passwords don't match!") }
+                ( { model | clientError = Just "Passwords don't match!" }
                 , Cmd.none
                 )
 
             else
-                ( { model | formResponse = RemoteData.Loading }
+                ( { model
+                    | formResponse = RemoteData.Loading
+                    , clientError = Nothing
+                  }
                 , sendSignupReq model ReceiveHttpSignupResp
                 )
 
@@ -195,5 +212,6 @@ initialModel session =
     , password = ""
     , confirmPassword = ""
     , formResponse = RemoteData.NotAsked
+    , clientError = Nothing
     , session = session
     }
