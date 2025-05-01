@@ -279,6 +279,13 @@ func TestCreateGameIntegration(t *testing.T) {
 		user.ID = 123
 		mockGameService := new(mocks.MockGameService)
 		mockUserService := new(mocks.MockUserService)
+		mockUserService.
+			On(
+				"FindByUsername",
+				mock.AnythingOfType("*gin.Context"),
+				"tim",
+			).
+			Return(&user, nil)
 
 		// record responses
 		rr := httptest.NewRecorder()
