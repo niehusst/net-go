@@ -45,4 +45,7 @@ func SetRouter(p provider.Provider) {
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
+
+	// handle 500 errors gracefully
+	router.Use(gin.Recovery())
 }
