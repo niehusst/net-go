@@ -35,6 +35,7 @@ func SetRouter(p provider.Provider) {
 	gameGroup := router.Group("/api/games")
 	gameGroup.Use(middleware.AuthUser(handler))
 	gameGroup.GET("/:id", handler.GetGame)
+	gameGroup.GET("/:id/long", handler.GetGameLongPoll)
 	gameGroup.GET("/", handler.ListGamesByUser)
 	gameGroup.POST("/:id", handler.UpdateGame)
 	gameGroup.POST("/", handler.CreateGame)

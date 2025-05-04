@@ -1,6 +1,6 @@
 module Page.GamePlay exposing (Model, Msg, init, isInnerCell, subscriptions, update, view)
 
-import API.Games exposing (getGame, updateGame)
+import API.Games exposing (getGame, getGameLongPoll, updateGame)
 import Array
 import Browser.Navigation as Nav
 import Error exposing (CustomWebData, HttpErrorResponse, stringFromHttpError)
@@ -16,7 +16,6 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
-import Random
 import RemoteData
 import Route exposing (routeToString)
 import ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
@@ -30,9 +29,10 @@ type Msg
     = PlayPiece Int
     | PlayPass
     | PlayResign
-    | DataReceived (CustomWebData Game)
+    | GameDataReceived (CustomWebData Game)
     | ReceiveScoredGame Value -- JSON encoded Game
     | UpdateGameResponse (Result HttpErrorResponse Game)
+    | AwaitedUpdateResponse (Result HttpErrorResponse Game)
 
 
 type PlayState
@@ -49,7 +49,6 @@ type alias Model =
     , activeTurn : Bool
     , invalidMoveAlert : Maybe String
     , transportError : Maybe String
-    , initialSeed : Int
     , playState : PlayState
     , gameId : String
     }
@@ -433,6 +432,14 @@ handlePlayPass model =
             )
 
 
+{-| Check if client should poll server for game updates.
+(Only when the game is ongoing and the client is awaiting their turn)
+-}
+shouldAwaitUpdate : Game -> Bool
+shouldAwaitUpdate game =
+    not (Game.isActiveTurn game) && not game.isOver
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -482,7 +489,7 @@ update msg model =
             in
             startScoring model resignedColor
 
-        ( DataReceived responseGame, _ ) ->
+        ( GameDataReceived responseGame, _ ) ->
             let
                 activeTurn =
                     case responseGame of
@@ -491,6 +498,18 @@ update msg model =
 
                         _ ->
                             False
+
+                cmd =
+                    case responseGame of
+                        RemoteData.Success game ->
+                            if shouldAwaitUpdate game then
+                                getGameLongPoll model.gameId AwaitedUpdateResponse
+
+                            else
+                                Cmd.none
+
+                        _ ->
+                            Cmd.none
 
                 clientGameData =
                     case responseGame of
@@ -514,7 +533,7 @@ update msg model =
                 , transportError = transportError
                 , activeTurn = activeTurn
               }
-            , Cmd.none
+            , cmd
             )
 
         ( ReceiveScoredGame encodedGame, _ ) ->
@@ -554,13 +573,48 @@ update msg model =
                     ( { model
                         | clientGameData = Just game
                       }
-                    , Cmd.none
+                    , getGameLongPoll model.gameId AwaitedUpdateResponse
                     )
 
                 Err error ->
                     ( { model | transportError = Just (stringFromHttpError error) }
                     , Cmd.none
                     )
+
+        ( AwaitedUpdateResponse resp, _ ) ->
+            case resp of
+                Ok game ->
+                    let
+                        updatedModel =
+                            { model
+                                | clientGameData = Just game
+                                , activeTurn = Game.isActiveTurn game
+                            }
+                    in
+                    if shouldAwaitUpdate game then
+                        ( updatedModel
+                        , getGameLongPoll model.gameId AwaitedUpdateResponse
+                        )
+
+                    else
+                        -- we got an updated game where it's our turn!
+                        ( updatedModel
+                        , Cmd.none
+                        )
+
+                Err err ->
+                    case err.httpError of
+                        Http.Timeout ->
+                            -- expected, restart long polling
+                            ( model
+                            , getGameLongPoll model.gameId AwaitedUpdateResponse
+                            )
+
+                        _ ->
+                            -- oops a real error
+                            ( { model | transportError = Just (stringFromHttpError err) }
+                            , Cmd.none
+                            )
 
 
 endTurn : Model -> Cmd Msg
@@ -580,7 +634,7 @@ endTurn model =
 init : String -> ( Model, Cmd Msg )
 init gameId =
     ( initialModel gameId
-    , getGame gameId DataReceived
+    , getGame gameId GameDataReceived
     )
 
 
@@ -592,7 +646,6 @@ initialModel gameId =
     , invalidMoveAlert = Nothing
     , transportError = Nothing
     , playState = Playing
-    , initialSeed = 0
     , gameId = gameId
     }
 
