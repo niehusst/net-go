@@ -36,6 +36,7 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	// keep this in sync w/ route defintion in router.go
 	// (couldnt use SetRouter directly w/o import cycle)
 	router.GET("/api/games/:id", rhandler.GetGame)
+	router.GET("/api/games/:id/long", rhandler.GetGameLongPoll)
 	router.POST("/api/games/", rhandler.CreateGame)
 	router.POST("/api/games/:id", rhandler.UpdateGame)
 	router.GET("/api/games/", rhandler.ListGamesByUser)
@@ -891,5 +892,82 @@ func TestDeleteGameIntegration(t *testing.T) {
 
 		assert.Equal(t, 401, rr.Code)
 		mockGameService.AssertNotCalled(t, "Delete")
+	})
+}
+
+func TestGetGameLongPollIntegration(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("success", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+		game := model.Game{
+			Board: types.Board{
+				Size: types.Full,
+				Map:  [][]types.Piece{},
+			},
+			Score:         types.Score{},
+			BlackPlayer:   user,
+			BlackPlayerId: user.ID,
+		}
+		mockGameService := new(mocks.MockGameService)
+		mockGameService.
+			On(
+				"Get",
+				mock.AnythingOfType("*gin.Context"),
+				uint(123),
+			).
+			Return(&game, nil)
+		mockGameService.
+			On(
+				"Update",
+				mock.AnythingOfType("*gin.Context"),
+				mock.AnythingOfType("*model.Game"),
+			).
+			Return(nil)
+
+		// record responses
+		rrPoll := httptest.NewRecorder()
+		rrUpdate := httptest.NewRecorder()
+		router := buildGameRouter(mockGameService, nil, &user)
+
+		// do request
+		reqPoll, err := http.NewRequest(http.MethodGet, "/api/games/123/long", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		// let long poll hang async until update req
+		go router.ServeHTTP(rrPoll, reqPoll)
+
+		// create mock req
+		mockReqBody, err := json.Marshal(gin.H{
+			"game": ElmGame{
+				BoardSize:       types.Full,
+				Board:           make([]types.Piece, 0),
+				History:         make([]types.Move, 0),
+				IsOver:          false,
+				Score:           types.Score{},
+				PlayerColor:     types.White,
+				BlackPlayerName: "sally",
+				WhitePlayerName: "tim",
+			},
+		})
+		assert.NoError(t, err)
+
+		// do request
+		reqUpdate, err := http.NewRequest(http.MethodPost, "/api/games/123", bytes.NewBuffer(mockReqBody))
+
+		// update call to allow poll to respond
+		router.ServeHTTP(rrUpdate, reqUpdate)
+
+		// validate
+		assert.Equal(t, 200, rrPoll.Code)
+		assert.Equal(t, 200, rrUpdate.Code)
+		assert.Equal(t, mockReqBody, rrPoll.Body.Bytes())
+		assert.Equal(t, mockReqBody, rrUpdate.Body.Bytes())
+		mockGameService.AssertExpectations(t)
+		assert.Equal(t, 200, 200)
 	})
 }
