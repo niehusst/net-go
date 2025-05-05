@@ -6,12 +6,14 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/model"
 	"net-go/server/backend/model/types"
 	"net-go/server/backend/services/mocks"
+	"net-go/server/backend/subscriptions"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -22,9 +24,10 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	router := gin.Default()
 
 	p := provider.Provider{
-		R:           router,
-		GameService: mockGameService,
-		UserService: mockUserService,
+		R:             router,
+		GameService:   mockGameService,
+		UserService:   mockUserService,
+		Subscriptions: make(subscriptions.GameSubscriptions),
 	}
 	rhandler := NewRouteHandler(p)
 	if ctxUser != nil {
@@ -903,6 +906,10 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 			Username: "tim",
 			Password: "pwnd",
 		}
+		user2 := model.User{
+			Username: "sally",
+			Password: "pwnd",
+		}
 		user.ID = 123
 		game := model.Game{
 			Board: types.Board{
@@ -912,6 +919,8 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 			Score:         types.Score{},
 			BlackPlayer:   user,
 			BlackPlayerId: user.ID,
+			WhitePlayer:   user2,
+			WhitePlayerId: user2.ID,
 		}
 		mockGameService := new(mocks.MockGameService)
 		mockGameService.
@@ -939,7 +948,12 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// let long poll hang async until update req
-		go router.ServeHTTP(rrPoll, reqPoll)
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			router.ServeHTTP(rrPoll, reqPoll)
+		}()
 
 		// create mock req
 		mockReqBody, err := json.Marshal(gin.H{
@@ -947,11 +961,12 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 				BoardSize:       types.Full,
 				Board:           make([]types.Piece, 0),
 				History:         make([]types.Move, 0),
-				IsOver:          false,
+				IsOver:          true,
 				Score:           types.Score{},
-				PlayerColor:     types.White,
-				BlackPlayerName: "sally",
-				WhitePlayerName: "tim",
+				PlayerColor:     types.Black,
+				BlackPlayerName: "tim",
+				WhitePlayerName: "sally",
+				ID:              "0",
 			},
 		})
 		assert.NoError(t, err)
@@ -962,12 +977,13 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		// update call to allow poll to respond
 		router.ServeHTTP(rrUpdate, reqUpdate)
 
+		// wait for long poll goroutine to finish
+		wg.Wait()
 		// validate
 		assert.Equal(t, 200, rrPoll.Code)
 		assert.Equal(t, 200, rrUpdate.Code)
 		assert.Equal(t, mockReqBody, rrPoll.Body.Bytes())
 		assert.Equal(t, mockReqBody, rrUpdate.Body.Bytes())
 		mockGameService.AssertExpectations(t)
-		assert.Equal(t, 200, 200)
 	})
 }

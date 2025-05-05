@@ -384,7 +384,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 		return
 	}
 
-	if rhandler.Provider.Subscriptions[uriParams.ID] == nil {
+	if rhandler.Provider.Subscriptions[uriParams.ID] != nil {
 		rhandler.Provider.Subscriptions[uriParams.ID] <- *currentGame
 	}
 
