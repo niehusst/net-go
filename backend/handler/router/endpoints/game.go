@@ -1,14 +1,16 @@
 package endpoints
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/binding"
 	"net-go/server/backend/model"
 	"net-go/server/backend/model/types"
+	"net-go/server/backend/subscriptions"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type gameUri struct {
@@ -179,21 +181,26 @@ func (rhandler RouteHandler) GetGameLongPoll(c *gin.Context) {
 		return
 	}
 
-	// TODO make chan, store chan in provider, await chan data
+	rhandler.Provider.Subscriptions[uriParams.ID] = make(subscriptions.GameListener)
+	// await an update message
+	game := <-rhandler.Provider.Subscriptions[uriParams.ID]
+	// cleanup
+	close(rhandler.Provider.Subscriptions[uriParams.ID])
+	delete(rhandler.Provider.Subscriptions, uriParams.ID)
 
-	game, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
-	if err != nil {
-		log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
-		notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
-		c.JSON(notFoundErr.Status(), gin.H{
-			"error": notFoundErr.Error(),
-		})
-		return
-	}
+	//game, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
+	//if err != nil {
+	//	log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
+	//	notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
+	//	c.JSON(notFoundErr.Status(), gin.H{
+	//		"error": notFoundErr.Error(),
+	//	})
+	//	return
+	//}
 
 	// return game in shape elm expects
 	var respGame ElmGame
-	respGame.fromGame(*game, *user)
+	respGame.fromGame(game, *user)
 	c.JSON(http.StatusOK, gin.H{
 		"game": respGame,
 	})
@@ -375,6 +382,10 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 			"error": err.Error(),
 		})
 		return
+	}
+
+	if rhandler.Provider.Subscriptions[uriParams.ID] == nil {
+		rhandler.Provider.Subscriptions[uriParams.ID] <- *currentGame
 	}
 
 	// return game in shape elm expects

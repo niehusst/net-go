@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log"
 	"net-go/server/backend/constants"
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/handler/router"
 	"net-go/server/backend/services"
+	"net-go/server/backend/subscriptions"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -41,9 +43,10 @@ func main() {
 		),
 	}
 	p := provider.Provider{
-		R:           gin.Default(),
-		UserService: services.NewUserService(userDeps),
-		GameService: services.NewGameService(gameDeps),
+		R:             gin.Default(),
+		UserService:   services.NewUserService(userDeps),
+		GameService:   services.NewGameService(gameDeps),
+		Subscriptions: make(subscriptions.GameSubscriptions),
 	}
 
 	// TODO: do this separately...?
