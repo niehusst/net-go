@@ -2,12 +2,14 @@ package endpoints
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/model"
@@ -20,8 +22,39 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+		defer cancel()
+
+		c.Request = c.Request.WithContext(ctx)
+		done := make(chan struct{})
+		panicChan := make(chan interface{})
+
+		go func() {
+			defer func() {
+				if p := recover(); p != nil {
+					panicChan <- p
+				}
+			}()
+			c.Next()
+			close(done)
+		}()
+
+		select {
+		case <-ctx.Done():
+			c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{"error": "request timed out"})
+		case p := <-panicChan:
+			panic(p)
+		case <-done:
+		}
+	}
+}
+
 func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mocks.MockUserService, ctxUser *model.User) *gin.Engine {
 	router := gin.Default()
+	// timeout middleware to make tests timeout for long requests (e.g. longpoll)
+	router.Use(TimeoutMiddleware(1 * time.Second))
 
 	p := provider.Provider{
 		R:             router,
@@ -44,6 +77,7 @@ func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mo
 	router.POST("/api/games/:id", rhandler.UpdateGame)
 	router.GET("/api/games/", rhandler.ListGamesByUser)
 	router.DELETE("/api/games/:id", rhandler.DeleteGame)
+
 	return router
 }
 
@@ -985,5 +1019,26 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		assert.Equal(t, mockReqBody, rrPoll.Body.Bytes())
 		assert.Equal(t, mockReqBody, rrUpdate.Body.Bytes())
 		mockGameService.AssertExpectations(t)
+	})
+	t.Run("long poll timesout", func(t *testing.T) {
+		user := model.User{
+			Username: "tim",
+			Password: "pwnd",
+		}
+		user.ID = 123
+
+		// record responses
+		rrPoll := httptest.NewRecorder()
+		router := buildGameRouter(nil, nil, &user)
+
+		// do request
+		reqPoll, err := http.NewRequest(http.MethodGet, "/api/games/123/long", bytes.NewBuffer([]byte{}))
+		assert.NoError(t, err)
+
+		// let long poll hang async until update req
+		router.ServeHTTP(rrPoll, reqPoll)
+
+		// validate
+		assert.Equal(t, http.StatusGatewayTimeout, rrPoll.Code)
 	})
 }
