@@ -3,13 +3,15 @@ package provider
 import (
 	"github.com/gin-gonic/gin"
 	"net-go/server/backend/services"
+	"net-go/server/backend/subscriptions"
 )
 
 // servicer provider
 type Provider struct {
-	R           *gin.Engine
-	UserService services.IUserService
-	GameService services.IGameService
+	R             *gin.Engine
+	UserService   services.IUserService
+	GameService   services.IGameService
+	Subscriptions subscriptions.GameSubscriptions
 }
 
 func (p *Provider) MigrateAll() error {

@@ -35,6 +35,7 @@ func SetRouter(p provider.Provider) {
 	gameGroup := router.Group("/api/games")
 	gameGroup.Use(middleware.AuthUser(handler))
 	gameGroup.GET("/:id", handler.GetGame)
+	gameGroup.GET("/:id/long", handler.GetGameLongPoll)
 	gameGroup.GET("/", handler.ListGamesByUser)
 	gameGroup.POST("/:id", handler.UpdateGame)
 	gameGroup.POST("/", handler.CreateGame)
@@ -45,4 +46,7 @@ func SetRouter(p provider.Provider) {
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
+
+	// handle 500 errors gracefully
+	router.Use(gin.Recovery())
 }

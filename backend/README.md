@@ -23,6 +23,21 @@ You can run the server on localhost by running in the terminal (also from projec
 go run main.go
 ```
 
+## Testing
+
+Entire test suite can be run via npm script:
+```
+npm run test-go
+```
+
+To run 1 test suite at a time, you can pass the `-run` flag to `go test` in the npm script:
+
+``` sh
+npm run test-go -- -run TestGetGameIntegration
+# or just 1 test from a selected suite
+npm run test-go -- -run TestGetGameIntegration/success
+```
+
 ## Debugging
 
 I've been using [delve](https://github.com/go-delve/delve) for debugging in go.

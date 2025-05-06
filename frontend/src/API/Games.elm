@@ -1,4 +1,4 @@
-module API.Games exposing (CreateGameResponse, createGame, deleteGame, getGame, listGamesByUser, updateGame)
+module API.Games exposing (CreateGameResponse, createGame, deleteGame, getGame, getGameLongPoll, listGamesByUser, updateGame)
 
 import Error exposing (CustomWebData, HttpErrorResponse, expectJsonWithError)
 import Http
@@ -33,6 +33,26 @@ getGame gameId msgType =
         , expect =
             respDecoder
                 |> expectJsonWithError (RemoteData.fromResult >> msgType)
+        }
+
+
+{-| Fetches a game from backend by path param ID. Server waits
+to return the game until it has been updated since request time.
+
+gameId - ID of game to fetch
+msgType - the Msg type to trigger on completion via Cmd
+
+-}
+getGameLongPoll : String -> (Result HttpErrorResponse Model.Game.Game -> msg) -> Cmd msg
+getGameLongPoll gameId msgType =
+    let
+        respDecoder : Decoder Model.Game.Game
+        respDecoder =
+            Decode.field "game" gameDecoder
+    in
+    Http.get
+        { url = prefix ++ "/" ++ gameId ++ "/long"
+        , expect = expectJsonWithError msgType respDecoder
         }
 
 
