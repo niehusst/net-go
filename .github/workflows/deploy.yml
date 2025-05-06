@@ -1,4 +1,4 @@
-name: 'Deploy website'
+name: 'Deploy website from tag'
 
 on:
   workflow_dispatch:
