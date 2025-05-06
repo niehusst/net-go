@@ -570,10 +570,18 @@ update msg model =
         ( UpdateGameResponse resp, _ ) ->
             case resp of
                 Ok game ->
+                    let
+                        cmd =
+                            if shouldAwaitUpdate game then
+                                getGameLongPoll model.gameId AwaitedUpdateResponse
+
+                            else
+                                Cmd.none
+                    in
                     ( { model
                         | clientGameData = Just game
                       }
-                    , getGameLongPoll model.gameId AwaitedUpdateResponse
+                    , cmd
                     )
 
                 Err error ->
