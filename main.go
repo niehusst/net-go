@@ -25,7 +25,7 @@ func main() {
 
 	// create service provider
 	baseRepoDeps := services.BaseRepoDeps{
-		DbString: constants.GetDatabaseURL(),
+		DbString: constants.GetDatabaseURI(),
 		Config:   &gorm.Config{},
 	}
 	userDeps := services.UserServiceDeps{

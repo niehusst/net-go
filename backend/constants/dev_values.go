@@ -1,6 +1,7 @@
 package constants
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -12,6 +13,14 @@ func LoadEnv() error {
 		log.Fatal("Error loading .env file")
 	}
 	return err
+}
+
+func getEnvOrPanic(key string) string {
+	envVal := os.Getenv(key)
+	if envVal == "" {
+		panic(fmt.Sprintf("Failed to find env var %s\n", key))
+	}
+	return envVal
 }
 
 func getEnvWithDefault(key string, defaultVal string) string {
@@ -34,6 +43,6 @@ func GetPort() string {
 	return getEnvWithDefault("PORT", "8080")
 }
 
-func GetDatabaseURL() string {
-	return getEnvWithDefault("DATABASE_URL", "netgo.gorm.db")
+func GetDatabaseURI() string {
+	return getEnvOrPanic("DATABASE_URI")
 }
