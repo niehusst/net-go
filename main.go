@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net-go/server/backend/constants"
 	"net-go/server/backend/handler/provider"
@@ -21,11 +22,17 @@ import (
 func main() {
 	constants.LoadEnv()
 	port := ":" + constants.GetPort()
-	log.Println("Starting server...\nListening at port", port)
+	log.Println("Starting server...\n")
 
 	// create service provider
+	dbStr := fmt.Sprintf(
+		"%s:%s@tcp(db:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		constants.GetDatabaseUserUsername(),
+		constants.GetDatabaseUserPassword(),
+		constants.GetDatabaseName(),
+	)
 	baseRepoDeps := services.BaseRepoDeps{
-		DbString: constants.GetDatabaseURI(),
+		DbString: dbStr,
 		Config:   &gorm.Config{},
 	}
 	userDeps := services.UserServiceDeps{
@@ -62,6 +69,8 @@ func main() {
 		Addr:    port,
 		Handler: p.R,
 	}
+
+	log.Printf("Listening on port %d", port)
 
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below

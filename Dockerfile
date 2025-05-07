@@ -6,10 +6,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y nodejs npm
 
 # download go deps
-# cgo required for go sqlite compilation to work; but this 
+# cgo required for go compilation to work; but this
 # requires glibc dylib to exist while building, requiring
 # final image to have glibc available
-ENV CGO_ENABLED=1 
+ENV CGO_ENABLED=1
 COPY go.mod go.sum .
 RUN go mod download
 
@@ -40,7 +40,6 @@ RUN npm run make-css
 
 
 ### setup server configs and copy build artifacts ###
-#FROM alpine:latest
 # required to use glibc dylib compiled binary
 FROM frolvlad/alpine-glibc:latest
 WORKDIR /root

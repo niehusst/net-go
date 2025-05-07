@@ -43,6 +43,14 @@ func GetPort() string {
 	return getEnvWithDefault("PORT", "8080")
 }
 
-func GetDatabaseURI() string {
-	return getEnvOrPanic("DATABASE_URI")
+func GetDatabaseUserUsername() string {
+	return getEnvOrPanic("DB_USER")
+}
+
+func GetDatabaseUserPassword() string {
+	return getEnvOrPanic("DB_PASS")
+}
+
+func GetDatabaseName() string {
+	return getEnvOrPanic("MARIADB_DATABASE")
 }
