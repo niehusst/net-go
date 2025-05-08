@@ -42,7 +42,7 @@ jobs:
           body_base64: ${{ steps.info.outputs.changelog_base64 }}
       
   deploy:
-    needs: release-docker
+    needs: docker-release
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
