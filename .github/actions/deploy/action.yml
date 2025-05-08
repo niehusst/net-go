@@ -30,22 +30,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: appleboy/scp-action@v1
-      with:
-        host: ${{ inputs.ssh_host }}
-        username: ${{ inputs.ssh_user }}
-        key: ${{ inputs.ssh_key }}
-        source: compose.yaml
-        target: /home/${{ inputs.ssh_user }}/new-compose.yaml
-    - run: echo '${{ inputs.docker_env_b64 }}' | base64 -di > .env
-      shell: bash
-    - uses: appleboy/scp-action@v1
-      with:
-        host: ${{ inputs.ssh_host }}
-        username: ${{ inputs.ssh_user }}
-        key: ${{ inputs.ssh_key }}
-        source: .env
-        target: /home/${{ inputs.ssh_user }}/.env.new
     - run: ${{ github.action_path }}/run.bash
       shell: bash
       env:
@@ -56,3 +40,4 @@ runs:
         SSH_KNOWN_HOSTS_B64: ${{ inputs.ssh_known_hosts_b64 }}
         DOCKER_USER: ${{ inputs.docker_user }}
         AUTH_TOKEN: ${{ inputs.auth_token }}
+        ENV_B64: ${{ inputs.docker_env_b64 }}
