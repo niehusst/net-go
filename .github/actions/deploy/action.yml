@@ -34,7 +34,7 @@ runs:
       with:
         host: ${{ inputs.ssh_host }}
         username: ${{ inputs.ssh_user }}
-        password: ${{ inputs.ssh_key }}
+        key: ${{ inputs.ssh_key }}
         source: compose.yaml
         target: /home/${{ inputs.ssh_user }}/new-compose.yaml
     - run: echo '$ENV_B64' | base64 -d > .env
@@ -45,7 +45,7 @@ runs:
       with:
         host: ${{ inputs.ssh_host }}
         username: ${{ inputs.ssh_user }}
-        password: ${{ inputs.ssh_key }}
+        key: ${{ inputs.ssh_key }}
         source: .env
         target: /home/${{ inputs.ssh_user }}/.env.new
     - run: ${{ github.action_path }}/run.bash
