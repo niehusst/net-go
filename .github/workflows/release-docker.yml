@@ -55,3 +55,4 @@ jobs:
           ssh_known_hosts_b64: ${{ secrets.SSH_KNOWN_HOSTS_B64 }}
           auth_token: ${{ secrets.GITHUB_TOKEN }}
           docker_user: ${{ github.actor }}
+          docker_env_b64: ${{ secrets.ENV_PROD_B64 }}

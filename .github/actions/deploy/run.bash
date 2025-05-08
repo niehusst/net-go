@@ -5,11 +5,6 @@ install -m 600 -D /dev/null ~/.ssh/id_ed25519
 echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
 echo "$SSH_KNOWN_HOSTS_B64" | base64 -d > ~/.ssh/known_hosts
 
-# copy (possibly) new version of docker compose file over + secrets to spin it up
-echo "$ENV_PROD_B64" | base64 -d > .env
-scp compose.yaml $SSH_HOST:/home/$SSH_USER/new-compose.yaml
-scp .env $SSH_HOST:/home/$SSH_USER/.env.new
-
 # run docker restart over ssh
 IMAGE_NAME="ghcr.io/niehusst/net-go"
 CONTAINER_NAME="net_go"
