@@ -1,15 +1,12 @@
 #!/usr/bin/env sh
 
+IMG_NAME=netgo:latest
+
 docker build --network=host \
-  -t netgo:latest \
+  -t $IMG_NAME \
   --build-arg ENV_FILE=.env \
-  .
-docker run -d \
-  --name net_go \
-  -p 8080:8080 \
-  -v netgo_db:/root \
-  netgo:latest
+  . &&
+docker compose up -d
 
 # kill with:
-# docker stop net_go
-# docker rm net_go
+# NETGO_IMAGE=netgo:latest docker compose down

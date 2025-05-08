@@ -301,6 +301,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	}
 
 	if err := rhandler.Provider.GameService.Create(c, game); err != nil {
+		log.Printf("Error creating game: %v\n", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})

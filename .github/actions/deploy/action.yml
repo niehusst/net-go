@@ -23,6 +23,9 @@ inputs:
   docker_user:
     description: ghcr docker username
     required: true
+  docker_env_b64:
+    description: b64 encoded env file containing docker compose env vars
+    required: true
 
 runs:
   using: composite
@@ -37,3 +40,4 @@ runs:
         SSH_KNOWN_HOSTS_B64: ${{ inputs.ssh_known_hosts_b64 }}
         DOCKER_USER: ${{ inputs.docker_user }}
         AUTH_TOKEN: ${{ inputs.auth_token }}
+        ENV_B64: ${{ inputs.docker_env_b64 }}
