@@ -75,5 +75,5 @@ func (c *ColorChoice) Scan(value interface{}) error {
 }
 
 func (ColorChoice) GormDataType() string {
-	return "varchar"
+	return "varchar(32)"
 }

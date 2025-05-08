@@ -7,8 +7,6 @@ The backend is mostly a simple Gin CRUD API with a database and
 some basic HTML file serving (the actual HTML layout
 files are stored under the `frontend/` directory, and are
 defined in Elm, along with SPA page routing).
-It may also end up being a WebSocket proxy between players
-if I don't find a good P2P solution.
 
 ## Dev setup
 
@@ -52,8 +50,16 @@ Once using delve, you can do `help [cmd]` to get more info on debugger tools.
 
 ## Database
 
-I've decided to use a sqlite database since it's easy and open-source (creative commons, but whatever).
-I've gitignored the database file, since committing the user passwords table would be a bad idea.
+I switched from sqlite to mariadb because creating a docker volume for just the db file
+when it what in the same container as the app code + binary was giving me a headache.
+So the local and prod apps are configured to run with mariadb now.
+
+Your first time running the app (or if you want to wipe your db), you can run an npm
+script to create the dev db and a dummy user to connect with:
+
+``` sh
+npm run reset-db
+```
 
 Migrations are currently set to be run on server startup. We'll see how scalable of a solution that is.
 

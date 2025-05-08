@@ -17,7 +17,8 @@
     "make-elm-prod": "npm run make-elm-main -- --optimize && npm run make-elm-worker -- --optimize && npm run make-elm-minify",
     "make-go": "go build -o ./run main.go",
     "make-css": "npx tailwindcss -i ./frontend/static/css/raw.css -o ./frontend/static/css/index.css",
-    "clean": "go clean -cache"
+    "clean": "go clean -cache",
+    "reset-db": "mariadb -u root -p < db/init.sql"
   },
   "devDependencies": {
     "elm-format": "^0.8.5",

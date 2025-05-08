@@ -11,9 +11,9 @@ env:
   IMAGE_NAME: ghcr.io/${{ github.actor }}/net-go
 
 jobs:
-  release:
+  docker-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     permissions:
       # needed for ghcr docker push access
       packages: write
@@ -41,6 +41,11 @@ jobs:
           tag: ${{ steps.info.outputs.tag }}
           body_base64: ${{ steps.info.outputs.changelog_base64 }}
       
+  deploy:
+    needs: release-docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - uses: ./.github/actions/deploy
         with:
           tag: latest
@@ -50,3 +55,4 @@ jobs:
           ssh_known_hosts_b64: ${{ secrets.SSH_KNOWN_HOSTS_B64 }}
           auth_token: ${{ secrets.GITHUB_TOKEN }}
           docker_user: ${{ github.actor }}
+          docker_env_b64: ${{ secrets.ENV_PROD_B64 }}

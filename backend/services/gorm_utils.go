@@ -1,7 +1,7 @@
 package services
 
 import (
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +21,7 @@ type BaseRepoDeps struct {
 }
 
 func OpenDbConnection(dbConnectionString string, config *gorm.Config) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(dbConnectionString), config)
+	db, err := gorm.Open(mysql.Open(dbConnectionString), config)
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
