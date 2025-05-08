@@ -54,3 +54,7 @@ func GetDatabaseUserPassword() string {
 func GetDatabaseName() string {
 	return getEnvOrPanic("MARIADB_DATABASE")
 }
+
+func GetDatabaseHost() string {
+	return getEnvOrPanic("DB_HOST")
+}
