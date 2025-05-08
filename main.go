@@ -22,7 +22,7 @@ import (
 func main() {
 	constants.LoadEnv()
 	port := ":" + constants.GetPort()
-	log.Println("Starting server...\n")
+	log.Println("Starting server...")
 
 	// create service provider
 	dbStr := fmt.Sprintf(
@@ -70,7 +70,7 @@ func main() {
 		Handler: p.R,
 	}
 
-	log.Printf("Listening on port %d", port)
+	log.Println("Listening on port", port)
 
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
