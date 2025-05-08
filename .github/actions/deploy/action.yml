@@ -37,10 +37,8 @@ runs:
         key: ${{ inputs.ssh_key }}
         source: compose.yaml
         target: /home/${{ inputs.ssh_user }}/new-compose.yaml
-    - run: echo '$ENV_B64' | base64 -d > .env
+    - run: echo '${{ inputs.docker_env_b64 }}' | base64 -di > .env
       shell: bash
-      env:
-        ENV_B64: ${{ inputs.docker_env_b64 }}
     - uses: appleboy/scp-action@v1
       with:
         host: ${{ inputs.ssh_host }}
