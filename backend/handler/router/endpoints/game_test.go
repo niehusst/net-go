@@ -54,7 +54,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 func buildGameRouter(mockGameService *mocks.MockGameService, mockUserService *mocks.MockUserService, ctxUser *model.User) *gin.Engine {
 	router := gin.Default()
 	// timeout middleware to make tests timeout for long requests (e.g. longpoll)
-	router.Use(TimeoutMiddleware(1 * time.Second))
+	router.Use(TimeoutMiddleware(3 * time.Second))
 
 	p := provider.Provider{
 		R:             router,

@@ -26,9 +26,10 @@ func main() {
 
 	// create service provider
 	dbStr := fmt.Sprintf(
-		"%s:%s@tcp(db:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		"%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		constants.GetDatabaseUserUsername(),
 		constants.GetDatabaseUserPassword(),
+		constants.GetDatabaseHost(),
 		constants.GetDatabaseName(),
 	)
 	baseRepoDeps := services.BaseRepoDeps{
