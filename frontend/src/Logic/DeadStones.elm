@@ -156,8 +156,6 @@ getDeadStones bData seed =
 
                     else
                         kernel positionsTail controlScores boardData deadStoneIndeces seen
-
-        -- TODO: get dead nearby chains? do need to do that?
     in
     kernel
         (List.range 0 boardLen)

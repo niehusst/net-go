@@ -26,7 +26,7 @@ func TestGameServiceGet(t *testing.T) {
 			History:     []types.Move{},
 			IsOver:      false,
 			Score:       types.Score{},
-			BlackPlayer: *mockUser, // TODO: don't use same user for both?
+			BlackPlayer: *mockUser,
 			WhitePlayer: *mockUser,
 		}
 		mockGameResp.ID = uid
