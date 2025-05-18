@@ -68,6 +68,12 @@ func (c *ColorChoice) Scan(value interface{}) error {
 			return err
 		}
 		*c = color
+	case []uint8:
+		color, err := StringToColorChoice(string(v))
+		if err != nil {
+			return err
+		}
+		*c = color
 	default:
 		return fmt.Errorf("unsupported Scan value type for ColorChoice: %T", value)
 	}
