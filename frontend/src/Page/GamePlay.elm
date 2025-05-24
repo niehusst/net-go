@@ -184,11 +184,26 @@ gamePlayView game model =
     in
     div [ class "p-5 flex flex-col gap-4" ]
         [ viewWaitForOpponent model.activeTurn
+        , viewGameMetaState game model.gameId
         , viewBuildBoard game
         , viewAlert model
         , viewPlayOptions
         ]
 
+viewGameMetaState : Game -> String -> Html Msg
+viewGameMetaState game gameId =
+    div [ class "border-solid border-2 border-black p-3 flex flex-col gap-3" ]
+        [ p [ class "font-bold" ] [ text <| "#" ++ gameId ]
+        , div
+            [ class "flex flex-row gap-3" ]
+            [ p [ class "" ] [ text <| game.whitePlayerName ++ " (W)" ]
+            , p [ class "" ] [ text "vs." ]
+            , p [ class "" ] [ text <| game.blackPlayerName ++ " (B)" ]
+            ]
+        , div
+            [ class "" ]
+            [ p [ class "" ] [ text <| "Current Score: " ++ Score.scoreToString game.score ] ]
+        ]
 
 viewAlert : Model -> Html Msg
 viewAlert model =
