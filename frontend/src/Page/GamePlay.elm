@@ -193,7 +193,7 @@ gamePlayView game model =
 viewGameMetaState : Game -> String -> Html Msg
 viewGameMetaState game gameId =
     div [ class "border-solid border-2 border-black p-3 flex flex-col gap-3" ]
-        [ p [ class "font-bold" ] [ text <| "#" ++ gameId ]
+        [ p [ class "font-bold" ] [ text <| "Game ID#" ++ gameId ]
         , div
             [ class "flex flex-row gap-3" ]
             [ p [ class "" ] [ text <| game.whitePlayerName ++ " (W)" ]
