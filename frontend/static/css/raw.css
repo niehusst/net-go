@@ -6,11 +6,6 @@
  * The raw css source that tailwind compiles index.css from
  */
 
-/* makes sure footer sits at bottom of screen
-html, body {
-  height: 100%;
-}*/
-
 :root {
   --primary: #01baefff;
   --primary-highlight: #01baef99;

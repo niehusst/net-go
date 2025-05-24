@@ -183,10 +183,27 @@ gamePlayView game model =
                 text ""
     in
     div [ class "p-5 flex flex-col gap-4" ]
-        [ viewWaitForOpponent model.activeTurn
+        [ viewGameMetaState game model
         , viewBuildBoard game
         , viewAlert model
         , viewPlayOptions
+        ]
+
+
+viewGameMetaState : Game -> Model -> Html Msg
+viewGameMetaState game model =
+    div [ class "border-solid border-2 border-black py-3 px-7 w-fit flex flex-col gap-3" ]
+        [ p [ class "font-bold" ] [ text <| "Game ID#" ++ model.gameId ]
+        , div
+            [ class "flex flex-row gap-3" ]
+            [ p [ class "" ] [ text <| game.whitePlayerName ++ " (W)" ]
+            , p [ class "" ] [ text "vs." ]
+            , p [ class "" ] [ text <| game.blackPlayerName ++ " (B)" ]
+            ]
+        , viewWaitForOpponent model.activeTurn
+        , div
+            [ class "" ]
+            [ p [ class "" ] [ text <| "Current Score: " ++ Score.scoreToString game.score ] ]
         ]
 
 
@@ -214,10 +231,10 @@ viewAlert model =
 viewWaitForOpponent : Bool -> Html Msg
 viewWaitForOpponent activeTurn =
     if activeTurn then
-        text "It's your turn!"
+        text "(It's your turn!)"
 
     else
-        text "Wait for opponent to play..."
+        text "(Wait for opponent to play.)"
 
 
 viewBuildBoard : Game -> Html Msg

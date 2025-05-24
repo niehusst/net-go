@@ -644,6 +644,11 @@ video {
   height: 100vh;
 }
 
+.w-fit {
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
 .w-full {
   width: 100%;
 }
@@ -726,6 +731,11 @@ video {
   border-style: solid;
 }
 
+.border-black {
+  --tw-border-opacity: 1;
+  border-color: rgb(0 0 0 / var(--tw-border-opacity));
+}
+
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
@@ -777,6 +787,11 @@ video {
   padding-right: 1rem;
 }
 
+.px-7 {
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+}
+
 .py-1\.5 {
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
@@ -790,6 +805,11 @@ video {
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+}
+
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .py-5 {
@@ -927,11 +947,6 @@ video {
 /*
  * The raw css source that tailwind compiles index.css from
  */
-
-/* makes sure footer sits at bottom of screen
-html, body {
-  height: 100%;
-}*/
 
 :root {
   --primary: #01baefff;
