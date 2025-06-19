@@ -184,6 +184,7 @@ func (rhandler RouteHandler) GetGameLongPoll(c *gin.Context) {
 	rhandler.Provider.Subscriptions[uriParams.ID] = make(subscriptions.GameListener)
 	// await an update message
 	game := <-rhandler.Provider.Subscriptions[uriParams.ID]
+
 	// cleanup
 	close(rhandler.Provider.Subscriptions[uriParams.ID])
 	delete(rhandler.Provider.Subscriptions, uriParams.ID)
