@@ -16,7 +16,7 @@ You can launch the dev server by running `npm start`.
 
 * [Gin web framework](https://gin-gonic.com/)
 * [Elm language/platform/everything](https://elm-lang.org/)
-* [sqlite](https://www.sqlite.org/index.html)
+* [MariaDB](https://mariadb.com/)
 
 ## Acknowledgements
 
