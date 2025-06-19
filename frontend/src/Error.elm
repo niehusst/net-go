@@ -83,6 +83,9 @@ stringFromHttpError error =
 
                         Nothing ->
                             case errCode of
+                                504 ->
+                                    "Server took too long to repond; please try again later."
+
                                 500 ->
                                     "Internal server error."
 

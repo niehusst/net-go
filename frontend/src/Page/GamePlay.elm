@@ -628,12 +628,19 @@ update msg model =
                         )
 
                 Err err ->
-                    case err.httpError of
-                        Http.Timeout ->
-                            -- expected, restart long polling
+                    let
+                        retryOnTimeout =
                             ( model
                             , getGameLongPoll model.gameId AwaitedUpdateResponse
                             )
+                    in
+                    -- handle expected nginx timeouts, restart long polling
+                    case err.httpError of
+                        Http.Timeout ->
+                            retryOnTimeout
+
+                        Http.BadStatus 504 ->
+                            retryOnTimeout
 
                         _ ->
                             -- oops a real error
