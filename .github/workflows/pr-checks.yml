@@ -17,7 +17,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
       - run: |-
           npm run format-go
           if ! [ -z "$(git status -s)" ]
@@ -46,7 +45,9 @@ jobs:
     needs: lint-go
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
       - run: npm run test-go
 
   test-elm:

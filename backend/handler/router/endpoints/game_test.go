@@ -982,10 +982,13 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		assert.NoError(t, err)
 
 		// let long poll hang async until update req
-		var wg sync.WaitGroup
-		wg.Add(1)
+		var pollComplete sync.WaitGroup
+		var pollBegun sync.WaitGroup
+		pollBegun.Add(1)
+		pollComplete.Add(1)
 		go func() {
-			defer wg.Done()
+			pollBegun.Done()
+			defer pollComplete.Done()
 			router.ServeHTTP(rrPoll, reqPoll)
 		}()
 
@@ -1008,11 +1011,13 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		// do request
 		reqUpdate, err := http.NewRequest(http.MethodPost, "/api/games/123", bytes.NewBuffer(mockReqBody))
 
+		// wait for long poll to start
+		pollBegun.Wait()
 		// update call to allow poll to respond
 		router.ServeHTTP(rrUpdate, reqUpdate)
 
 		// wait for long poll goroutine to finish
-		wg.Wait()
+		pollComplete.Wait()
 		// validate
 		assert.Equal(t, 200, rrPoll.Code)
 		assert.Equal(t, 200, rrUpdate.Code)
@@ -1020,7 +1025,7 @@ func TestGetGameLongPollIntegration(t *testing.T) {
 		assert.Equal(t, mockReqBody, rrUpdate.Body.Bytes())
 		mockGameService.AssertExpectations(t)
 	})
-	t.Run("long poll timesout", func(t *testing.T) {
+	t.Run("long poll times out", func(t *testing.T) {
 		user := model.User{
 			Username: "tim",
 			Password: "pwnd",
