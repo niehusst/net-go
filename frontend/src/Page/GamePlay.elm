@@ -216,13 +216,13 @@ viewAlert model =
                     text ""
 
                 Just errorMessage ->
-                    viewErrorBanner ("Invalid move: " ++ errorMessage)
+                    viewErrorBanner errorMessage
     in
     div
-        []
+        [ class "flex flex-col gap-2" ]
         (List.map
             viewCreator
-            [ model.invalidMoveAlert
+            [ Maybe.map (\e -> "Invalid move: " ++ e) model.invalidMoveAlert
             , model.transportError
             ]
         )
