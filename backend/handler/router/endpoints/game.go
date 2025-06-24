@@ -8,6 +8,7 @@ import (
 	"net-go/server/backend/model/types"
 	"net-go/server/backend/subscriptions"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -185,11 +186,16 @@ func (rhandler RouteHandler) GetGameLongPoll(c *gin.Context) {
 	// await an update message
 	game := <-rhandler.Provider.Subscriptions[uriParams.ID]
 
+	if reflect.ValueOf(game).IsZero() {
+		// subscriber channel closed before game was sent
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
 	// cleanup
 	close(rhandler.Provider.Subscriptions[uriParams.ID])
 	delete(rhandler.Provider.Subscriptions, uriParams.ID)
 
-	// return game in shape elm expects
 	var respGame ElmGame
 	respGame.fromGame(game, *user)
 	c.JSON(http.StatusOK, gin.H{
