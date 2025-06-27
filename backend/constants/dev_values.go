@@ -43,6 +43,10 @@ func GetPort() string {
 	return getEnvWithDefault("PORT", "8080")
 }
 
+func GetOtelServiceName() string {
+	return getEnvWithDefault("OTEL_SERVICE_NAME", "net-go-server")
+}
+
 func GetDatabaseUserUsername() string {
 	return getEnvOrPanic("DB_USER")
 }

@@ -2,6 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"net-go/server/backend/constants"
 	"net-go/server/backend/handler/provider"
 	"net-go/server/backend/handler/router/endpoints"
 	"net-go/server/backend/handler/router/middleware"
@@ -24,16 +26,16 @@ func SetRouter(p provider.Provider) {
 	}
 
 	// API request routes
+	apiGroup := router.Group("/api")
 
 	// auth
-	authGroup := router.Group("/api/accounts")
+	authGroup := apiGroup.Group("/accounts")
 	authGroup.POST("/signup", handler.Signup)
 	authGroup.POST("/signin", handler.Signin)
 	authGroup.GET("/signout", handler.Signout)
 
 	// game play
-	gameGroup := router.Group("/api/games")
-	gameGroup.Use(middleware.AuthUser(handler))
+	gameGroup := apiGroup.Group("/games")
 	gameGroup.GET("/:id", handler.GetGame)
 	gameGroup.GET("/:id/long", handler.GetGameLongPoll)
 	gameGroup.GET("/", handler.ListGamesByUser)
@@ -47,6 +49,10 @@ func SetRouter(p provider.Provider) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
 
-	// handle 500 errors gracefully
-	router.Use(gin.Recovery())
+	// middlware
+	// ORDER MATTERS! middleware gets applied in reverse order
+	gameGroup.Use(middleware.AuthUser(handler))
+	apiGroup.Use(middleware.AttachLogTraceMetadata())
+	apiGroup.Use(otelgin.Middleware(constants.GetOtelServiceName()))
+	router.Use(gin.Recovery()) // handle panics gracefully 500 errors
 }

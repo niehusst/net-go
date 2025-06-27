@@ -16,13 +16,46 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hyperdxio/opentelemetry-go/otelzap"
+	"github.com/hyperdxio/opentelemetry-logs-go/exporters/otlp/otlplogs"
+	sdk "github.com/hyperdxio/opentelemetry-logs-go/sdk/logs"
+	"github.com/hyperdxio/otel-config-go/otelconfig"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func main() {
-	constants.LoadEnv()
-	port := ":" + constants.GetPort()
-	log.Println("Starting server...")
+func buildLogger() func() {
+	// Initialize otel config and use it across the entire app
+	otelShutdown, err := otelconfig.ConfigureOpenTelemetry()
+	if err != nil {
+		log.Fatalf("error setting up OTel SDK - %e", err)
+	}
+
+	ctx := context.Background()
+
+	// configure opentelemetry logger provider
+	logExporter, _ := otlplogs.NewExporter(ctx)
+	loggerProvider := sdk.NewLoggerProvider(
+		sdk.WithBatcher(logExporter),
+	)
+
+	// create new logger with opentelemetry zap core and set it globally
+	var logger *zap.Logger
+	if constants.GetDevMode() {
+		logger = zap.Must(zap.NewDevelopment(zap.Development()))
+	} else {
+		logger = zap.New(otelzap.NewOtelCore(loggerProvider))
+	}
+	zap.ReplaceGlobals(logger)
+
+	// gracefully shutdown logger to flush accumulated signals before program finish
+	return func() {
+		otelShutdown()
+		loggerProvider.Shutdown(ctx)
+	}
+}
+
+func buildProvider() provider.Provider {
 
 	// create service provider
 	dbStr := fmt.Sprintf(
@@ -63,6 +96,19 @@ func main() {
 		log.Printf("Failed to auto migrate db: %v\n", err)
 		panic("Migration failure!")
 	}
+	return p
+}
+
+func main() {
+	constants.LoadEnv()
+	port := ":" + constants.GetPort()
+	log.Println("Starting server...")
+
+	p := buildProvider()
+
+	// setup logging
+	shutdownLogger := buildLogger()
+	defer shutdownLogger()
 
 	// set routing and server config
 	router.SetRouter(p)
