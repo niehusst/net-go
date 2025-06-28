@@ -14,7 +14,7 @@
     "make-elm-worker": "elm make frontend/src/ScoringWorker.elm --output frontend/static/js/scoring-worker.js",
     "make-elm": "npm run make-elm-main && npm run make-elm-worker",
     "make-elm-minify": "./minify_elm.sh frontend/static/js/elm.js && ./minify_elm.sh frontend/static/js/scoring-worker.js",
-    "make-elm-prod": "npm run make-elm-main -- --optimize && npm run make-elm-worker -- --optimize && npm run make-elm-minify",
+    "make-elm-prod": "./make_elm_prod.sh",
     "make-go": "go build -o ./run main.go",
     "make-css": "npx tailwindcss -i ./frontend/static/css/raw.css -o ./frontend/static/css/index.css",
     "clean": "go clean -cache",

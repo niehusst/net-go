@@ -1,9 +1,9 @@
 package endpoints
 
 import (
-	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/binding"
+	"net-go/server/backend/logger"
 	"net-go/server/backend/model"
 	"net-go/server/backend/model/types"
 	"net-go/server/backend/subscriptions"
@@ -30,7 +30,7 @@ func parseGameIdUriParam(c *gin.Context) (*gameUri, error) {
 	// bind uri params
 	var uriParams gameUri
 	if err := c.ShouldBindUri(&uriParams); err != nil {
-		log.Printf("Failed to parse game URI params: %v\n", err)
+		logger.Warn("Failed to parse game URI params: %v", err)
 		badReqErr := apperrors.NewBadRequest("Invalid URI parameter for game ID")
 		c.JSON(badReqErr.Status(), gin.H{
 			"error": badReqErr.Error(),
@@ -133,7 +133,7 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -148,7 +148,7 @@ func (rhandler RouteHandler) GetGame(c *gin.Context) {
 
 	game, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
 	if err != nil {
-		log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
+		logger.Debug("Error fetching game with id %d: %v", uriParams.ID, err)
 		notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
 		c.JSON(notFoundErr.Status(), gin.H{
 			"error": notFoundErr.Error(),
@@ -169,7 +169,7 @@ func (rhandler RouteHandler) GetGameLongPoll(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -208,7 +208,7 @@ func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -217,7 +217,7 @@ func (rhandler RouteHandler) ListGamesByUser(c *gin.Context) {
 
 	games, err := rhandler.Provider.GameService.ListByUser(c, user.ID)
 	if err != nil {
-		log.Printf("Error fetching games for user with id %d: %v\n", user.ID, err)
+		logger.Error("Error fetching games for user with id %d: %v", user.ID, err)
 		internal := apperrors.NewInternal()
 		c.JSON(internal.Status(), gin.H{
 			"error": internal.Error(),
@@ -243,7 +243,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -259,7 +259,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	// transform input into game model
 	game, err := req.Game.toGame(user)
 	if err != nil {
-		log.Printf("Failed to construct game model from request data\n")
+		logger.Error("Failed to construct game model from request data")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -275,7 +275,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 		game.WhitePlayerId = user.ID
 		opponentUsername = req.Game.BlackPlayerName
 	} else {
-		log.Printf("Requesting user not a member of the proposed game to create\n")
+		logger.Error("Requesting user not a member of the proposed game to create")
 		err := apperrors.NewForbidden()
 		c.JSON(err.Status(), gin.H{
 			"error": err.Error(),
@@ -285,7 +285,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 
 	opponentUser, err := rhandler.Provider.UserService.FindByUsername(c, opponentUsername)
 	if err != nil {
-		log.Printf("Opponent user not found by username\n")
+		logger.Debug("Opponent user not found by username")
 		err := apperrors.NewNotFound("User", opponentUsername)
 		c.JSON(err.Status(), gin.H{
 			"error": err.Error(),
@@ -308,7 +308,7 @@ func (rhandler RouteHandler) CreateGame(c *gin.Context) {
 	}
 
 	if err := rhandler.Provider.GameService.Create(c, game); err != nil {
-		log.Printf("Error creating game: %v\n", err.Error())
+		logger.Error("Error creating game: %v", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -331,7 +331,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -347,7 +347,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 	// transform input into game model
 	newGameValues, err := req.Game.toGame(user)
 	if err != nil {
-		log.Printf("Failed to construct game model from request data\n")
+		logger.Warn("Failed to construct game model from request data")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -357,7 +357,7 @@ func (rhandler RouteHandler) UpdateGame(c *gin.Context) {
 	// fetch current value from DB
 	currentGame, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
 	if err != nil {
-		log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
+		logger.Debug("Error fetching game with id %d: %v", uriParams.ID, err)
 		notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
 		c.JSON(notFoundErr.Status(), gin.H{
 			"error": notFoundErr.Error(),
@@ -405,7 +405,7 @@ func (rhandler RouteHandler) DeleteGame(c *gin.Context) {
 	// make sure we got authed user
 	user, err := getUserFromCtx(c)
 	if err != nil {
-		log.Printf("Expected to have authed user from middleware, but found none\n")
+		logger.Debug("Expected to have authed user from middleware, but found none")
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err.Error(),
 		})
@@ -415,7 +415,7 @@ func (rhandler RouteHandler) DeleteGame(c *gin.Context) {
 	// fetch current value from DB
 	currentGame, err := rhandler.Provider.GameService.Get(c, uriParams.ID)
 	if err != nil {
-		log.Printf("Error fetching game with id %d: %v\n", uriParams.ID, err)
+		logger.Debug("Error fetching game with id %d: %v", uriParams.ID, err)
 		notFoundErr := apperrors.NewNotFound("Game", strconv.FormatUint(uint64(uriParams.ID), 10))
 		c.JSON(notFoundErr.Status(), gin.H{
 			"error": notFoundErr.Error(),

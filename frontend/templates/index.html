@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+
+    <script src="//www.unpkg.com/@hyperdx/browser@0.21.0/build/index.js"></script>
   </head>
 
   <body>
@@ -26,6 +28,14 @@
       // listen for calls to `sendScoreGame` and pass along to web worker
       app.ports.sendScoreGame.subscribe(function (game) {
         worker.postMessage({ type: "score", value: game });
+      });
+
+      app.ports.startLogger.subscribe(function () {
+        window.HyperDX.init({
+          apiKey: '9bc2ea6e-ad5a-4564-acd3-ba36a0a1fd2c',
+          service: 'net-go-client',
+          tracePropagationTargets: [/playonlinego.xyz\/api/i],
+        });
       });
 
       // listen for `returnScoreGame` responses from web worker and forward to Elm.Main app
