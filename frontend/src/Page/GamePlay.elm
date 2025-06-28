@@ -16,9 +16,9 @@ import Model.Game as Game exposing (..)
 import Model.Move as Move exposing (..)
 import Model.Piece as Piece exposing (..)
 import Model.Score as Score
+import Ports.Scoring exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import RemoteData
 import Route exposing (routeToString)
-import Ports.Scoring exposing (decodeGameFromValue, receiveReturnedGame, sendScoreGame)
 import Svg exposing (circle, svg)
 import Svg.Attributes as SAtts
 import View.Error exposing (viewErrorBanner)

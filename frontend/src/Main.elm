@@ -296,6 +296,7 @@ init maybeUserData url navKey =
         gatherTelemetry =
             if isProduction then
                 startLogger ()
+
             else
                 Cmd.none
     in

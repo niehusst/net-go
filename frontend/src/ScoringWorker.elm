@@ -4,8 +4,8 @@ import Json.Decode exposing (Value)
 import Logic.Scoring exposing (scoreGame)
 import Model.Game as Game
 import Platform
-import Random
 import Ports.Scoring exposing (decodeGameFromValue, receiveSentGame, returnScoreGame)
+import Random
 
 
 type Msg
