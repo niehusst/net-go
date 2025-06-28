@@ -42,9 +42,9 @@ func buildLogger() func() {
 	// create new logger with opentelemetry zap core and set it globally
 	var logger *zap.Logger
 	if constants.GetDevMode() {
-		logger = zap.Must(zap.NewDevelopment(zap.Development()))
+		logger = zap.Must(zap.NewDevelopment(zap.Development(), zap.AddCallerSkip(1)))
 	} else {
-		logger = zap.New(otelzap.NewOtelCore(loggerProvider))
+		logger = zap.New(otelzap.NewOtelCore(loggerProvider), zap.AddCallerSkip(1))
 	}
 	zap.ReplaceGlobals(logger)
 

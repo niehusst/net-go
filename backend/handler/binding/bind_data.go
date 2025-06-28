@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"log"
 	"net-go/server/backend/apperrors"
+	"net-go/server/backend/logger"
 )
 
 /* helper utility for network data binding error handling */
@@ -26,10 +26,10 @@ type invalidArgument struct {
  * @param req - any request data struct
  * @return - whether or not data was successfully bound
  */
-func BindData(c *gin.Context, req interface{}) bool {
+func BindData(c *gin.Context, req any) bool {
 	// attempt bind json data to struct
 	if err := c.ShouldBindJSON(req); err != nil {
-		log.Printf("Error binding data: %+v\n", err)
+		logger.Debug("Error binding data: %+v\n", err)
 
 		if errs, ok := err.(validator.ValidationErrors); ok {
 			var invalidArgs []invalidArgument
