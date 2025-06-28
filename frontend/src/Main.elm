@@ -3,6 +3,7 @@ module Main exposing (main)
 import API.Accounts exposing (doLogout)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Constants exposing (isProduction)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
 import Http
@@ -18,6 +19,7 @@ import Page.JoinGame as JoinGame
 import Page.NotFound as NotFound
 import Page.SignIn as SignIn
 import Page.SignUp as SignUp
+import Ports.Logger exposing (startLogger)
 import Route exposing (Route, pushUrl)
 import Session exposing (Session)
 import Url exposing (Url)
@@ -290,8 +292,14 @@ init maybeUserData url navKey =
             , session = session
             , navKey = navKey
             }
+
+        gatherTelemetry =
+            if isProduction then
+                startLogger ()
+            else
+                Cmd.none
     in
-    initCurrentPage ( model, Cmd.none )
+    initCurrentPage ( model, gatherTelemetry )
 
 
 initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

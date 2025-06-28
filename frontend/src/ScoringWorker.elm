@@ -5,7 +5,7 @@ import Logic.Scoring exposing (scoreGame)
 import Model.Game as Game
 import Platform
 import Random
-import ScoringPorts exposing (decodeGameFromValue, receiveSentGame, returnScoreGame)
+import Ports.Scoring exposing (decodeGameFromValue, receiveSentGame, returnScoreGame)
 
 
 type Msg
