@@ -28,11 +28,21 @@ func SetRouter(p provider.Provider) {
 	// API request routes
 	apiGroup := router.Group("/api")
 
+	// global middlware
+	router.Use(gin.Recovery()) // handle panics gracefully 500 errors
+	apiGroup.Use(otelgin.Middleware(constants.GetOtelServiceName()))
+	apiGroup.Use(middleware.AttachLogTraceMetadata())
+
+	// -- UNAUTHENTICATED ROUTES --
+
 	// auth
 	authGroup := apiGroup.Group("/accounts")
 	authGroup.POST("/signup", handler.Signup)
 	authGroup.POST("/signin", handler.Signin)
 	authGroup.GET("/signout", handler.Signout)
+
+	// -- AUTHENTICATED ROUTES --
+	apiGroup.Use(middleware.AuthUser(handler))
 
 	// game play
 	gameGroup := apiGroup.Group("/games")
@@ -48,11 +58,4 @@ func SetRouter(p provider.Provider) {
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
-
-	// middlware
-	// ORDER MATTERS! middleware gets applied in reverse order
-	gameGroup.Use(middleware.AuthUser(handler))
-	apiGroup.Use(middleware.AttachLogTraceMetadata())
-	apiGroup.Use(otelgin.Middleware(constants.GetOtelServiceName()))
-	router.Use(gin.Recovery()) // handle panics gracefully 500 errors
 }
