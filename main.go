@@ -59,8 +59,6 @@ func buildLogger() func() {
 }
 
 func buildProvider() provider.Provider {
-
-	// create service provider
 	dbStr := fmt.Sprintf(
 		"%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		constants.GetDatabaseUserUsername(),
@@ -68,21 +66,21 @@ func buildProvider() provider.Provider {
 		constants.GetDatabaseHost(),
 		constants.GetDatabaseName(),
 	)
-	baseRepoDeps := services.BaseRepoDeps{
+	baseRepoDeps := &services.BaseRepoDeps{
 		DbString: dbStr,
 		Config:   &gorm.Config{},
 	}
 	userDeps := services.UserServiceDeps{
 		UserRepository: services.NewUserRepository(
 			&services.UserRepoDeps{
-				BaseRepoDeps: baseRepoDeps,
+				BaseDeps: baseRepoDeps,
 			},
 		),
 	}
 	gameDeps := services.GameServiceDeps{
 		GameRepository: services.NewGameRepository(
 			&services.GameRepoDeps{
-				BaseRepoDeps: baseRepoDeps,
+				BaseDeps: baseRepoDeps,
 			},
 		),
 	}

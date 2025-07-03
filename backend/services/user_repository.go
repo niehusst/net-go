@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"net-go/server/backend/instrumentation"
 	"net-go/server/backend/model"
 
 	"gorm.io/gorm/clause"
@@ -26,38 +27,49 @@ type UserRepository struct {
 }
 
 type UserRepoDeps struct {
-	BaseRepoDeps
+	BaseDeps *BaseRepoDeps
 }
 
 func NewUserRepository(deps *UserRepoDeps) IUserRepository {
-	db := OpenDbConnection(deps.DbString, deps.Config)
-
 	return &UserRepository{
-		BaseRepository: BaseRepository{Db: db},
+		BaseRepository: NewBaseRepository(deps.BaseDeps),
 	}
 }
 
 func (u *UserRepository) FindByID(ctx context.Context, id uint) (*model.User, error) {
+	ctx, endSpan := instrumentation.StartDbTrace("UserRepository.FindByID")
+	defer endSpan()
 	var user model.User
-	err := u.Db.Preload(clause.Associations).First(&user, id).Error
+	err := u.Db.WithContext(ctx).
+		Preload(clause.Associations).
+		First(&user, id).Error
 
 	return &user, err
 }
 
 func (u *UserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+	ctx, endSpan := instrumentation.StartDbTrace("UserRepository.FindByUsername")
+	defer endSpan()
 	var user model.User
-	err := u.Db.Preload(clause.Associations).First(&user, "username = ?", username).Error
+	err := u.Db.WithContext(ctx).
+		Preload(clause.Associations).
+		First(&user, "username = ?", username).
+		Error
 
 	return &user, err
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *model.User) error {
-	err := u.Db.Create(user).Error
+	ctx, endSpan := instrumentation.StartDbTrace("UserRepository.Create")
+	defer endSpan()
+	err := u.Db.WithContext(ctx).Create(user).Error
 	return err
 }
 
 func (u *UserRepository) Update(ctx context.Context, user *model.User) error {
-	err := u.Db.Save(user).Error
+	ctx, endSpan := instrumentation.StartDbTrace("UserRepository.Update")
+	defer endSpan()
+	err := u.Db.WithContext(ctx).Save(user).Error
 	return err
 }
 
