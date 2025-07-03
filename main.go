@@ -28,13 +28,16 @@ func buildLogger() func() {
 	// Initialize otel config and use it across the entire app
 	otelShutdown, err := otelconfig.ConfigureOpenTelemetry()
 	if err != nil {
-		log.Fatalf("error setting up OTel SDK - %e", err)
+		log.Fatalf("error setting up OTel SDK: %e", err)
 	}
 
 	ctx := context.Background()
 
 	// configure opentelemetry logger provider
-	logExporter, _ := otlplogs.NewExporter(ctx)
+	logExporter, err := otlplogs.NewExporter(ctx)
+	if err != nil {
+		log.Fatalf("OTLP exporter init failed: %e", err)
+	}
 	loggerProvider := sdk.NewLoggerProvider(
 		sdk.WithBatcher(logExporter),
 	)

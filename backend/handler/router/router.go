@@ -29,7 +29,6 @@ func SetRouter(p provider.Provider) {
 	apiGroup := router.Group("/api")
 
 	// global middlware
-	router.Use(gin.Recovery()) // handle panics gracefully 500 errors
 	apiGroup.Use(otelgin.Middleware(constants.GetOtelServiceName()))
 	apiGroup.Use(middleware.AttachLogTraceMetadata())
 
