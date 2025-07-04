@@ -33,7 +33,7 @@ RUN curl -fsSL https://github.com/elm/compiler/releases/download/0.19.1/binary-f
 COPY package.json package-lock.json .
 RUN npm ci
 
-COPY tailwind.config.js minify_elm.sh elm.json .
+COPY tailwind.config.js minify_elm.sh make_elm_prod.sh elm.json .
 COPY frontend/ ./frontend/
 RUN npm run make-elm-prod
 RUN npm run make-css
