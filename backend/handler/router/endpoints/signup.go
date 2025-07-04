@@ -2,10 +2,10 @@ package endpoints
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"net-go/server/backend/apperrors"
 	"net-go/server/backend/handler/binding"
 	"net-go/server/backend/handler/cookies"
+	"net-go/server/backend/logger"
 	"net/http"
 )
 
@@ -25,9 +25,8 @@ func (rhandler RouteHandler) Signup(c *gin.Context) {
 
 	user, err := rhandler.Provider.UserService.Signup(c, req.Username, req.Password)
 	if err != nil {
-		log.Printf("Failed to sign up user: %v\n", err.Error())
+		logger.Warn("Failed to sign up user: %v", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
-			"ok":    false,
 			"error": err.Error(),
 		})
 		return
@@ -36,9 +35,8 @@ func (rhandler RouteHandler) Signup(c *gin.Context) {
 	// make sure we have an updated sess token
 	err = rhandler.Provider.UserService.UpdateSessionToken(c, user)
 	if err != nil {
-		log.Printf("Failed to sign up user: %v\n", err.Error())
+		logger.Error("Failed to generate user session: %v", err.Error())
 		c.JSON(apperrors.Status(err), gin.H{
-			"ok":    false,
 			"error": err.Error(),
 		})
 		return

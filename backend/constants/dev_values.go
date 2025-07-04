@@ -1,7 +1,6 @@
 package constants
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -18,7 +17,7 @@ func LoadEnv() error {
 func getEnvOrPanic(key string) string {
 	envVal := os.Getenv(key)
 	if envVal == "" {
-		panic(fmt.Sprintf("Failed to find env var %s\n", key))
+		log.Fatalf("Failed to find env var %s\n", key)
 	}
 	return envVal
 }
@@ -41,6 +40,10 @@ func GetDomain() string {
 
 func GetPort() string {
 	return getEnvWithDefault("PORT", "8080")
+}
+
+func GetOtelServiceName() string {
+	return getEnvWithDefault("OTEL_SERVICE_NAME", "net-go-server")
 }
 
 func GetDatabaseUserUsername() string {

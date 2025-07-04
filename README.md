@@ -8,6 +8,8 @@ the corresponding directories.
 
 You can launch the dev server by running `npm start`.
 
+Telemetry aggregation via [hyperdx](https://www.hyperdx.io/chart).
+
 ## Basic game architecture
 
 ![Game UML diagram](./assets/game_uml.jpeg)

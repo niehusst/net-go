@@ -16,15 +16,49 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hyperdxio/opentelemetry-go/otelzap"
+	"github.com/hyperdxio/opentelemetry-logs-go/exporters/otlp/otlplogs"
+	sdk "github.com/hyperdxio/opentelemetry-logs-go/sdk/logs"
+	"github.com/hyperdxio/otel-config-go/otelconfig"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func main() {
-	constants.LoadEnv()
-	port := ":" + constants.GetPort()
-	log.Println("Starting server...")
+func buildLogger() func() {
+	// Initialize otel config and use it across the entire app
+	otelShutdown, err := otelconfig.ConfigureOpenTelemetry()
+	if err != nil {
+		log.Fatalf("error setting up OTel SDK: %e", err)
+	}
 
-	// create service provider
+	ctx := context.Background()
+
+	// configure opentelemetry logger provider
+	logExporter, err := otlplogs.NewExporter(ctx)
+	if err != nil {
+		log.Fatalf("OTLP exporter init failed: %e", err)
+	}
+	loggerProvider := sdk.NewLoggerProvider(
+		sdk.WithBatcher(logExporter),
+	)
+
+	// create new logger with opentelemetry zap core and set it globally
+	var logger *zap.Logger
+	if constants.GetDevMode() {
+		logger = zap.Must(zap.NewDevelopment(zap.Development(), zap.AddCallerSkip(1)))
+	} else {
+		logger = zap.New(otelzap.NewOtelCore(loggerProvider), zap.AddCallerSkip(1))
+	}
+	zap.ReplaceGlobals(logger)
+
+	// gracefully shutdown logger to flush accumulated signals before program finish
+	return func() {
+		otelShutdown()
+		loggerProvider.Shutdown(ctx)
+	}
+}
+
+func buildProvider() provider.Provider {
 	dbStr := fmt.Sprintf(
 		"%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		constants.GetDatabaseUserUsername(),
@@ -32,21 +66,21 @@ func main() {
 		constants.GetDatabaseHost(),
 		constants.GetDatabaseName(),
 	)
-	baseRepoDeps := services.BaseRepoDeps{
+	baseRepoDeps := &services.BaseRepoDeps{
 		DbString: dbStr,
 		Config:   &gorm.Config{},
 	}
 	userDeps := services.UserServiceDeps{
 		UserRepository: services.NewUserRepository(
 			&services.UserRepoDeps{
-				BaseRepoDeps: baseRepoDeps,
+				BaseDeps: baseRepoDeps,
 			},
 		),
 	}
 	gameDeps := services.GameServiceDeps{
 		GameRepository: services.NewGameRepository(
 			&services.GameRepoDeps{
-				BaseRepoDeps: baseRepoDeps,
+				BaseDeps: baseRepoDeps,
 			},
 		),
 	}
@@ -63,6 +97,19 @@ func main() {
 		log.Printf("Failed to auto migrate db: %v\n", err)
 		panic("Migration failure!")
 	}
+	return p
+}
+
+func main() {
+	constants.LoadEnv()
+	port := ":" + constants.GetPort()
+	log.Println("Starting server...")
+
+	p := buildProvider()
+
+	// setup logging
+	shutdownLogger := buildLogger()
+	defer shutdownLogger()
 
 	// set routing and server config
 	router.SetRouter(p)

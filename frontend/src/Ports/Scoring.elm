@@ -1,4 +1,4 @@
-port module ScoringPorts exposing (decodeGameFromValue, receiveReturnedGame, receiveSentGame, returnScoreGame, sendScoreGame)
+port module Ports.Scoring exposing (decodeGameFromValue, receiveReturnedGame, receiveSentGame, returnScoreGame, sendScoreGame)
 
 import Json.Decode exposing (Error(..), Value, decodeValue)
 import Model.Game as Game
