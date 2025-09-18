@@ -41,3 +41,6 @@ scoring-worker.js
 # hide env file secrets
 .env
 .env.prod
+
+# cursor
+.cursor
